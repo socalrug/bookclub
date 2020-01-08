@@ -1,0 +1,68 @@
+---
+title: "Readme"
+author: "Xi Chen"
+date: "1/7/2020"
+output: html_document
+---
+
+
+# Welcome to session 1
+
+
+#### **When**: 
+
+    Jan. 8th 6:30pm ~ 8:30pm
+
+#### **Where**: 
+
+    1083 California Ave, Irvine, ca, 92617
+
+#### **Schedule**: 
+
+    1. 6:30pm ~ 7:00pm networking and setup
+    2. 7:00pm ~ 8:30pm Chapter 1 ~ 3 discussion 
+
+ 
+  
+#### **WiFi Access**:
+
+
+    no wifi access, please be prepared and download the materials you need.
+  
+    we tried our best to find a place to hold our event, 
+    however we might be constrained by the condition of the room we have for this week. 
+    next week we might be able to move to a place with WiFi.
+
+
+#### **What to bring**
+
+
+    no projector, please bring your own laptop / pad / book
+
+
+#### **Slack channel**:
+
+    A slack channel has been set up for the book club. This will be used for general announcements but it is also a great source for you to ask questions to other participants.
+
+    If you have not created an account on our slack group, create one using the following link:
+
+    Slack Group Sign-up: 
+
+    Once you have an account, sign in (you can do it on a web browser or download an app on your phone or desktop).
+
+    Slack channel: 
+
+    The channel for the book is #rfordatascienceclub.
+
+
+
+#### **Resources**:
+
+    1. online free book 
+    
+    https://r4ds.had.co.nz/
+  
+    2. online answer to the book
+    
+    https://jrnold.github.io/r4ds-exercise-solutions/
+  
