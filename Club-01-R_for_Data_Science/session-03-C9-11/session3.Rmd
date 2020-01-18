@@ -1,0 +1,192 @@
+---
+title: "R for Data Science Book Club"
+subtitle: "Session 3"
+author: "John Peach"
+institute: "OCRUG"
+date: "2012-01-22"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+
+---
+
+# Chapter 9 
+## Tidy Data with tidyr
+
+1. Every variable must have its own column
+1. Each observation must have its own row
+1. Each value must have its own cell
+
+That is:
+1. Put each dataset in a tibble
+1. Put each variable in a column
+
+---
+# Chapter 9
+
+.pull-left[
+## Gathering
+
+Use when the column names are variables.
+
+**Gather** the columns into rows
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+table4a %>% knitr::kable(format = 'html')
+```
+]
+
+.pull-right[
+
+```{r, eval=FALSE, echo=TRUE}
+table4a %>% 
+gather(`1999`, `2000`, 
+       key = 'year', 
+       value = 'cases')
+
+table4a %>% 
+pivot_longer(c(`1999`, `2000`), 
+       names_to = 'year', 
+       values_to = 'cases')
+```
+
+```{r, echo=FALSE}
+table4a %>% 
+  tidyr::gather(`1999`, `2000`, key = 'year', value = 'cases') %>% 
+  knitr::kable(format = 'html')
+```
+]
+
+---
+
+# Chapter 9
+
+## Spreading
+
+Use when an observation is scattered across muliple rows
+
+**Spread**ing the rows into columns
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+table2 %>% knitr::kable(format = 'html')
+```
+
+
+---
+# Chapter 9
+## Spreading
+
+```{r, eval=FALSE, echo=TRUE}
+table2 %>% 
+spread(key = type, value = count)
+
+table2 %>% 
+pivot_wider(names_from = type, values_from = count)
+```
+
+```{r, echo=FALSE}
+table2 %>% 
+  tidyr::spread(key = type, value = count) %>% 
+  knitr::kable(format = 'html')
+```
+
+---
+
+# Chapter 9
+## Separate
+Pulls apart one column into multiple columns
+
+```{r, echo=FALSE}
+table3 %>% knitr::kable(format = 'html')
+```
+---
+
+# Chapter 9
+## Separate
+```{r, eval=FALSE, echo=TRUE}
+table3 %>% 
+separate(rate, into=c('cases', 'population'))
+```
+
+```{r, echo=FALSE}
+table3 %>% 
+  tidyr::separate(rate, into=c('cases', 'population')) %>% 
+  knitr::kable(format = 'html')
+```
+
+---
+# Chapter 10
+## Relational Data with dpylr
+
+**dplyr** does most of the operations of SQL
+
+1. Inner join
+    1. `dplyr::inner_join(<df>, by=<key>)`
+1. Outer join
+    1. `dpylr::full_join(<df_l>, <df_r>, by=<key>)`
+    1. `dpylr::left_join(<df_l>, <df_r>, by=<key>)`
+    1. `dpylr::right_join(<df_l>, <df_r>, by=<key>)`
+    
+`<key>` can be specified as
+1. common column name: `by='id'`
+1. named vector: `by=c('id' = 'item_id')`
+1. natural join: `by=NULL`
+
+---
+# Chapter 10
+## Filtering Joins
+
+1. `semi_join(x, y)`: keeps all observations in `x` that have a match in `y`
+1. `anti_join(x, y)`: drops all observations in `x` that have a match in `y`
+
+* Only columns from `x` are returned
+* There is no duplication of rows if `y` has multiple matches
+
+---
+# Chapter 11
+## Strings with stringr
+
+* `str_c('x', 'y')`: combine string
+* `str_sub(x, <start>, <end>)`: subsection
+* `str_sort(x, locale = 'en')`: sort
+* `str_extract(x, <RegEx>)`: extact
+* `str_split(x, <pattern>)`: split
+* `str_match(x, <RegEx>)`: returns boolean
+
+---
+# Chapter 11
+## RegEx
+
+### Metacharacters
+* `^`  True at beginning of string or after any \n if /m modifier is used
+* `.`  Match a char except \n.  Matches \n if the /m or /i modifiers are used
+* `$`  True at end of string or before any \n if /m modifier is used
+
+### Quanifiers
+* `*`  Match 0 or more times
+* `+`  Match 1 or more times
+* `?`  Match 1 or 0 times
+* `{COUNT}`  Match exactly COUNT times
+* `{MIN,}`   Match at least MIN times
+* `{MIN,MAX}` Match at least MIN but not more then MAX times
+
+---
+# Questions
+
+* 12.2.1 Q2 - Compute the `rate` for `table2`, and `table4a` ...
+* 12.2.2 Q4 - Tidy the simple tibble below. ...
+* 13.4.6 Q2 - Add the location of `origin` and `destination` ... 
+    * use `library(nycflights13)` tables `flights` and `airports`
+* 13.5.1 Q5 - What does `anti_join(flights, airports, by` ...
+* 14.2.5 Q3 - Use `str_length()` and `str_sub()` to extract ...
+* 14.3.2.1 Q2 - Given the corpus of common words in ...
+    * use `library(stringr)` `stringr::words`
+* 14.3.4.1 Q3 - Create regular expressions to find all words ...
+
+
+
