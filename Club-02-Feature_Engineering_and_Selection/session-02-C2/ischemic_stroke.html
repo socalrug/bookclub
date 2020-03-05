@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Feature Engineering and Selection</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Tyler McWatters" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <script src="libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+    <script src="libs/plotly-binding-4.9.2/plotly.js"></script>
+    <script src="libs/typedarray-0.1/typedarray.min.js"></script>
+    <script src="libs/jquery-1.11.3/jquery.min.js"></script>
+    <link href="libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+    <script src="libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+    <link href="libs/plotly-htmlwidgets-css-1.52.2/plotly-htmlwidgets.css" rel="stylesheet" />
+    <script src="libs/plotly-main-1.52.2/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Feature Engineering and Selection
+## Chapter 2 - Illistrative Example
+### Tyler McWatters
+### 3/3/2020
+
+---
+
+
+
+
+
+
+
+# Chapter Goals
+
+To present an abbreviated example of a modeling process similar to what was talked about in Chapter 1.
+
+![](ch1_process.png)
+
+This example focuses on the exploration, analysis, and feature engineering of a single model.
+
+---
+# Predicting Risk of Ischemic Stroke
+
+## Background
+
+An ischemic stroke occurs when an artery in the brain becomes blocked. Historically, the degree arterial stenosis has been used to identify patients who are at risk for stroke. To reduce risk, patients with adequate blockage are recommeneded for surgical intervention to remove the blockage. 
+
+Historical evidence suggests that this alone is a poor predictor of future stroke. 
+
+---
+
+## Methods
+
+A historical set of patients with a range of blockages were selected. The data consisted of 126 patients, 44 of which had blockages greater than 70%. All had undergone 3D imaging and characterization of the blockage. The images were analyzed by software that generates anatomic structure estimage; percent stenosis, arterial wall thickness, and tissue characteristics.
+
+The group of patients in the study also had follow-up information on whether or not a stroke occurred at a subsequent point in time. The association between blockage categorization and stroke outcome is not statistically significant, indicating that blockage categorization alone in not likely a good predictor of stroke outcome.
+
+Other commonly collected clinical characteristics for risk stroke were also included in the data along with demographics of gender and age. 
+
+To assess each set's predictive ability, a models will be trained using the risk, imaging, and a combination of the two predictors.
+
+---
+# Splitting
+
+The data was split into two sets. The splitting was done in a stratified manner. Taking random splits in each of the outcome classes to keep the proportion of stoke patients approximately the same.
+
+&lt;style&gt;
+caption {
+      color: grey;
+      font-size: 0.8em;
+      text-align: left;
+    } 
+&lt;/style&gt;
+&lt;table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Distribution of stroke outcomes by training and testing split&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Data Set &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Stroke = No &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Stroke = Yes &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Testing &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Training &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+---
+
+# Preprocessing
+
+&gt;One of the first steps of the modeling process is to understand important predictor characteristics such as their individual distributions, the degree of missingness within each predictor, potentially unusual values within predictors, relationships between predictors, and the relationship between each predictor and the response and so on.
+
+
+
+---
+# Missing Data
+
+The data was only missing 4 values across the subjects and predictors. Many models wont tolerate missing values. Imputation techniques may be required to replace the missing values with rational values. These missing values were replaced with the median value of the predictor.
+
+What model classes will tolerate missing values?
+
+What are some imputation techniques? Why might they be better than replacing with the meadian value?
+
+---
+# Exploring the Predictors
+
+Many of the imaging prodictors are positively skewed. For example the max cross-sectional area of lipid-rich necrotic core (MaxLRNCArea), is positively skewed like that. This may have been due to the small subset of patients. Here the skewness is due to the underlying distribution of the data. The Box-Cox or Yeo-Johnson transformation was used to place the data on a scale where the distribution is aproximately symmetric. The area naturally grows by a power of 2 by the definition of how areas are calculated.
+
+&lt;img src="ischemic_stroke_files/figure-html/dodge-st-1.png" width="50%" /&gt;&lt;img src="ischemic_stroke_files/figure-html/dodge-st-2.png" width="50%" /&gt;
+
+---
+# Highly Correleted Predictors
+
+Predictors that are highly correlated will be removed. 
+
+
+
+&lt;img src="ischemic_stroke_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Exploration
+
+The next step is to explore potential predictive relationships between individual predictors and the response and between pairs of predictors and the response.
+
+A *Resampling* scheme was used to help protect against some overfitting.
+
+1. *for* **each resample** *do*
+1. | Use the resampl's 90% to fit models M1 and M2
+1. | Predict the remaining 10% for both models
+1. | Compute the aread under the ROC curve for M1 and M2
+1. | Determin the difference in the two AUC values
+1. *end*
+1. Use a one sided t-test on the differences to test that m2 is better than M1
+
+
+
+
+
+
+---
+## Risk Predictors
+
+The results of the risk predictors are given from most significant to least significant in terms of improvment in ROC. Based on the results, the significant risk set will likely be integral to the final predictive model.
+
+&lt;table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Improvement in ROC over null model of the risk set for predicting stroke outcome&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Predictor &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Improvement &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Pvalue &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; ROC &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; CoronaryArteryDisease &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0790 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0003 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5790 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; DiabetesHistory &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0665 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0003 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5665 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; HypertensionHistory &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0650 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5650 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; age &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0834 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0011 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5834 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; AtrialFibrillation &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0440 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0013 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5440 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; SmokingHistory &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.0150 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.7373 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4850 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; sex &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.0235 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8397 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4765 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; HypercholesterolemiaHistory &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.0995 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4005 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+## Imaging Predictors
+
+
+
+As with the risk predictors, the predictive performance of the intercept-only logistic regression model is compared to the model with each of the imaging predictors.
+The MaxMaxWallThickness and MaxRemodelingRation have the strongest associations with stroke outcome.
+
+![](ischemic_stroke_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+
+---
+### MaxRemodelingRatio
+
+MaxRemodelingRatio indicates a significant shift in the average value between the stroke outcome classes. There is still considerable overlap between the distributions for within both classes. The ROC curve indicates that there is some signal for the predictor. 
+
+
+
+
+&lt;img src="ischemic_stroke_files/figure-html/max_remodeling_plots-1.png" width="50%" /&gt;&lt;img src="ischemic_stroke_files/figure-html/max_remodeling_plots-2.png" width="50%" /&gt;
+
+---
+# Interaction exploration
+
+For data that has a small number of predictors, all pair-wise interactions can be created. For numeric predictors, the interactions are simply generated by multiplying the values of each predictor. For each interaction term, the same resampling algorithm is used to quantify the cross-validated ROC from a model with only the two main effects and a model with the main effects and the interaction term.
+
+
+
+<div id="htmlwidget-d8c89094210af7422e75" style="width:100%;height:504px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d8c89094210af7422e75">{"x":{"data":[{"x":[-0.03475,-0.02635,-0.03645,-0.00565,-0.00275000000000001,-0.07385,-0.0252,-0.01455,-0.0191,-0.01235,-0.0257,-0.0122,-0.02465,-0.0113,-0.02535,-0.0295,-0.02145,-0.02915,-0.04305,-0.023,-0.02655,-0.03905,-0.01745,-0.0114,-0.0208,-0.00195,-0.00799999999999999,-0.0267,-0.0103,-0.00655,-0.0453,-0.022,-0.05845,-0.0342,-0.0331,-0.03445,-0.0242,-0.0393,0.07635,0.11085,0.02325,-0.04825,0.0193,-0.01855,-0.00455,-0.04055,-0.0374,-0.000149999999999999,-0.0121,-0.01585,-0.0345,-0.0266,-0.0034,0.00405,-0.00335,0.0259,-0.02025,-0.0604,0.03345,-0.034,-0.00360000000000001,-0.02875,-0.0151,-0.01315,-0.0049,-0.0234,-0.0163,-0.03255,-0.0127,-0.02985,-0.0471,-0.0279,-0.0129,-0.01925,-0.02265,-0.00275000000000001,-0.0391,0.00375,0.0032,-0.0184,-0.0166,-0.01715,-0.0251,-0.0211,-0.0046,-0.0048,0.02275,-0.0182,-0.01575,0.0016,0.014,-0.0271,-0.01015,-0.04745,-0.0286,-0.0115,-0.0055,0.02225,0.0204,-0.0206,-0.00525,0.00375,0.01535,-0.0086,-0.0132,-0.000450000000000006,0.0003,-0.03805,-0.0155,-0.0225,-0.0255,0.055,0.00595000000000001,0.0357,-0.00225,0.03165,0.003,0.00625,-0.01565,0.000100000000000001,-0.00754999999999999,-0.0095,-0.0069,-0.0046,-0.02405,-0.01355,-0.0205,-0.013,-0.0213,-0.02135,0.02875,0.0024,0.062,0.0019,-0.0188,0.01845,0.05835,-0.0055,-0.0215,0.02275,0.0223,-0.04065,-0.0112,0.01205],"y":[0.017211781261297,0.00205873487675918,0.00164280858943912,0.220121636372605,0.244645041254509,0.00055797922125982,0.00405868438910003,0.0965340094230431,0.0689194985554627,0.0548544702300597,0.0210288966751241,0.0464524917613669,0.0011961645636182,0.140858986130303,0.000852892656439494,0.0437765285514497,0.000280584540047969,0.000275587425996755,0.000405146396465443,0.0644939626275378,0.0104037418281674,0.000809614746395549,0.0256387907109796,0.125692727109415,0.00622151618177767,0.257868084250597,0.119799746516312,0.0013348567102988,0.00995661113897334,0.143686129275296,0.00051837193454391,0.00631900637205408,0.000415512077819206,0.000574291459054509,0.0254408439828405,0.00767771592231294,0.0603140251640206,0.00315677141667967,2.72036996398676,2.87116044685219,1.06444107283443,0.000235610410431452,0.705029808496974,0.0743250703564419,0.202875860300641,0.00570522835139595,0.0116325352202791,0.295778167107817,0.166200305248163,0.012802127855571,0.0245971247931209,0.000832891943879728,0.213970767493239,0.359566891738142,0.232562911737252,0.818146310883264,0.00114347208708486,0.000160108139435295,0.92163560314176,0.000783189465160507,0.25195062871633,0.00102346199232288,0.0393359164376219,0.0235038033721234,0.212670169596815,0.00877915757223667,0.0609285902879602,0.00419746543333051,0.147905302239305,0.00103687616872139,0.00978737730607356,0.00270283297841198,0.03927519860828,0.0358315144379098,0.0198344060607309,0.234705845001427,0.00917095057903488,0.517330596443399,0.667002830679876,0.00192821806554749,0.000903464660574835,0.0446561473704756,0.088654087508465,0.000648094980287462,0.215807924956379,0.100496857697624,0.817459413592271,0.00275291198452036,0.0461117174517725,0.475067415242867,0.895599093485193,4.92355332984209e-05,0.019026746644517,0.00670322741184044,5.18220382506038e-05,0.131654971915255,0.115142657263075,1.54737386332689,0.86226443130304,0.029905075682066,0.204967920806517,0.400026162665969,0.547929705453535,0.0820143995620236,0.12837260426855,0.293728474576597,0.307198290133083,0.00219887564717973,0.0128315037106207,0.0981337160818172,0.00113620580939352,1.97615570966468,0.496979859391245,1.10777600645537,0.224778578616319,0.998075558164437,0.386961000366222,0.480473047120601,0.0729689182052344,0.306315852588408,0.0211434046797206,0.0614231811689427,0.14021586291864,0.1617909575158,0.00662881735974123,0.110459582995794,0.00876207703577855,0.0727343718590284,0.00924033421153281,0.00256549312284661,0.868092818411064,0.360603145674664,2.22618399418865,0.327537257754938,0.0304382443414024,0.894770140571576,1.36673735230334,0.160146764019407,0.0196786011329277,1.33800543879618,0.716180875274885,0.0200983900209992,0.0252213926135906,0.59697724933367],"text":["CALCVol by CALCVolProp <br />ROC: 0.55","CALCVol by MATXVol <br />ROC: 0.51","CALCVol by MATXVolProp <br />ROC: 0.56","CALCVol by LRNCVol <br />ROC: 0.53","CALCVol by LRNCVolProp <br />ROC: 0.52","CALCVol by MaxCALCArea <br />ROC: 0.58","CALCVol by MaxCALCAreaProp <br />ROC: 0.6","CALCVol by MaxDilationByArea <br />ROC: 0.54","CALCVol by MaxMATXArea <br />ROC: 0.59","CALCVol by MaxMATXAreaProp <br />ROC: 0.5","CALCVol by MaxLRNCArea <br />ROC: 0.59","CALCVol by MaxLRNCAreaProp <br />ROC: 0.53","CALCVol by MaxMaxWallThickness <br />ROC: 0.68","CALCVol by MaxRemodelingRatio <br />ROC: 0.63","CALCVol by MaxStenosisByArea <br />ROC: 0.62","CALCVol by MaxWallArea <br />ROC: 0.6","CALCVol by MaxStenosisByDiameter <br />ROC: 0.64","CALCVolProp by MATXVol <br />ROC: 0.53","CALCVolProp by MATXVolProp <br />ROC: 0.55","CALCVolProp by LRNCVol <br />ROC: 0.54","CALCVolProp by LRNCVolProp <br />ROC: 0.56","CALCVolProp by MaxCALCArea <br />ROC: 0.57","CALCVolProp by MaxCALCAreaProp <br />ROC: 0.58","CALCVolProp by MaxDilationByArea <br />ROC: 0.55","CALCVolProp by MaxMATXArea <br />ROC: 0.6","CALCVolProp by MaxMATXAreaProp <br />ROC: 0.51","CALCVolProp by MaxLRNCArea <br />ROC: 0.6","CALCVolProp by MaxLRNCAreaProp <br />ROC: 0.54","CALCVolProp by MaxMaxWallThickness <br />ROC: 0.66","CALCVolProp by MaxRemodelingRatio <br />ROC: 0.63","CALCVolProp by MaxStenosisByArea <br />ROC: 0.64","CALCVolProp by MaxWallArea <br />ROC: 0.6","CALCVolProp by WallVol <br />ROC: 0.53","CALCVolProp by MaxStenosisByDiameter <br />ROC: 0.62","MATXVol by MaxCALCArea <br />ROC: 0.54","MATXVol by MaxCALCAreaProp <br />ROC: 0.55","MATXVol by MaxMATXArea <br />ROC: 0.55","MATXVol by MaxLRNCArea <br />ROC: 0.53","MATXVol by MaxMaxWallThickness <br />ROC: 0.65","MATXVol by MaxRemodelingRatio <br />ROC: 0.55","MATXVol by MaxStenosisByArea <br />ROC: 0.61","MATXVol by MaxWallArea <br />ROC: 0.55","MATXVol by MaxStenosisByDiameter <br />ROC: 0.62","MATXVolProp by MaxCALCArea <br />ROC: 0.57","MATXVolProp by MaxCALCAreaProp <br />ROC: 0.57","MATXVolProp by MaxMATXArea <br />ROC: 0.55","MATXVolProp by MaxLRNCArea <br />ROC: 0.58","MATXVolProp by MaxMaxWallThickness <br />ROC: 0.67","MATXVolProp by MaxRemodelingRatio <br />ROC: 0.59","MATXVolProp by MaxStenosisByArea <br />ROC: 0.58","MATXVolProp by MaxWallArea <br />ROC: 0.57","MATXVolProp by MaxStenosisByDiameter <br />ROC: 0.6","LRNCVol by LRNCVolProp <br />ROC: 0.52","LRNCVol by MaxCALCArea <br />ROC: 0.54","LRNCVol by MaxCALCAreaProp <br />ROC: 0.57","LRNCVol by MaxMATXArea <br />ROC: 0.56","LRNCVol by MaxLRNCArea <br />ROC: 0.66","LRNCVol by MaxMaxWallThickness <br />ROC: 0.68","LRNCVol by MaxRemodelingRatio <br />ROC: 0.6","LRNCVol by MaxStenosisByArea <br />ROC: 0.6","LRNCVol by MaxWallArea <br />ROC: 0.57","LRNCVol by MaxStenosisByDiameter <br />ROC: 0.61","LRNCVolProp by MaxCALCArea <br />ROC: 0.57","LRNCVolProp by MaxCALCAreaProp <br />ROC: 0.61","LRNCVolProp by MaxMATXArea <br />ROC: 0.55","LRNCVolProp by MaxLRNCArea <br />ROC: 0.58","LRNCVolProp by MaxLRNCAreaProp <br />ROC: 0.55","LRNCVolProp by MaxMaxWallThickness <br />ROC: 0.68","LRNCVolProp by MaxRemodelingRatio <br />ROC: 0.59","LRNCVolProp by MaxStenosisByArea <br />ROC: 0.6","LRNCVolProp by MaxWallArea <br />ROC: 0.58","LRNCVolProp by MaxStenosisByDiameter <br />ROC: 0.61","MaxCALCArea by MaxCALCAreaProp <br />ROC: 0.58","MaxCALCArea by MaxDilationByArea <br />ROC: 0.55","MaxCALCArea by MaxMATXArea <br />ROC: 0.58","MaxCALCArea by MaxMATXAreaProp <br />ROC: 0.53","MaxCALCArea by MaxLRNCArea <br />ROC: 0.6","MaxCALCArea by MaxLRNCAreaProp <br />ROC: 0.54","MaxCALCArea by MaxMaxWallThickness <br />ROC: 0.66","MaxCALCArea by MaxRemodelingRatio <br />ROC: 0.63","MaxCALCArea by MaxStenosisByArea <br />ROC: 0.63","MaxCALCArea by MaxWallArea <br />ROC: 0.58","MaxCALCArea by WallVol <br />ROC: 0.54","MaxCALCArea by MaxStenosisByDiameter <br />ROC: 0.62","MaxCALCAreaProp by MaxDilationByArea <br />ROC: 0.56","MaxCALCAreaProp by MaxMATXArea <br />ROC: 0.6","MaxCALCAreaProp by MaxMATXAreaProp <br />ROC: 0.55","MaxCALCAreaProp by MaxLRNCArea <br />ROC: 0.64","MaxCALCAreaProp by MaxLRNCAreaProp <br />ROC: 0.57","MaxCALCAreaProp by MaxMaxWallThickness <br />ROC: 0.69","MaxCALCAreaProp by MaxRemodelingRatio <br />ROC: 0.66","MaxCALCAreaProp by MaxStenosisByArea <br />ROC: 0.66","MaxCALCAreaProp by MaxWallArea <br />ROC: 0.61","MaxCALCAreaProp by WallVol <br />ROC: 0.56","MaxCALCAreaProp by MaxStenosisByDiameter <br />ROC: 0.65","MaxDilationByArea by MaxMATXArea <br />ROC: 0.6","MaxDilationByArea by MaxLRNCArea <br />ROC: 0.56","MaxDilationByArea by MaxMaxWallThickness <br />ROC: 0.65","MaxDilationByArea by MaxRemodelingRatio <br />ROC: 0.68","MaxDilationByArea by MaxStenosisByArea <br />ROC: 0.59","MaxDilationByArea by MaxWallArea <br />ROC: 0.6","MaxDilationByArea by MaxStenosisByDiameter <br />ROC: 0.6","MaxMATXArea by MaxMATXAreaProp <br />ROC: 0.58","MaxMATXArea by MaxLRNCArea <br />ROC: 0.58","MaxMATXArea by MaxLRNCAreaProp <br />ROC: 0.54","MaxMATXArea by MaxMaxWallThickness <br />ROC: 0.66","MaxMATXArea by MaxRemodelingRatio <br />ROC: 0.61","MaxMATXArea by MaxStenosisByArea <br />ROC: 0.65","MaxMATXArea by MaxWallArea <br />ROC: 0.58","MaxMATXArea by WallVol <br />ROC: 0.53","MaxMATXArea by MaxStenosisByDiameter <br />ROC: 0.66","MaxMATXAreaProp by MaxLRNCArea <br />ROC: 0.57","MaxMATXAreaProp by MaxMaxWallThickness <br />ROC: 0.65","MaxMATXAreaProp by MaxRemodelingRatio <br />ROC: 0.63","MaxMATXAreaProp by MaxStenosisByArea <br />ROC: 0.61","MaxMATXAreaProp by MaxWallArea <br />ROC: 0.58","MaxMATXAreaProp by MaxStenosisByDiameter <br />ROC: 0.63","MaxLRNCArea by MaxLRNCAreaProp <br />ROC: 0.65","MaxLRNCArea by MaxMaxWallThickness <br />ROC: 0.66","MaxLRNCArea by MaxRemodelingRatio <br />ROC: 0.64","MaxLRNCArea by MaxStenosisByArea <br />ROC: 0.63","MaxLRNCArea by MaxWallArea <br />ROC: 0.59","MaxLRNCArea by WallVol <br />ROC: 0.53","MaxLRNCArea by MaxStenosisByDiameter <br />ROC: 0.64","MaxLRNCAreaProp by MaxMaxWallThickness <br />ROC: 0.65","MaxLRNCAreaProp by MaxRemodelingRatio <br />ROC: 0.6","MaxLRNCAreaProp by MaxStenosisByArea <br />ROC: 0.63","MaxLRNCAreaProp by MaxWallArea <br />ROC: 0.57","MaxLRNCAreaProp by MaxStenosisByDiameter <br />ROC: 0.62","MaxMaxWallThickness by MaxRemodelingRatio <br />ROC: 0.71","MaxMaxWallThickness by MaxStenosisByArea <br />ROC: 0.66","MaxMaxWallThickness by MaxWallArea <br />ROC: 0.66","MaxMaxWallThickness by WallVol <br />ROC: 0.65","MaxMaxWallThickness by MaxStenosisByDiameter <br />ROC: 0.68","MaxRemodelingRatio by MaxStenosisByArea <br />ROC: 0.65","MaxRemodelingRatio by MaxWallArea <br />ROC: 0.6","MaxRemodelingRatio by WallVol <br />ROC: 0.57","MaxRemodelingRatio by MaxStenosisByDiameter <br />ROC: 0.66","MaxStenosisByArea by MaxWallArea <br />ROC: 0.66","MaxStenosisByArea by WallVol <br />ROC: 0.61","MaxStenosisByArea by MaxStenosisByDiameter <br />ROC: 0.56","MaxWallArea by WallVol <br />ROC: 0.55","MaxWallArea by MaxStenosisByDiameter <br />ROC: 0.66","WallVol by MaxStenosisByDiameter <br />ROC: 0.62"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":0.2,"size":[12.7908135520207,5.61993199456359,13.2650410370989,10.9012884979567,8.7894371557704,15.3519200446449,16.4310746217856,12.1772010018579,16.1429099439199,3.77952755905512,15.6738993632964,10.6908684201504,21.0490812196018,18.7194220165435,18.1354081354687,16.4858731329827,18.9043001343778,10.4086528330551,13.117397573945,11.470026624467,13.2512972286563,14.671494573378,15.3218618315818,12.4168185186088,16.8895629736129,7.64448922879289,16.7262435850395,11.3447843673314,20.4450985325206,18.4347706275496,19.0101590986869,16.8264777214188,10.7968672034328,18.2228620557441,11.7418983484984,13.1266936140917,12.9626543939129,11.0162118068734,19.9478222248351,12.8771397103864,17.3325498810848,13.1776574746496,17.7054935199096,14.3723629754823,14.1779065813587,12.3765042217078,15.4416298560646,20.9076906818757,15.703070153407,15.6080020595348,14.671494573378,16.6792011184652,9.50157748604626,11.8286842448307,14.3395168951161,13.3788075586307,20.1267779921403,21.031470773529,16.3691411937721,16.8530770358038,14.571364051191,17.0443270086884,14.4905856962567,17.3645523396242,12.7133789392512,15.0400203181292,12.2902023003365,21.4738363593536,15.8550607461958,16.8994960742282,14.9431957111035,17.6084908910779,15.063134593754,12.3156757926266,15.3030356336443,10.864609656993,16.3898194671671,12.2184674589328,20.4320653163459,18.437733377619,18.8179215149771,15.4899357279161,12.0469158216114,18.1233036808911,14.0518609653344,16.8928748431655,12.8819116027425,19.1096231846984,14.5633134447052,21.5252983452882,20.1559719036608,20.0388817520146,17.6147696488734,13.5091103234521,19.7505581313329,16.9852699777894,13.473339677487,19.5342980158225,21.390198118341,15.7575739081132,16.7363018924165,16.3656915119332,15.2652906646516,15.4379057294178,11.834077315242,20.2326893716359,17.421967586327,19.6112851362069,15.4229973113366,10.6908684201504,20.0522298818326,14.6914104192547,19.6332127887894,18.6114881428789,17.5550059047287,15.2577267763729,18.3575277787639,19.9505077650356,20.3248056898787,18.9100411756077,18.8150336812576,15.9980560573113,10.3823987684223,19.2506055120477,19.8400323920461,16.655615434659,18.3068007794334,14.1444442933898,17.7615088046408,22.6771653543307,20.2300498975173,20.1108320441738,19.7315142247204,21.3234954721057,19.5067112840005,16.3829304789949,14.5350888679073,20.4424927048175,20.0575660689978,17.421967586327,13.4598916079577,12.6646396155343,20.340545612383,18.1111890029511],"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":23.3059360730594,"r":7.30593607305936,"b":37.2602739726027,"l":31.4155251141553},"plot_bgcolor":"rgba(235,235,235,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.083085,0.120085],"tickmode":"array","ticktext":["-0.05","0.00","0.05","0.10"],"tickvals":[-0.05,0,0.05,0.1],"categoryorder":"array","categoryarray":["-0.05","0.00","0.05","0.10"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"Improvement","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.143506325032646,3.01471600741813],"tickmode":"array","ticktext":["0","1","2","3"],"tickvals":[0,1,2,3],"categoryorder":"array","categoryarray":["0","1","2","3"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"-log10(Pvalue)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"17a905f9d54d":{"size":{},"text":{},"x":{},"y":{},"type":"scatter"}},"cur_data":"17a905f9d54d","visdat":{"17a905f9d54d":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+
+
+
+---
+## MaxRemodelingRatio and MaxStenosisByArea
+
+Figure 2.7 illustrates the relationship between these two predictors. Patients who did not have a stroke generally had lower product outcomes, where patients with strokes had higher product outcomes. The boxplot shows the seperations of the distributions of product outcomes for the outcome classes.
+
+![](plots.png)
+
+
+
+
+
+---
+# Predictive Modeling Across Sets
+
+&gt;Physicians have a strong preference towards logistic regression due to its inherent interpretability.
+
+In order to find the most predictive logistic regression model, the most relevant predictors should be identified to find the best subset for predicting stroke risk. 
+* Predictive performance of logistic regression is also degraded by the inclusion of correlated, non-informative predictors
+* Logistic regression tends to yield lower predictivity than low-bias high-variance models.
+
+A recursive feature elimination (RFE) routine was used to determine if less predictors would be advantageous
+
+---
+## Correlation 
+
+While there are more sophisticated approaches, an additional variable filter will be used on the data to remove the minimum set of predictors such that no pairwise correlations between predictors are greater than 0.75
+
+---
+## Recursive Feature Elimination
+
+RFE is a simple backwards selection procedure where the largest model is used initially and, from this model, each predictor is ranked in importance. For logistic regression, there are several methods for determining importance, and the absolute value of the regression coefficient for each model term (after the predictors have been centered and scaled) is used here.
+
+The RFE procedure begins to remove the least important predictors, refits the model, and evaluates performance. At each model fit, the predictors are preprocessed by an initial Yeo-Johnson transformation as well as centering and scaling.
+
+ *The RFE procedure is applied to:*
+ 
+ * The small risk set of 8 predictors. Since this is not a large set, an interaction model with potentially all 28 pairwise interactions.
+* The set of 19 imaging predictors. The interaction effects are also considered.
+* The entire set of predictors. The imaging interactions are also combined with these variables.
+
+
+
+
+
+
+
+
+---
+
+The risk set, when only main effects are considered, the full set of 8 predictors is favored. When the full set of 28 pairwise interactions are added, model performance was hurt by the extra interactions. 
+
+&gt; Based on resampling, a set of 13 predictors was optimal (11 of which were interactions)
+
+
+![](ischemic_stroke_files/figure-html/fig_2_8-1.png)&lt;!-- --&gt;
+
+---
+When combining the two predictors sets, model performance without a correlation filter was middle-of-the-road and there was no real difference between the interaction and main effects models. Once the filter was applied, the data strongly favored the main effects model (with all 10 predictors that survived the correlation filter).
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
