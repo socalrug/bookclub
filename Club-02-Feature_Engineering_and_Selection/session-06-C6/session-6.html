@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Feature Engineering and Selection</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Tyler McWatters" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Feature Engineering and Selection
+## Chapter 6 - Engineering Numeric Predictors
+### Tyler McWatters
+### 4/1/2020
+
+---
+
+
+
+
+## Engineering Numeric Predictors
+
+&gt;The objective of this chapter is to develope tools for converting these types of predictors into a form that a model can better utilize.
+
+&lt;hr&gt;
+
+#### Potential Issues with Continuous Scales:
+
+* Vastly different scales
+* Skewed distributions
+* Small number of extreme values
+* Low/High end censored
+* Complex relationship that connot be represented with a simple function
+* Containing relevant and overly redundant information
+
+---
+
+## Transformations (one-to-one)
+
+### Changing the scale of the data
+&lt;img src="images/fig_6_1.png" style="max-width: 70%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+---
+
+## Transformations (one-to-one)
+
+Box-Cox Tranformation 
+
+`$$x^{*} = \left\{ \begin{array}{l l} \frac{x^{\lambda}-1}{\lambda\: \tilde{x}^{\lambda-1}}, &amp; \lambda \neq 0 \\ \tilde{x} \: \log x, &amp; \lambda = 0 \\ \end{array} \right.$$`
+
+&lt;style&gt;
+.what {
+  text-align: center;
+}
+&lt;/style&gt;
+
+&lt;p class="what"&gt;
+   `\(\lambda\)` : tranformation parameter
+&lt;/p&gt;
+&lt;p class="what"&gt;
+   `\(\tilde{x}\)` : geometric mean
+&lt;/p&gt;
+
+Some values of `\(\lambda\)` map to common transformations making it flexible in addressing many different data distributions:
+* λ=1 (no transformation)
+* λ=0 (log)
+* λ=0.5 (square root)
+* λ=-1 (invers)
+
+
+How do they estimate `\(\lambda\)`? If anyone knows...
+
+---
+
+## Transformations (one-to-one)
+
+Logit Transformation 
+
+`$$logit(\pi) = log\left(\frac{\pi}{1-\pi}\right)$$`
+
+For cariables with values bound between 0 and 1. 
+
+&gt;The problem with modeling this type of outcome is that model predictions might may not be guaranteed to be within the same boundaries.
+
+The value scale is transformed to  `\(-\infty\)` to `\(\infty\)` .
+Once predictions are created, the inerse logit transformation can place the calues back on their original scale.
+
+Arcsine Transformation
+
+`$$y^* = arcsine(\sqrt{\pi})$$`
+
+---
+## Transformations (one-to-one)
+
+**Centering**: Subtracting the training set's average value from the individual values. (Gives predictor a mean of 0)
+
+**Scaling**: Dividing a variable by the training set's standard deviation. (Gives predictor a standard deviation of 1)
+
+**Range scaling**: Use training set's max &amp; min values to translate the data to be between an arbitrary range. (Usually between 0 and 1)
+
+The statistics required for transformations are estimated from the training set and are applied to all data sets.
+
+These transformations are mostly innocuous and are needed when the model requires the predictors to be in common units. Like when the distance or dot products between predictors are used (K-nearest neighbors or SVMs) or a common scale is needed to apply a penalty (lasso or ridge regressions)
+
+---
+## Transformations (one-to-one)
+
+#### Time or Sequestnce effect
+
+**Running mean** can be used to reduce excess noise in the predictor/outcome data prior to modeling. The size of the window is important, too large and important triends might be smoothed out.
+
+&lt;img src="images/fig_6_2.png" style="max-width: 70%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+
+---
+## Transformations (one-to-many) 
+
+#### Basis Expansions
+
+A basis expansion of a predictor `\(x\)` can be achived by deriving a set of functions `\(f_i(x)\)` that can be combined combined linearly. 
+
+For a continuous predictor `\(x\)`, a cubic basis expansion is:
+`$$f(x) = \sum_{i=1}^3 \beta_i f_i(x) = \beta_1 x + \beta_2 x^2 + \beta_3 x^3$$`
+
+To use this basis expansion in the model, the original column is augmented by two new features with squared and cubed versions of the original. The `\(\beta_i\)` values could be estimated using basic linear regression.
+
+---
+## Transformations (one-to-many) 
+
+This type of basis expansion, where the pattern is applied globally to the predictor, can often be insufficient
+
+&lt;img src="images/fig_6_3.png" style="max-width: 75%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+there is a linearly increasing trend in the mainstream of the data (between 3.75 and 4.25) but on either side of the bulk of the data, the patterns are negligible.
+
+---
+## Transformations (one-to-many) 
+
+#### Polynomial Spline
+
+An alternative method to creating a global basis function that can be used in a regression model is a **polynomial spline**.
+
+Basis Expansion creates different regions of the predictor space whose boundaries are called *knots*. Polynomial spline uses polynomial functions, usually cubic, within each regeion. The number of knots controls the complexity of the function. Few knots can represent simple trends but increasing the number of knots can likely cause overfitting.
+
+Knots are typically chosen using precentiles of the data. 
+
+---
+## Transformations (one-to-many) 
+
+#### Ames lot area
+
+Knots were placed at the following percentiles: 16.7%, 33.3%, 50%, 66.7%, 83.3% 
+When creating the natural spline basis functions, the first function is typically taken as the intercept. 
+
+&lt;img src="images/fig_6_4_a.png" style="max-width: 80%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+Note that the first three features contain regions where the basis function value is zero. This implies that those features do not affect that part of the predictor space. The other three features appear to put the most weight on areas outside the mainstream of the data.
+
+---
+## Transformations (one-to-many) 
+
+The final refression form. 
+
+&lt;img src="images/fig_6_4_b.png" style="max-width: 80%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+There is a strong linear trend in the middle of the cloud of points and weak relationships outside of the mainstream. But the left-hand side does not fit the data well. This could mean more knots are required.
+
+But how many knots?
+In a single dimension, there will be visual evidence if the model is overfitting. Also, some spline functions use a method called *generalized cross-validation* (GCV) to estimate the appropriate spline complexity using a computational shortcut for linear regression.
+
+---
+## Transformations (one-to-many) 
+
+The *smoothing spline* methodology uses an approach built around assigng every point in the training set as a potential knot and using a refularized regression model to determin which should be considered knots. 
+
+**Generalized additive models** (GAMs) are a class of models that extend general linear models. It extends linear and logistic regression to have nonlinear terms for indicidual predictor. (Can not model interactions). Different predictors can be modeled with different levels of complexity.
+
+`loess` model fits a weighted moving regression line across a predictor to estimate the nonlinear pattern.
+
+
+---
+## Transformations (one-to-many) 
+
+**Multivariate adaptive regression spline** (MARS) model is a single fixed knot spline. A **hinge function** transformation is used.
+`$$h(x) = x I(x &gt; 0)$$`
+`\(I\)` is an indicator function that is `\(x\)` when `\(x\)` is greater than 0; else 0 
+With a pair of hinge functions an area in the predictor space can be isolated.
+
+&lt;img src="images/fig_6_5_a.png" style="max-width: 80%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+These features can be added to models to create *segmented regression* models that have distinct sections with different trends.
+
+---
+## Transformations (one-to-many) 
+
+Separate linear trends were created for below 10^3.75^, 10^3.75^ to 10^4.25^, and above 10^4.25^.
+
+&lt;img src="images/fig_6_5_b.png" style="max-width: 80%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+&lt;center&gt;The fit after the regression model estimated the model coefficients for each feature.&lt;/center&gt;
+
+This feature generation function is known in the neural network and deep learning fields as the rectified linear unit (ReLU) activation function.
+
+---
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;h2&gt;While basis functions can be effective at helping build better models by representing nonlinear patterns for a feature, they can be very effective for exploratory data analysis.&lt;/h2&gt;
+
+---
+## Transformations (one-to-many) 
+
+### Discretize Predictors as a Last Resort
+
+**Binning** (categorization or discretization) is the process of translating a quantitative variable into a set of two+ qualitative buckets. 
+
+Reason to bin continuous data:
+* To simplify the analysis/ interpretation of results.
+* Binning *may* avoid the problem of hacing to specify the relationship between the predictor and outcome. A set of bins can be perceived as being able to model more patterns without having to visualize or think about the underlying pattern.
+* Using qualitative versions of the predictors may give the perception that it reduces the variation in the data.
+
+---
+## Transformations (one-to-many) 
+
+Issues with binning continuous data:
+* It is unlikely that the underlying trend is consistent with the new model.
+* When real trends exist, discretizing the data is likely going to make it harder for the model to do an effectie job.
+* There is probably no objective rationale for specific cut-poins.
+* When there is no relationship the outcome and the predictor, there is an increase in the probability of an erroneous trend discovered.
+
+
+---
+## Transformations (many-to-many) 
+
+&gt; Observational or available data sets nowadays contain many predictors, and often more than the number of available samples
+
+Including irrelevant predictors may have detrimental effects on the final model. These include increasing computational time, decreasing the predictive performance, and complicating the predictor importance calculation. Including all potential predictors, we end up with a sub-optimal model.
+
+We often do not fully know which predictors are relevant to the response. The task is to try to identify the simple or complex combination that is relevant to the response.
+
+---
+## Transformations (many-to-many)
+
+#### Principal components analysis (PCA)
+
+The objective of PCA is to find linear combinations of the original predictors such that the combinations summarize the maximal amount of variation in the original predictor space.
+
+The PCA scores are required to be orthogonal. This propery enables the predictor space variability to be neatly partitioned in a way that does not overlap. An important side benefit is that the resulting PCA scores are uncorrelated. This property is very useful for modeling techniques like multiple linear regression, neural networks, and support vector machines where the predictors need to be relatively uncorrelated.
+
+PCA is a particularly useful tool when the available data are composed of one or more clusters of predictors that contain redundant information.
+
+---
+#### Principal components analysis (PCA)
+
+Predictors that are highly correlated can be thought of as existing in a lower dimensional space than the original data.
+
+&lt;img src="images/fig_6_7.png" style="max-width: 80%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+
+---
+#### Kernel Principal Component Analysis
+
+Consider, for example, a hypothetical relationship between a response ($y$) and two predictors ( `\(x_1\)` and `\(x_2\)` ) as follows:
+`$$y = x_1 + x^{2}_{1} + x_2 + x^{2}_{2} + \epsilon$$`
+
+Suppose the correlation between `\(x_1\)` and `\(x_2\)` is strong. Applying traditional PCA to this would summarize the relationship between them into one principal component. However the important quadratic relationships would be ignored. Here we would be able to see the quadratic relationship visually, but not with higher-order terms.
+
+The kernel PCA approach combines a specific mathematical view of PCA with *kernel functions* and the kernal 'trick' to enable PCA to expand the dimension of the predictor space in which demension reduction is performed. 
+
+
+---
+#### Independent Component Analysis (ICA)
+
+ICA creates new components that are linear combinations of the original cariables but does so in a way that the components are statistically independent from one another as possible. 
+
+This enables ICA to be able to model a broader set of trends than PCA, which focuses on orthogonality and linear relationships.
+
+
+---
+#### Non-negative Matrix Factorization
+
+Non-negative matrix factorization is a projection method that is specific to features that are greater than or equal to zero. 
+
+the algorithm finds the coefficients of `\(A\)` such that their values are also non-negative (thus ensuring that the new features have the same property). This is popular for text data where predictors are word counts, imaging, and biological measures.
+
+
+---
+#### Partial Least Squares (PLS)
+
+PLS is a supervised version of PCA that reduces dimension in a way that is optimally related to the response. 
+
+The response guides the dimension reduction such that the scores have the highest possible correlation with the response in the training data. The typical implementation of the optimization problem requires that the data in each of the new dimensions is uncorrelated, which is a similar constraint which is imposed in the PCA optimization problem.
+
+&gt; Because PLS is a supervised technique, we have found that it takes more PCA components to meet the same level of performance generated by a PLS model
+
+A rigorous validation approach must be used to ensure that the method does not overfit to the data.
+
+---
+#### Linear Projection Methods
+
+&lt;img src="images/fig_6_14.png" style="max-width: 80%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+Although the confidence intervals overlap, there is some indication that PLS and kernel PCA have potential to outperform the original values.
+
+
+---
+#### Autoencoders
+
+Autoencoders are computationally complex multivariate methods for finding representations of the predictor data and are commonly used in deep learning models. A nonlinear mapping between the original predictor data and a set artificial features is created. These new features, which may not have any sensible interpretation, are then used as the model predictors.
+
+There are a variety of ways that autoencoders can be created. The straightforward method is to use a neural network structure:
+
+&lt;img src="images/nn_structure.png" style="max-width: 50%;
+                                     display: block;
+                                     margin-left: auto;
+                                     margin-right: auto;" &gt;
+
+---
+#### Spatial Sign
+
+The spatial sign transformation takes a set of predictor variables and transforms them in a way that the new values have the same distance to the center of the distribution. In essence, the data are projected onto a multidimensional sphere using the following formula:
+
+`$$x^*_{ij}=\frac{x_{ij}}{\sum^{p}_{j=1} x_{ij}^2}$$`
+
+The transformation required computing the norm of the data and, for that reason, the predictors should be centered and scaled prior to the spatial sign. Also, if any predictors have highly skewed distributions, they benefit from a transformation to induce symmetry, such as the Yeo-Johnson technique.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
