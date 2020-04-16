@@ -44,8 +44,8 @@ $$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 x_2 + \text{error}$$
 
 $\beta_3$ is useful for explaining the interaction:
 1. **additive**: $\beta_3$ is n.s. different from zero, and $\beta_1$ and $\beta_2$ explain the response
-1. **antagonistic**: $\beta_3$ is negative then $\beta_1$ and $\beta_2$, alone, explain the response.
-1. **synergistic**: $\beta_3$ is positive then $\beta_1$ and $\beta_2$, alone, explain the response.
+1. **antagonistic**: $\beta_3$ is negative then $\beta_1$ and $\beta_2$, alone, do not explain the response.
+1. **synergistic**: $\beta_3$ is positive then $\beta_1$ and $\beta_2$, alone, do not explain the response.
 1. **atypical**: $\beta_3$ is significantly different from zero but $\beta_1$ and/or $\beta_2$ are n.s.
 
 ---
@@ -71,7 +71,7 @@ $$y = 2 x_1 x_2 + \text{error}$$
 
 ---
 
-# Guiding Principles: Search for Interactions
+# Principles: Search for Interactions
 
 .medium[
 * Use expert knowledge
@@ -114,7 +114,7 @@ Nested models:
 
 Main effects: $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \text{error}$
 
-Main effects and interaction: $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 x_2 \text{error}$
+Main effects and interaction: $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 x_2 + \text{error}$
 
 Approaches for assessing the significance of the interaction term
 1. Traditional approach:
@@ -148,7 +148,7 @@ $$SSE_{L_2} = \sum_{i=1}^n (y_i - \hat{y_i})^2 + \lambda_r \sum_{j=1}^P \beta_j^
 Used for combating collinearity  
 $\beta_i$ tend towards zero but do not become zero
 
-**[Lasso](https://en.wikipedia.org/wiki/Lasso_(statistics)) (least absolute shrinkage and selection) regression:**
+**[Lasso](https://tinyurl.com/ocruglasso) (least absolute shrinkage and selection) regression:**
 $$SSE_{L_1} = \sum_{i=1}^n (y_i - \hat{y_i})^2 + \lambda_l \sum_{j=1}^P |\beta_j|$$
 Used for feature selection.  
 $\beta_i$ can become identically zero
@@ -287,7 +287,7 @@ One of the most common methods from measuring feature importance in a random for
 
 .medium[
 **Feasible Solution Algorithm**
-1. Choose the number of predictors, ($m$). For example 3 
+1. Choose the number of predictors, ( $m$). For example 3 
 1. Randomly select parameters ( $x_2$, $x_5$, $x_9$)
 1. Compute the model performance
 1. Retain first two predictors
