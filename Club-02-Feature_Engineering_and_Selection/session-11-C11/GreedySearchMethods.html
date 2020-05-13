@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Feature Engineering and Selection</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2020-05-13" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Feature Engineering and Selection
+## Chapter 11 - Greedy Search Methods
+### John Peach
+### OCRUG Book Club
+### 2020-05-13
+
+---
+
+
+# Simple Filters
+.large[
+* A basic approach to feature selection is to see if a predictor has a relationship with the target
+* Requires a numeric scoring technique to show relationship strength
+* Predictors are ranked or filtered
+    * Threshold or top `\(p\)` predictors
+* Scoring can be done simultaneously or one at a time
+]
+
+---
+
+# Scoring Methods: Categorical Predictors
+## Outcome is Categorical
+.large[
+* Two classes: odds-ratio `\(\frac{TP/FP}{FN/TN}\)`
+* Multi-class: `\(\chi^2\)` test - is there a difference between the expected and observed frequencies
+`$$\chi^2 = \sum_{i=1}^k \frac{(O_i - E_i)^2}{E_i}$$`
+]
+---
+
+# Scoring Methods: Categorical Predictors
+## Outcome is Categorical
+&lt;img src="fig 11.1a.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Scoring Methods: Categorical Predictors
+## Outcome is Numeric
+.large[
+* Two levels: 
+    * t-test `\(t=\frac{\bar{X} - \mu}{\hat{\sigma} - \sqrt{n}}\)`
+]
+
+&lt;img src="fig 11.1b.png" height="300px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Scoring Methods: Categorical Predictors
+## Outcome is Numeric
+.large[
+* Two levels: 
+    * AUC of ROC or precision-recall curves
+]
+
+&lt;img src="fig 11.1c.png" height="300px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Scoring Methods: Categorical Predictors
+## Outcome is Numeric
+.large[
+* Multi-level: 
+    * ANOVA F-statistic 
+`$$F = \frac{\text{between-groups variance}}{\text{within-group variance}}$$`
+]
+
+---
+
+# Scoring Methods: Numerical Predictors
+## Outcome is Categorical
+
+.large[
+Same as when the predictor is categorical and the outcome is numerical
+]
+
+---
+
+# Scoring Methods: Numerical Predictors
+## Outcome is Numerical
+.large[
+* Linear relationship: 
+    * correlation (pairwise or rank)
+`$$\rho_{X,Y} = \frac{cov(X,Y)}{\sigma_X \sigma_Y}$$`
+]
+
+&lt;img src="fig 11.1d.png" height="200px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Scoring Methods: Numerical Predictors
+## Outcome is Numerical
+.large[
+* Non-linear Relationship
+    * Maximal Information Coefficient (MIC)
+    * A-statistic
+    * Generalized additive model (GAM)
+        * provides a p-value for each predictor
+]
+
+---
+
+# How to compare?
+
+.large[
+* Generally there are different metrics
+* We cannot compare a `\(\chi^2\)` to an AUC
+* Solution: Convert everything to a p-value
+    * But how?
+]
+
+---
+
+# Permutation method
+.large[
+* Can convert any statistic to a p-value
+* Algorithm:
+]
+.medium[
+1. Compute the observed statistic
+1. Build a null-hypothesis distribution
+    1. Randomly permute the predictor but not the outcome
+    1. Compute the permuted statistic
+    1. Repeat many times
+1. Compute the p-value between the null-hypothesis distribution and observed statistic
+
+* Do not treat this p-value as a formal indicator of statistical significance
+]
+
+---
+
+# Over-fitting
+
+.large[
+* This approach to feature selection can result in a lot of false positives.
+* Adjust the p-values (make them larger)
+* The model building process needs to:
+    * identify a subset of features
+    * identify tuning parameters
+* Feature selection and model tuning cannot be done in the same cross-validation layer
+]
+
+---
+
+# Model Building Process
+.medium[
+* External layer: feature selection
+* Internal layer: model tuning for feature selection
+* Number of models: internal x external x tuning parameters
+]
+
+&lt;img src="resampling-filters.svg" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Recursive Feature Elimination (RFE)
+
+.medium[
+* Backwards selection of predictors
+* Algorithm
+1. Select the number of predictor subsets
+1. Start with all features
+1. Build a model
+1. Score each feature
+1. Remove the least important predictor(s)
+1. If stopping criteria is not met, go to step 3
+1. Repeat the process with a new subset of predictors
+1. Evaluate the models
+1. Build the final model
+]
+
+---
+
+# RFE in Practice
+
+.large[
+* High dimension problems need to have the number of features reduced first
+* Commonly used with Random Forest 
+    * As RF does not exclude variables
+    * RF has an internal method for determining feature importance
+]
+
+---
+
+# Importance Dilution
+.large[
+* Correlation dilutes the importance score and can remove important predictors
+]
+&lt;img src="greedy-rf-imp-1.svg" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Parkinson's Data RFE
+.large[
+* Used Random Forests (10,000 trees)
+* Subset sizes were based on the log(num vars)
+    * Allowed smaller subset sizes to be explored
+* Used simple filtering
+* Conducted with and without a correlation filter
+    * Excluded predictors with a correlation above 0.5
+]
+
+---
+
+# Predictor Importance
+.medium[
+* Predictor Scoring: Random Forest Importance 
+  * When all predictors were used (no correlation filter), the best results were obtained
+  * Performance increased until all important predictors were added 
+]
+
+&lt;img src="fig 11.5a.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Predictor Importance
+.medium[
+* Predictor Scoring: ROC Score
+  * Predictors with high correlation may be ranked higher
+  * RF considered all the predictors simultaneously
+      * It may account for interactions
+  * Correlation filtering reduced the model performance
+]
+
+&lt;img src="fig 11.5b.png" height="350px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Predictor Ranking Robustness
+
+&lt;img src="fig 11.6.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Stepwise Selection
+
+.medium[
+Algorithm:
+1. Build p models with one feature
+1. Select the best feature, `\(f_1\)`, based on a score
+    1. The score is typically the p-value
+1. Build p-1 models with `\(f_1\)` and one additional feature
+1. Select the best new feature, `\(f_2\)`, based on a score
+    1. Remove any feature who's score has dropped below a criteria
+1. Build p-2 models with `\(f_1\)`, `\(f_2\)` and one additional feature
+1. Repeat until the stopping criteria is reached
+
+* Criteria
+  * For inclusion: p-value less than 0.15
+  * For removal: p-value greater than 0.15
+]
+
+---
+
+# Stepwise Selection: Downsides
+
+.medium[
+1. Inflation of false positive findings:
+    1. Uses many repeated hypothesis tests
+    1. p-values are not adjusted
+    1. highly correlated predictors are a problem
+1. Model over-fitting:
+    1. Model stats (parameter est., uncertainty) are optimistic
+
+* The last statement is true about almost all the search methods that we will cover
+* This does not apply to the resampling methods. 
+    * The internal resampling estimates are optimistic
+    * The external resampling estimates are not optimistic
+]
+
+---
+
+# Akaike Information Criterion (AIC)
+.medium[
+* Helps mitigate against inflation of false positive findings
+* Tailored to models that use likelihood as an objective
+    * linear or logistic regression
+* Penalizes the likelihood by the number of parameters
+* In step-wise selection, AIC would be used as the scoring function
+
+`$$AIC = -2l + 2p$$`
+* `\(l\)`: likelihood
+* `\(p\)`: number of model parameters
+]
+
+---
+
+# Other Information Criterion
+
+.medium[
+* `\(\hat{L}\)`: likelihood
+* k: number of model parameters
+* `\(D(\bar{\theta}) = -2 \ln(p(y|\theta)) + C\)`: deviance
+* `\(\bar{\theta}\)` = `\(\mathbb{E}[\theta]\)`: Expectation of `\(\theta\)`
+* `\(p_D = \frac{1}{2}\overline{var(D(\theta))}\)`
+
+### Akaike Information Criterion
+`$$AIC = 2k - 2\ln{\hat{L}}$$`
+### Bayesian Information Criterion
+`$$BIC = k\ln{n} - 2\ln{\hat{L}}$$`
+### Deviance Information Criterion
+`$$DIC = D(\bar{\theta}) + 2 p_D$$` 
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
