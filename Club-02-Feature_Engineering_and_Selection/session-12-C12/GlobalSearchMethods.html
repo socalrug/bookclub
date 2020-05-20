@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Feature Engineering and Selection</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Tyler McWatters" />
+    <meta name="date" content="2020-05-20" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="metropolis-custom.css" type="text/css" />
+    <link rel="stylesheet" href="custome.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Feature Engineering and Selection
+## Chapter 12 - Global Search Methods
+### Tyler McWatters
+### OCRUG Book Club
+### 2020-05-20
+
+---
+
+
+
+
+
+# Naive Bayes Models
+
+The naive Bayes classification model is used with the OkCupid data to illustrate the two Global Search Methods discussed in the chapter. This uses the Bayes formula to predict classification probabilities.
+
+`$$\begin{align}Pr[Class|Predictors] &amp;= \frac{Pr[Class]\times Pr[Predictors|Class]}{Pr[Predictors]} \\
+&amp;= \frac{Prior\:\times\:Likelihood}{Evidence}\end{align}$$`
+
+&gt;Given our predictor data, what is the probability of each class?
+
+.medium[
+***prior*** is the general probability of each class (e.g., rate of STEM profiles).
+
+***likelihood*** measures the relative probability of the observed predictor occurring for each class.
+
+***evidence*** is a normalization factor that can be computed from the prior and likelihood.
+]
+---
+# Naive Bayes Models
+.medium[
+Most of the computations occur when determining the likelihood.
+
+For multiple numeric predictors, a multivariate probability distribution can be used. This will be difficult to compute outside a bivariate normal distribution and may require an abundance of training data.
+
+Being ***Naive***, the model uses the assumption that the predictors are to be *independent*. This enables joint *likelihood* to be computed as a product of the individual class-specific values.
+]
+
+---
+# Naive Bayes Models
+## Suppose a naive Bayes model with two predictors:
+.medium[
+1. The stated religion.
+1. The number of punctuation marks in essays.
+]
+&lt;img src="img/fig_12_1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+# Naive Bayes Models
+## Religion predictor
+.medium[
+* A cross-tabulation is made between the values and the outcome.
+* The probability of each religion value, within each class, is computed.
+]
+&lt;img src="img/fig_12_1_a.png" height="350px" style="display: block; margin: auto;" /&gt;
+
+---
+# Naive Bayes Models
+## Punctuation predictor (continuous)
+* The distribution of the predictor is computed separately for each class.
+* Can be accomplished by binning the predictor and using the histogram frequencies to estimate probabilities
+* A better approach is to compute a non parametric density function (with a `\(\log_{10}\)` transformation)
+
+&lt;img src="img/fig_12_1_b.png" height="350px" style="display: block; margin: auto;" /&gt;
+
+---
+# Naive Bayes Models
+.medium[
+* The overall prediction can be made once the stats for each predictor and class have been calculated.
+* The values for both predictors are multiplied together for form the likelihood statistic for each class.
+* ***prior information*** is the overall rate that we would find the class in the population of interest.
+* ***posterior probabilities*** (class probability predictions) are the product of the prior and likelihood with their values normalized to sum to one.
+]
+&lt;img src="img/table_12_1.png" height="200px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+.medium[
+* The process of annealing metal to improve strength can be abstracted and applied to feature selection.
+  * with the goal of finding the strongest (most predictive) set of features for the response.
+* Take the predictor as a particle with the set of selected features as the current arrangement of particles. The iteration number is time.
+* Starting with a subset of features selected at random. Choosing a number of iterations. And building a model and calculating it's predictive performance. A small subset of features are randomly taken out or added with a new model being built. If performance is improved the new set of features are kept, otherwise an acceptance probability is calculated and used to determine if the subset is accepted or rejected.
+]
+
+
+---
+# Simulated Annealing
+## Algorithm Summary 
+&lt;img src="img/flow_12_2.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+### Acceptance Probability
+`$$Pr[accept] = \exp\left[-\frac{i}{c}\left(\frac{old-new}{old}\right)\right]$$`
+.medium[
+* *i* is the iteration.
+* *old* is the predictive ability of the previous model.
+* *new* is the predictive ability of the model with the new subset of features. 
+]
+
+---
+# Simulated Annealing
+.medium[
+* The randomness from the *random uniform variable* allows SA to escape local optimums in search for the global optimum.
+* *Restarts* is a modification that also helps protect from get stuck in non optimal locals.
+* If no new optimal solution has been found within *I* iterations, you reset to the *i* with the last known optimal solution.
+]
+&lt;img src="img/table_12_2_1.png" height="300px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+## Selecting Features without Over fitting
+.medium[
+* An external resampling procedure should be used to determine how many iterations of the search are appropriate.
+  *  With 10-fold cross-validation as the external resampling scheme, simulated annealing is conducted 10 times on 90% of the data.
+* An internal resample of the data should be used to split it into a subset used for model fitting and another for evaluation.
+  *The internal resamples guide the subset selection process.
+* The optimal number of search iterations is then used on a final simulated annealing search using the entire training set.
+]
+
+---
+# Simulated Annealing
+## Selecting Features without Over fitting
+&lt;img src="img/fig_12_2.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+## Selecting Features without Over fitting
+&lt;img src="img/flow_12_2_a.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+## Selecting Features without Over fitting
+&lt;img src="img/flow_12_2_b.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+## Application to Modeling the OkCupid Data
+.medium[
+* A 10-fold cross-validation was used for the external resampling procedure.
+* A naive Bayes model will be used to illustrate the potential utility of this search method.
+* 500 iterations of simulated annealing will be used with restarts occurring after 10 consecutive sub optimal feature sets have been found.
+* The area under the ROC curve is used to optimize the models and to find the optimal number of SA iterations.
+* The first subset was half the possible predictors chosen at random.
+]
+
+
+---
+# Simulated Annealing
+## Internal estimates across external resamples
+&lt;img src="img/fig_12_3.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+## Are these consistent with the inner validations sets?
+&lt;img src="img/fig_12_4.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+.medium[
+* The best performance was associated with 383 iterations.
+* The optimal iterations ranged from 69 to 404 with an average of 258 iterations.
+* The average number of predictors predictors selected was 56 with a range of 49 to 64.
+]
+&lt;hr&gt;
+.regular[
+* For the final SA a validation set of 10% is allotted from the training set with the remaining used for modeling.
+* 383 iterations and a starting .
+* Starting with
+* Iteration 356 had the best area under the ROC (0.837) with 63 predictors.
+* 66 of the 110 predictors were selected.
+* The estimate of performance for this model was an ROC AUC of 0.799. While this is slightly better than the model with all predictors, the main benefit was the reduce the number of predictors. 
+]
+
+
+---
+# Simulated Annealing
+## Trends for the final SA
+&lt;img src="img/fig_12_5.png" height="450px" style="display: block; margin: auto;" /&gt;
+
+---
+# Simulated Annealing
+## Examining Changes in Performance
+.medium[
+* After a sufficient number of iterations, a data set can be created to quantify the difference in performance with and without each predictor.
+* Each predictor will have a set of iterations with without it. Each iteration has an associated area under the ROC curve computed from the external holdout set.
+* A variety of different analyses can be conducted on these values like a t-test for equality.
+]
+
+---
+# Simulated Annealing
+## The Effect of the Initial Subset
+.medium[
+* A few of the large initial subsets resulted in larger subsets in the end while the smaller initial models tended to drive upward to the middle.
+]
+&lt;img src="img/fig_12_7.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+# Genetic Algorithms
+.medium[
+* A genetic algorithm (GA) is an optimization tool that is based on concepts of evolution population biology.
+
+To effectively find optimal solutions the algorithm mimics the evolutionary process of a population by:
+  1. Generating a candidate set of solutions for the optimization problem
+  1. Reproduction: allowing the solutions to reproduce and create new solutions.
+  1. Natural Selection: Promoting competition to give the most fit solutions the best chance to survive and populate the subsequent generation.
+  
+&gt;This process enables GAs harness good solutions over time to make better solutions
+
+]
+
+---
+# Genetic Algorithms
+
+.medium[
+* The population consists of all possible combinations of features.
+* A chromosome in the population is a specific combination of features.
+  * The combination is represented by a string which has a length equal to the total number of features.
+* The fitness criterion is the predictive ability of the selected combination of features
+* GA feature subsets are grouped into *generations*.
+* The initial generation needs to be large enough to contain a sufficient amount of diversity across the feature subset space.
+  * An approach is to create random subsets of features that contain between 10% and 90% of the total number of features.
+]
+
+---
+# Genetic Algorithms
+## Toy Example
+.medium[
+Consider a set of 9 predictors (`A` - `I`) and an initial generation of 12 feature subsets.
+Each subset has an associated performance value and, in this case, larger values are better.
+]
+&lt;img src="img/table_12_3_1.png" height="350px" style="display: block; margin: auto;" /&gt;
+
+---
+# Genetic Algorithms
+## Toy Example
+.medium[
+* A subset of feature sets needs to be selected as parents to reproduce and form the next generation.
+* Choosing the top-ranking chromosomes as parents is a greedy approach that often leads to landing in locally optimal solutions.
+* To avoid local optimum, the parents should be a function of the fitness.
+* The most common approach is to select parents is to use a weighted random sample with a probability of selection as a function of predictive performance performance.
+]
+
+---
+# Genetic Algorithms
+## Crossover and Mutation
+.medium[
+* In single-point crossover, a random location between two predictors is chosen and the parents exchange features on one side of this point.
+]
+&lt;img src="img/table_12_3_2.png" height="238" style="display: block; margin: auto;" /&gt;
+---
+# Genetic Algorithms
+## Crossover and Mutation
+.medium[
+* Mutations are modifications to a newly created feature subset. A small random probability (1%–2%) is generated for each possible feature. If selected the state of the feature is changed within the subset.
+* Mutaiton helps prevent getting stuck at a local optimum.
+]
+&lt;img src="img/table_12_3_3.png" height="238" style="display: block; margin: auto;" /&gt;
+---
+# Genetic Algorithms
+## Elitism
+.medium[
+* *Elitism* is the process of carring over the best chomosome(s) from a generation to the next. This is to ensure that the subsequent generation maintains the same fitness level as reproduction does not guarantee that.
+* The most fit solution across the observed generations will always be in the final generation.
+* This can cause the GA to linger in local optimums longer since the best chromosome will always have the highest probablility.
+]
+
+---
+# Genetic Algorithms
+## External Validation
+.medium[
+* An external resampling procedure should be used to select an optimal number of generations.
+* GAs are executed within each external resampling loop.
+* Then the internal resamples are used to measure fitness so that different data are used for modeling and evaluation.
+* This process helps prevent the genetic algorithm from finding a feature subset that overfits to the available data.
+]
+
+---
+# Genetic Algorithms
+## External Validation
+.medium[
+The same data splitting scheme was used as withc simulated annealing.
+
+The seach parameters were mostly left to the suggested defaults:
+]
+
+* Generation Size: 50
+* Crossover probability: 80%
+* Mutation probability: 1%
+* No Elitism
+* Number of generations: 14
+
+---
+# Genetic Algorithms
+## External Validation
+.medium[
+* Despite the resamples having considerable variation in the size of the first generation, they all converge to subset sizes that contain between 61 and 85 predictors.
+* The similarity plot indicates that the subsets within a generation are becoming more similar to the best solution.
+]
+&lt;img src="img/fig_12_8.png" height="250px" style="display: block; margin: auto;" /&gt;
+
+---
+# Genetic Algorithms
+## Final Search
+.medium[
+* The final predictor set at generation 15 included more variables than the previous SA.
+*To gauge the effectiveness of the search, 100 random subsets of size 63 were chosen and a naive Bayes model was developed for each. The GA selected subjest performed better than all.
+]
+&lt;img src="img/fig_12_9.png" height="250px" style="display: block; margin: auto;" /&gt;
+
+---
+# Genetic Algorithms
+## Coercing Sparsity
+.medium[
+* Genetic algorithms often tend to select larger feature subsets than other methods. 
+* Using a surrogate measure of performance that has an explicit penalty based on number of features can reduce the nomer of predictors.
+  * Akaike information criterion (AIC) which augments the objective function with a penalty that is a function of the training set size and the number of model terms. This is tailored for models that use likelihood as the objective (i.e., linear or lagistic regression). But it cannot be applied to models that use other metrics.
+* Multi-parameter optimization (MPO) approach uses a function to combine many objective values into a final single value.
+]
+
+---
+# Desirability functions
+.medium[
+* Each objective is translated to a new scale on [0, 1] with larger being more desireable.
+* A desirability function for the number of predictors in the model would be 0 when all of the predictors are in the moddle and 1.0 when only one predictor is in the model.
+* Desireablity functions can be incorporated to guide the modeling process towards other important characteristics.
+* The overall *desirability statistic* is created by taking the geometric mean of the individual funtions.
+]
+
+`$$D = \left(\prod_{i=1}^q d_j\right)^{1/q}$$`
+Based on this function, if any one desirability function is unacceptable, the overall measure is unacceptable.
+
+
+---
+# Desirability functions
+The most commonly used desirability functions for maximizing a quantity use piecewise linear or polynomial functions proposed by Derringer and Suich
+
+`$$\begin{equation} d_i=\begin{cases} 0 &amp;\text{if x &lt; A} \\ \left(\frac{x-A}{B-A}\right)^{s} &amp;\text{if A ≤ x ≤ B}    \\ 1       &amp;\text{if x&gt;B} \end{cases} \end{equation}$$`
+&lt;img src="img/fig_12_10_a.png" height="250px" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+# End Book 2
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
