@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Applied Predictive Modeling</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2020-05-27" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Applied Predictive Modeling
+## Chapter 1~3
+### John Peach
+### OCRUG Book Club
+### 2020-05-27
+
+---
+
+
+
+# Introduction
+.large[
+* Definition
+* common reasons why predictive models fail
+* Objectives of this book
+* Prediction VS Interpretation 
+]
+
+---
+
+# A Short Tour of the Predictive Modeling Process  
+### Model 1
+.large[
+* one predictor vs one response
+* Using "2010 model year" to predict new "2011 model year" Fuel Economy
+* Performance measurement: RMSE
+* Use resampling to evaluate model performance 
+]
+&lt;img src="chapter2chart1.png" height="300px" style="display: block; margin: auto;" /&gt;
+---
+### Model 2
+.large[
+* Add a squared term for engine diplacement
+* perform poorly on the extremes of the predictor 
+]
+&lt;img src="chapter2chart2.png" height="300px" style="display: block; margin: auto;" /&gt;
+---
+### Model 3
+.large[
+* Multivariate adaptive regression spline (MARS) model
+* has a tuning parameter: use resampling to tune 
+*
+]
+&lt;img src="1.png" height="300px" style="display: block; margin: auto;" /&gt;
+---
+### Themes worth discussion
+.large[
+* data splitting
+* predictor data
+* models evaluation
+* model selection
+]
+---
+
+# Data Pre-processing 
+## overview
+.large[
+* definition: addition, deletion, or transformation of training data set
+* supervised data processing vs unsupervised
+* feature engineering
+]
+
+## data transformations for individual predictors
+.large[
+* centering and scaling
+* distribution skewness
+&lt;img src="chapter3chart1.png" height="150px" style="display: block; margin: auto;" /&gt;
+* Box and Cox transformation
+&lt;img src="chapter3chart2.png" height="100px" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# Data Pre-processing 
+## data transformations for Multiple predictors
+.large[
+* outliers
+* sptial sign
+&lt;img src="chapter3chart3.png" height="100px" style="display: block; margin: auto;" /&gt;
+&lt;img src="chapter3chart4.png" height="200px" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# Data Pre-processing 
+## data reduction and feature extraction
+.large[
+* seek to capture a majority of the information in the original variables
+* PCA
+&lt;img src="chapter3chart5.png" height="50px" style="display: block; margin: auto;" /&gt;
+
+&lt;img src="chapter3chart6.png" height="300px" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# Data Pre-processing 
+## caveats of PCA
+.large[
+&lt;img src="chapter3chart9.png" height="300px" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# Data Pre-processing 
+## Dealing with Missing Values
+.large[
+&lt;img src="chapter3chart10.png" height="300px" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# Data Pre-processing 
+## Removing Predictors
+.large[
+
+]
+---
+
+# Data Pre-processing 
+## Between Predictor correlations
+.large[
+
+]
+---
+
+# Data Pre-processing 
+## Adding Predictors
+.large[
+&lt;img src="chapter3chart11.png" height="300px" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# Data Pre-processing 
+## binning Predictors
+.large[
+ 
+]
+---
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
