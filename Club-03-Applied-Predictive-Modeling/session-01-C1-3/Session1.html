@@ -15,7 +15,7 @@
 class: center, middle, inverse, title-slide
 
 # Applied Predictive Modeling
-## Chapter 1~3
+## Chapters 1~3
 ### John Peach
 ### OCRUG Book Club
 ### 2020-05-27
@@ -24,59 +24,78 @@ class: center, middle, inverse, title-slide
 
 
 
-# Introduction
+# Introductions
 .large[
-* Definition
-* common reasons why predictive models fail
-* Objectives of this book
-* Prediction VS Interpretation 
+* Introduce ourselves
+* What we are trying to do
+* Expectations
 ]
 
 ---
 
-# A Short Tour of the Predictive Modeling Process  
-### Model 1
+# Chapter 1
 .large[
-* one predictor vs one response
-* Using "2010 model year" to predict new "2011 model year" Fuel Economy
+* Prediction vs. Interpretation
+]
+
+---
+
+# Chapter 2
+## Model 1
+.medium[
+* One predictor vs One response
+* Using 2010 to predict model year 2011 Fuel Economy
+    * Not sub-sampling the data
 * Performance measurement: RMSE
 * Use resampling to evaluate model performance 
 ]
 &lt;img src="chapter2chart1.png" height="300px" style="display: block; margin: auto;" /&gt;
 ---
-### Model 2
-.large[
-* Add a squared term for engine diplacement
-* perform poorly on the extremes of the predictor 
+
+# Chapter 2
+## Model 2
+.medium[
+* Add a squared term for engine displacement
+* Performed poorly on the extreme values 
 ]
 &lt;img src="chapter2chart2.png" height="300px" style="display: block; margin: auto;" /&gt;
+
 ---
-### Model 3
-.large[
+# Chapter 2
+## Model 3
+.medium[
 * Multivariate adaptive regression spline (MARS) model
-* has a tuning parameter: use resampling to tune 
-*
+* Using hinge function for prediction
+* Tuning parameter: number of segments
+    * Use CV to tune
 ]
 &lt;img src="1.png" height="300px" style="display: block; margin: auto;" /&gt;
 ---
-### Themes worth discussion
+# Chapter 2
+## Themes
 .large[
-* data splitting
-* predictor data
-* models evaluation
-* model selection
+* Data splitting
+* Predictor data / feature selection
+* Estimating Performance (RMSE, etc.)
+* Models evaluation: "No Free Lunch"
+* Model selection
 ]
+
 ---
 
-# Data Pre-processing 
-## overview
+# Chapter 3
+## Data Pre-processing 
+###  Overview
 .large[
-* definition: addition, deletion, or transformation of training data set
-* supervised data processing vs unsupervised
-* feature engineering
+* Definition: addition, deletion, or transformation of training data set
+* Supervised data processing vs unsupervised
+* Feature engineering
 ]
 
-## data transformations for individual predictors
+---
+# Chapter 3
+## Data Pre-processing 
+### Data transformations for individual predictors
 .large[
 * centering and scaling
 * distribution skewness
@@ -85,69 +104,110 @@ class: center, middle, inverse, title-slide
 &lt;img src="chapter3chart2.png" height="100px" style="display: block; margin: auto;" /&gt;
 ]
 ---
-
-# Data Pre-processing 
-## data transformations for Multiple predictors
+# Chapter 3
+## Data Pre-processing 
+### Data transformations for multiple predictors
 .large[
 * outliers
-* sptial sign
+* spatial sign
 &lt;img src="chapter3chart3.png" height="100px" style="display: block; margin: auto;" /&gt;
+
 &lt;img src="chapter3chart4.png" height="200px" style="display: block; margin: auto;" /&gt;
 ]
 ---
-
-# Data Pre-processing 
-## data reduction and feature extraction
-.large[
-* seek to capture a majority of the information in the original variables
+# Chapter 3
+## Data Pre-processing 
+### Data reduction and feature extraction
+.medium[
+* Seeks to capture a majority of the information in the original variables
 * PCA
-&lt;img src="chapter3chart5.png" height="50px" style="display: block; margin: auto;" /&gt;
 
+&lt;img src="chapter3chart5.png" height="50px" style="display: block; margin: auto;" /&gt;
 &lt;img src="chapter3chart6.png" height="300px" style="display: block; margin: auto;" /&gt;
 ]
 ---
-
-# Data Pre-processing 
-## caveats of PCA
-.large[
-&lt;img src="chapter3chart9.png" height="300px" style="display: block; margin: auto;" /&gt;
+# Chapter 3
+## Data Pre-processing 
+### Caveats 
+.medium[
+* Cells are not well separated
+* Loadings near zero indicate that the feature is not important in a given component
+* There are clustering of the loadings
 ]
----
+&lt;img src="chapter3chart9.png" height="250px" style="display: block; margin: auto;" /&gt;
 
-# Data Pre-processing 
-## Dealing with Missing Values
-.large[
+---
+# Chapter 3
+## Data Pre-processing 
+### Dealing with Missing Values
+.medium[
+* Structurally missing
+* Missing at random
+* Missing completely at random
+* Censored
+]
+
+---
+# Chapter 3
+## Data Pre-processing 
+### Dealing with Missing Values
+.medium[
+* Small literature on missing data in prediction
+* KNN is popular imputation method
+]
 &lt;img src="chapter3chart10.png" height="300px" style="display: block; margin: auto;" /&gt;
-]
----
 
-# Data Pre-processing 
-## Removing Predictors
+---
+# Chapter 3
+## Data Pre-processing 
+### Removing Predictors
 .large[
+* Decrease computational cost
+* Highly correlated can cause problems
+* Zero variance predictor
+* Categorical variable inflation (dummy vars)
+]
 
+---
+
+# Chapter 3
+## Data Pre-processing 
+### Between Predictor Correlations
+.medium[
+* Collinearity / multicollinearity
+* Variance inflation factor (VIF)
+* Remove correlated values
+    1. Calc correlation matrix
+    1. Let A, B be highest correlation
+    1. Avg correlations across all pred for A, B
+    1. Remove the pred with the highest avg
+    1. Repeat until no pairs meet the threshold
 ]
 ---
 
-# Data Pre-processing 
-## Between Predictor correlations
-.large[
-
-]
----
-
-# Data Pre-processing 
-## Adding Predictors
+# Chapter 3
+## Data Pre-processing 
+### Adding Predictors
 .large[
 &lt;img src="chapter3chart11.png" height="300px" style="display: block; margin: auto;" /&gt;
 ]
 ---
 
-# Data Pre-processing 
-## binning Predictors
+# Chapter 3
+## Data Pre-processing 
+### Binning Predictors
 .large[
- 
+* Yeah, just do not do this
+* Some algos (trees) do it and that is fine
 ]
 ---
+
+# Problems
+.large[
+* 3.1
+* 3.2
+* 3.3
+]
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
