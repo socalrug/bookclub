@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Applied Predictive Modeling</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Tyler McWatters" />
+    <meta name="date" content="2020-06-17" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="metropolis-custom.css" type="text/css" />
+    <link rel="stylesheet" href="custome.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Applied Predictive Modeling
+## Chapter 7 - Nonlinear Regression Models
+### Tyler McWatters
+### OCRUG Book Club
+### 2020-06-17
+
+---
+
+
+
+
+# Neural Networks
+
+.medium[
+Powerful nonlinear regression techniques inspired by theories about how the brain works.3
+
+Each hidden unit is a linear combination of some or all of the predictor variables. However, this linear combination is typically transformed by a nonlinear function `\(g(·)\)`.
+
+Another linear combination connects `\(f(x)\)` the hidden units to the outcome.
+]
+
+`$$\begin{align}h_{k}(x)  = g\left( \beta_{ok} + \sum_{i=1}^{P} x_{i}\beta_{ik} \right), \mbox{where  }  g(u) = \frac{1}{1 + e^{-u} } \\ \end{align}$$`
+ `$$f(x) = \gamma_{0} + \sum_{k=1}^{H} \gamma_{k}h_{k}$$`
+
+---
+# Neural Networks
+
+&lt;img src="fig_7_1_a.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+# Neural Networks
+.medium[
+Treating this model as a nonlinear regression model, the parameters are usually optimized to minimize the sum of the squared residuals. With the parameters are usually initialized to random, specialized algorithms are use to solve the equation.
+
+**back-propagation** is a highly efficient methodology that works with derivatives to find the optimal parameters.
+* It is common the solution is not a global solution.
+* [Video by 3B1B](https://youtu.be/Ilg3gGewQ5U)
+]
+
+---
+# Neural Networks
+.medium[
+Neural networks have a tendency to over-fit the relationship between the predictors and the response due to the large number of regression coefficients.
+
+*early stopping* would stop the optimization procedure when some estimate of the error rate starts to increase. 
+
+*weight decay* is a penalization method to regularize the model similar to ridge regression.
+]
+
+---
+# Multivariate Adaptive Regression Splines
+.medium[
+MARS creates two contrasted versions of a predictor to enter the model. These are each usually a function of one or two predictors.
+
+The nature of the MARS features breaks the predictor into two groups and models linear relationships between the predictor and the outcome in each group. In effect, this scheme creates a piecewise linear model where each new feature models an isolated portion of the original data.
+
+After the initial model is created with the first two features, the model conducts another exhaustive search to find the next set of features that, given the initial set, yield the best model fit. This process continues until a stopping point is reached.
+]
+
+---
+# Multivariate Adaptive Regression Splines
+.medium[
+There are two tuning parameters associated with the MARS model: the degree of the features that are added to the model and the number of retained terms.
+
+The latter parameter can be automatically determined using the default pruning procedure (using GCV), set by the user or determined using an external resampling technique.
+]
+
+---
+# Support Vector Machines
+.medium[
+SVMs are a class of powerful, highly flexible modeling techniques.
+
+SVMs for regression use a function similar to the Huber function, with an important difference. Given a threshold set by the user (denoted as ε), data points with residuals within the threshold do not contribute to the regression fit while data points with an absolute difference greater than the threshold contribute a linear scale amount.
+* Since the squared residuals are not used, large outliers have a limited effect on the regression equation
+* Samples with small residuals have no effect on the regression equation. 
+]
+
+---
+# Support Vector Machine
+.medium[
+From the stand- point of classical regression modeling, this model would be considered over parameterized. The use of the cost value effectively regularizes the model to help alleviate this problem
+
+Only a subset of training set data points, where `\(\alpha\neq0\)`, are needed for prediction. Since the regression line is determined using these samples, they are called the *support vectors* as they support the regression line.
+]
+
+---
+# K-Nearest Neighbors
+.medium[
+The KNN approach simply predicts a new sample using the K-closest sam- ples from the training set. Its construction is solely based on the individual samples from the training data.
+
+To predict a new sample for regression, KNN identifies that sample’s KNNs in the predictor space. The predicted response for the new sample is then the mean (,median, or other summary stara) of the K neighbors’ responses.
+]
+Minkowski distance, Euclidean when `\(q=2\)`
+`$$\left( \sum_{j=1}^{P} |x_{aj}-x_{bj}|^{q} \right)^{\frac{1}{q}}$$`
+It's recommend that all predictors be centered and scaled prior to performing KNN.
+If a predictor is missing, you can exclude it or impute it using a nearest neighbor approach.
+
+---
+# K-Nearest Neighbors
+.medium[
+Like tuning parameters from other models, K can be determined by resampling.
+
+Removing irrelevant, noise-laden pre- dictors is a key pre-processing step for KNN.
+
+Two commonly noted problems are computational time and the disconnect between local structure and the predictive ability of KNN.
+
+Another approach to enhancing KNN predictivity is to weight the neighbors’ contribution to the prediction of a new sample based on their distance to the new sample. In this variation, training samples that are closer to the new sample contribute more to the predicted response, while those that are farther away contribute less to the predicted response
+]
+
+---
+# Problems
+.large[
+* 7.1
+* 7.2
+* 7.3
+* 7.4
+* 7.5
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

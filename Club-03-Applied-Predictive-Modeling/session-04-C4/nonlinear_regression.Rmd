@@ -1,0 +1,129 @@
+---
+title: "Applied Predictive Modeling"
+subtitle: "Chapter 7 - Nonlinear Regression Models"
+author: "Tyler McWatters"
+institute: "OCRUG Book Club"
+date: "2020-06-17"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis-custom.css, metropolis-fonts, custome.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Neural Networks
+
+.medium[
+Powerful nonlinear regression techniques inspired by theories about how the brain works.3
+
+Each hidden unit is a linear combination of some or all of the predictor variables. However, this linear combination is typically transformed by a nonlinear function $g(·)$.
+
+Another linear combination connects $f(x)$ the hidden units to the outcome.
+]
+
+$$\begin{align}h_{k}(x)  = g\left( \beta_{ok} + \sum_{i=1}^{P} x_{i}\beta_{ik} \right), \mbox{where  }  g(u) = \frac{1}{1 + e^{-u} } \\ \end{align}$$
+ $$f(x) = \gamma_{0} + \sum_{k=1}^{H} \gamma_{k}h_{k}$$
+
+---
+# Neural Networks
+
+```{r, echo=FALSE, out.height='500px', fig.align='center'}
+knitr::include_graphics('fig_7_1_a.png')
+```
+
+---
+# Neural Networks
+.medium[
+Treating this model as a nonlinear regression model, the parameters are usually optimized to minimize the sum of the squared residuals. With the parameters are usually initialized to random, specialized algorithms are use to solve the equation.
+
+**back-propagation** is a highly efficient methodology that works with derivatives to find the optimal parameters.
+* It is common the solution is not a global solution.
+* [Video by 3B1B](https://youtu.be/Ilg3gGewQ5U)
+]
+
+---
+# Neural Networks
+.medium[
+Neural networks have a tendency to over-fit the relationship between the predictors and the response due to the large number of regression coefficients.
+
+*early stopping* would stop the optimization procedure when some estimate of the error rate starts to increase. 
+
+*weight decay* is a penalization method to regularize the model similar to ridge regression.
+]
+
+---
+# Multivariate Adaptive Regression Splines
+.medium[
+MARS creates two contrasted versions of a predictor to enter the model. These are each usually a function of one or two predictors.
+
+The nature of the MARS features breaks the predictor into two groups and models linear relationships between the predictor and the outcome in each group. In effect, this scheme creates a piecewise linear model where each new feature models an isolated portion of the original data.
+
+After the initial model is created with the first two features, the model conducts another exhaustive search to find the next set of features that, given the initial set, yield the best model fit. This process continues until a stopping point is reached.
+]
+
+---
+# Multivariate Adaptive Regression Splines
+.medium[
+There are two tuning parameters associated with the MARS model: the degree of the features that are added to the model and the number of retained terms.
+
+The latter parameter can be automatically determined using the default pruning procedure (using GCV), set by the user or determined using an external resampling technique.
+]
+
+---
+# Support Vector Machines
+.medium[
+SVMs are a class of powerful, highly flexible modeling techniques.
+
+SVMs for regression use a function similar to the Huber function, with an important difference. Given a threshold set by the user (denoted as ε), data points with residuals within the threshold do not contribute to the regression fit while data points with an absolute difference greater than the threshold contribute a linear scale amount.
+* Since the squared residuals are not used, large outliers have a limited effect on the regression equation
+* Samples with small residuals have no effect on the regression equation. 
+]
+
+---
+# Support Vector Machine
+.medium[
+From the stand- point of classical regression modeling, this model would be considered over parameterized. The use of the cost value effectively regularizes the model to help alleviate this problem
+
+Only a subset of training set data points, where $\alpha\neq0$, are needed for prediction. Since the regression line is determined using these samples, they are called the *support vectors* as they support the regression line.
+]
+
+---
+# K-Nearest Neighbors
+.medium[
+The KNN approach simply predicts a new sample using the K-closest sam- ples from the training set. Its construction is solely based on the individual samples from the training data.
+
+To predict a new sample for regression, KNN identifies that sample’s KNNs in the predictor space. The predicted response for the new sample is then the mean (,median, or other summary stara) of the K neighbors’ responses.
+]
+Minkowski distance, Euclidean when $q=2$
+$$\left( \sum_{j=1}^{P} |x_{aj}-x_{bj}|^{q} \right)^{\frac{1}{q}}$$
+It's recommend that all predictors be centered and scaled prior to performing KNN.
+If a predictor is missing, you can exclude it or impute it using a nearest neighbor approach.
+
+---
+# K-Nearest Neighbors
+.medium[
+Like tuning parameters from other models, K can be determined by resampling.
+
+Removing irrelevant, noise-laden pre- dictors is a key pre-processing step for KNN.
+
+Two commonly noted problems are computational time and the disconnect between local structure and the predictive ability of KNN.
+
+Another approach to enhancing KNN predictivity is to weight the neighbors’ contribution to the prediction of a new sample based on their distance to the new sample. In this variation, training samples that are closer to the new sample contribute more to the predicted response, while those that are farther away contribute less to the predicted response
+]
+
+---
+# Problems
+.large[
+* 7.1
+* 7.2
+* 7.3
+* 7.4
+* 7.5
+]
