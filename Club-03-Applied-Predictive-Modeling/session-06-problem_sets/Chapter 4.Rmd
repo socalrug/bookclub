@@ -1,0 +1,40 @@
+---
+title: "Chapter 4"
+author: "John Peach"
+date: "6/2/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(AppliedPredictiveModeling)
+library(tidyverse)
+library(caret)
+```
+
+# 4.2
+
+I would use bootstrapping method as there are few samples
+
+```{r}
+data(permeability)
+createResample(permeability, 10) %>% 
+  map(.f = function(i) permeability[i]) -> bs
+```
+
+# 4.3
+
+```{r}
+data(ChemicalManufacturingProcess)
+cmp <- ChemicalManufacturingProcess[complete.cases(ChemicalManufacturingProcess), ]
+train_index <- createDataPartition(pull(cmp, Yield), p = 0.8, times = 1, list = FALSE)
+plsTune <- train(select(cmp, -Yield),
+                 pull(cmp, Yield),
+                 method = 'pls',
+                 tuneLength = 59,
+                 trControl = trainControl(method = "repeatedcv", repeats = 5,
+                                          index = list(TrainSet = train_index)),
+                 preProcess = c('center', 'scale'),
+                 metric = 'Rsquared')
+predict(plsTune, cmp[-train_index,])
+```
