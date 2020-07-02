@@ -1,0 +1,139 @@
+---
+title: "Chapter 8"
+author: "Tyler McWatters"
+date: "7/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages(c("AppliedPredictiveModeling", "caret", "Cubist", "ipred","mlbench", "multcomp", "party", "randomForest"))
+
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+
+```{r}
+library(mlbench)
+set.seed(200)
+simulated <- mlbench.friedman1(200, sd = 1)
+simulated <- cbind(simulated$x, simulated$y)
+simulated <- as.data.frame(simulated)
+colnames(simulated)[ncol(simulated)] <- "y"
+```
+
+```{r}
+library(randomForest)
+library(caret)
+rf <- randomForest(y ~ ., data = simulated, importance = TRUE, ntree = 1000)
+imp <- varImp(rf, scale = FALSE)
+plot(imp)
+```
+
+```{r}
+simulated$duplicate1 <- simulated$V1 + rnorm(200) * .1
+cor(simulated$duplicate1, simulated$V1)
+rf_cor <- randomForest(y ~ ., data = simulated, importance = TRUE, ntree = 1000)
+imp_cor <- varImp(rf_cor, scale = FALSE)
+plot(imp_cor)
+imp_cor
+```
+
+```{r}
+simulated$duplicate2 <- simulated$V1 + rnorm(200) * .1
+cor(simulated$duplicate2, simulated$V1)
+rf_cor2 <- randomForest(y ~ ., data = simulated, importance = TRUE, ntree = 1000)
+imp_cor2 <- varImp(rf_cor2, scale = FALSE)
+plot(imp_cor2)
+imp_cor2
+```
+
+```{r}
+imps <- tribble(
+  ~V1, ~duplicate1, ~duplicate2,
+  imp$Overall[1], NA, NA,
+  imp_cor$Overall[1], imp_cor$Overall[11], NA,
+  imp_cor2$Overall[1], imp_cor2$Overall[11],imp_cor2$Overall[12]
+)
+imps
+```
+
+```{r}
+library(party)
+set.seed(1337)
+cforest_short <- cforest(y ~ ., data = simulated[, 1:11],
+                     controls=cforest_control(ntree = 1000))
+set.seed(1337)
+cforest_full <- cforest(y ~ ., data = simulated[, 1:11],
+                     controls=cforest_control(ntree = 1000))
+imp_short <- varImp(cforest_short)
+imp_short <- varImp(cforest_full)
+imp_c_short <- varImp(cforest_short)
+imp_c_full <- varImp(cforest_full)
+
+```
+
+---
+# Excercise 6
+```{r}
+library(AppliedPredictiveModeling)
+data(permeability)
+
+# remove near Zero Variance predictors 
+nzvFingerprints <- nearZeroVar(fingerprints)
+fprints <- fingerprints[,-nzvFingerprints]
+
+set.seed(1337)
+trainingRows <- createDataPartition(permeability, p = .75, list=FALSE)
+train_fprints <- fprints[trainingRows,]
+train_permeability <- permeability[trainingRows,]
+test_fprints <- fprints[-trainingRows,]
+test_permeability <- permeability[-trainingRows,]
+
+set.seed(1337)
+ctrl <- trainControl(method = "LGOCV")
+
+
+set.seed(1337)
+rpartGrid <- expand.grid(maxdepth= seq(1,10,by=1))
+rpartPermTune <- train(x = train_fprints, y=log10(train_permeability),
+                       method="rpart2",
+                       tuneGrid=rpartGrid,
+                       trControl=ctrl)
+
+set.seed(1337)
+rfPermTune <- train(x = train_fprints, y = log10(train_permeability), method="rf", tuneLength=10,
+                    importance=TRUE, trControl= ctrl)
+
+set.seed(1337)
+gbmGrid <- expand.grid(interaction.depth=seq(1,6,by=1),
+                       n.trees=c(25,50,100,200),
+                       shrinkage=c(0.01,0.05,0.1),
+                       n.minobsinnode=3)
+gbmPermTune <- train(x = train_fprints, y=log10(train_permeability),
+                    method="gbm",
+                    tuneGrid=gbmGrid,
+                    trControl=ctrl)
+
+
+plot(rpartPermTune, metric = "Rsquared")
+plot(rfPermTune, metric = "Rsquared")
+plot(gbmPermTune, metric = "Rsquared")
+```
+
+
+
+
+
+
+
+
+
+
