@@ -1,0 +1,93 @@
+---
+title: "ch3_exercises"
+author: "Tyler McWatters"
+date: "7/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+# Exercise 1
+
+```{r}
+library(mlbench)
+data(Glass)
+str(Glass)
+```
+
+```{r}
+library(tidyverse)
+long_glass <- Glass %>% pivot_longer(cols = -'Type')
+head(long_glass)
+```
+
+```{r}
+summary(Glass)
+long_glass %>% ggplot() + geom_density(aes(x= value)) + facet_wrap(~ name, scales = "free")
+long_glass %>% ggplot() + geom_density(aes(x= value, fill=Type)) + facet_wrap(~ name, scales = "free")
+```
+
+```{r}
+library("GGally")
+select(Glass, -Type) %>% ggpairs()
+```
+
+```{r}
+library(caret)
+yjTrans <- preProcess(Glass[, -10], method = "YeoJohnson")
+yjData <- predict(yjTrans, newdata= Glass[,-10])
+csTrans <- preProcess(Glass[, -10], method = c("center","scale"))
+csData <- predict(csTrans, newdata= Glass[,-10])
+yjData %>% pivot_longer(cols = colnames(yjData)) %>% 
+  ggplot() + geom_density(aes(x= value)) + facet_wrap(~ name, scales = "free")
+csData %>% ggpairs()
+ssData <- spatialSign(csData)
+ssData %>% as_tibble() %>% ggpairs()
+```
+
+---
+# Exercise 2
+
+```{r}
+data(Soybean)
+sb <- as_tibble(Soybean)
+summary(sb)
+
+```
+
+```{r}
+# long_sb <- sb %>% pivot_longer(cols = -'Class')
+# head(long_sb)
+
+data(Soybean)
+sb <- as_tibble(Soybean)
+level_key <- c(`0` = 'low', `1` = 'norm', `2` = 'high')
+#sb$temp <- recode_factor(sb$temp, !!!level_key, .missing = "missing", .ordered = FALSE)
+# Failed VIA Error: `.missing` is not supported for factors
+sb$temp <- recode_factor(sb$temp, !!!level_key, .ordered = FALSE)
+level_key <- c(`0` = 'apr', `1` = 'may', `2` = 'june', `3` = 'july',`4`='aug',`5`='sept',`6`='oct')
+sb$date <- recode_factor(sb$date, !!!level_key, .ordered = FALSE)
+level_key <- c(`0` = 'low', `1` = 'norm', `2` = 'high')
+sb$precip <- recode_factor(sb$precip, !!!level_key, .ordered = FALSE)
+
+cols <- c('temp','date','precip')
+for (col in cols) {
+  print(table(sb[,col], useNA = "always"))
+}
+
+```
+
+```{r}
+sb %>% ggplot(aes(x=date)) +
+  geom_bar(aes(y=(..count..), fill=temp)) +
+  coord_flip()
+
+sb %>% ggplot(aes(x=date)) +
+  geom_bar(aes(y=(..count..), fill=precip)) +
+  coord_flip()
+```
+
+s
