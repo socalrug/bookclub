@@ -84,7 +84,7 @@ table_df(train)
 # MDA
 # I am not able to get this to run.
 map(train, function(x) {
-  train(select(x, -injury),
+  train(dplyr::select(x, -injury),
         y = x$injury,
         method = 'mda',
         metric = 'Accuracy',
@@ -102,7 +102,7 @@ map(train, function(x) {
 # nnet
 map(train, function(x) {
   nnetGrid <- expand.grid(.size = 1:10, .decay = c(0, 0.1, 1, 2))
-  train(select(x, -injury),
+  train(dplyr::select(x, -injury),
         y = x$injury,
         method = 'nnet',
         metric = 'Accuracy',
@@ -131,7 +131,7 @@ map(model_fda, function(x) {
 
 # Support vector
 map(train, function(x) {
-  train(select(x, -injury),
+  train(dplyr::select(x, -injury),
         y = x$injury,
         method = 'svmLinear',
         metric = 'Accuracy',
@@ -150,7 +150,7 @@ map(train, function(x) {
 
 # KNN
 map(train, function(x) {
-  train(select(x, -injury),
+  train(dplyr::select(x, -injury),
         y = x$injury,
         method = 'knn',
         metric = 'Accuracy',
@@ -180,4 +180,4 @@ map2(model_nb, test, function(model, data) {
 
 map2(predict_nb, test, function(prediction, truth) {
   MLmetrics::Accuracy(prediction$class, truth$injury)
-}) -> accura
+}) -> accuracy_nb
