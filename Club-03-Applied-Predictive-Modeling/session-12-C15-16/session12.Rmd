@@ -42,12 +42,12 @@ The 2000 CoIL Challenge: to predict whether customers would purchase caravan ins
 * The outcome, whether the costumer purchased caravan insurance, is highly unbalanced with only 6%
 * Customer subtype designation, such as “Traditional Families” or “Affluent Young Families.” Many of the subtypes comprise less than 5 % of the customers.
 * Demographic factors were derived from data at the zip code level.
-* Three data set were created using stratidied random sampling. A training set, A small evaluation set, And a test set.
+* Three data set were created using stratified random sampling. A training set, A small evaluation set, And a test set.
 ]
 
 
 ---
-# Effect of Class Imalance
+# Effect of Class Imbalance
 
 ```{r, echo=FALSE, out.height='190px', fig.align='center'}
 knitr::include_graphics('table_16_1.png')
@@ -55,13 +55,13 @@ knitr::include_graphics('table_16_1.png')
 
 .medium[
 * In each model, any patterns that were useful for predicting the outcome were overwhelmed by the large percentage of customers with no caravan insurance.
-* All models achieved good specificity, but high sensitivity (where a policy perchase is defined as the event).
-* All models had highly left-skewed predicted probablility distributions.
+* All models achieved good specificity, but high sensitivity (where a policy purchase is defined as the event).
+* All models had highly left-skewed predicted probability distributions.
 
 ]
 
 ---
-# Effect of Class Imalance
+# Effect of Class Imbalance
 
 
 <img width="45%" src='fig_16_1_a.png'/>
@@ -77,7 +77,7 @@ knitr::include_graphics('table_16_1.png')
 .medium[
 * The simplest approach to counteract the effects of class imbalance is to tune the model to maximize the accuracy of the minority class(es).
 * Tuning the model to maximize the sensitivity may help desensitize the training process to the high percentage without a policy purchase.
-* The FDA model showed a rise in sensitivity from 0% to 5.4% as the model terms were increased. This is a minor improvment with no cost to specificity.
+* The FDA model showed a rise in sensitivity from 0% to 5.4% as the model terms were increased. This is a minor improvement with no cost to specificity.
 * Given the slight sensitivity increase this in not an effective solution.
 ]
 
@@ -87,8 +87,8 @@ knitr::include_graphics('table_16_1.png')
 knitr::include_graphics('fig_16_2.png')
 ```
 .medium[
-* An appropriate balance between sensitivity and specificity can be determinded.
-* Decreasing the cutoff for the probability of respondings increases the sensitivity at the cost of specificity.
+* An appropriate balance between sensitivity and specificity can be determined.
+* Decreasing the cutoff for the probability of responding increases the sensitivity at the cost of specificity.
 * There may be situations where the sensitivity/specificity trade-off can be accomplished without severely compromising the accuracy of the majority class.
 ]
 
@@ -109,10 +109,10 @@ knitr::include_graphics('table_16_2.png')
 # Adjusting Prior Probabilities
 
 .medium[
-* Some models use prior probabilities, such as na ̈ıve Bayes and discriminant analysis classifiers.
+* Some models use prior probabilities, such as naive Bayes and discriminant analysis classifiers.
 * These models typically derive the value of the priors from the training data.
 * Using more balanced priors or a balanced training set may help deal with a class imbalance.
-* For example, new priors of 60 % for the insured and 40 % for the uninsured in the FDA model increased the probability of having insurance significantly. However the new class probabilites did not change the rankings of customers in the test set and the model has the same area under the ROC.
+* For example, new priors of 60 % for the insured and 40 % for the uninsured in the FDA model increased the probability of having insurance significantly. However the new class probabilities did not change the rankings of customers in the test set and the model has the same area under the ROC.
 ]
 
 ---
@@ -179,4 +179,46 @@ knitr::include_graphics('table_16_3.png')
 
 ---
 # Cost-Sensitive Training
+```{r, echo=FALSE, out.height='250px', fig.align='center'}
+knitr::include_graphics('fig_16_5.png')
+```
+.medium[
+* Model performance based on the Kappa statistic, sensitivity, and specificity was very similar for the two data sets.
+* Smaller weights optimize Kappa.
+* Moderate and higher weights optimize sensitivity.
+* Use the plot to decided the appropriate operating characteristics of the model.
+]
+
+---
+# Differential Costs
+.large[
+The potential cost of a prediction takes into account several factors
+* The cost of the particular mistake.
+* The probability of making that mistake.
+* The prior probability of the classes.
+]
+
+---
+# Cost-Sensitive Training
+```{r, echo=FALSE, out.height='300px', fig.align='center'}
+knitr::include_graphics('fig_16_6.png')
+```
+.medium[
+* Plot noise due to the instability of CART trees.
+* Smaller sample size causes more noise in the the sensitivity.
+* Sensitivity and Specificity start to converge with higher cost values.
+]
+
+---
+# Cost-Sensitive Training
+```{r, echo=FALSE, out.height='300px', fig.align='center'}
+knitr::include_graphics('fig_16_7.png')
+```
+.medium[
+* Like SVM, curves are consistent between training and evaluation.
+* Smaller costs optimize Kappa.
+* Moderate to large costs optimize sensitivity.
+* Clear trade-off between sensitivity and specificity.
+]
+
 
