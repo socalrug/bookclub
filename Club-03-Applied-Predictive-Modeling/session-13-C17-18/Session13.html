@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Applied Predictive Modeling</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2020-08-19" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Applied Predictive Modeling
+## Chapters 17~18
+### John Peach
+### OCRUG Book Club
+### 2020-08-19
+
+---
+
+
+
+# Chapter 17 - Case Study
+.large[
+HPC Job Scheduling
+* Problem: Execute simultaneous jobs in an effcient manner
+* Challenges
+    * demand exceeds capacity
+    * Spikey job submission
+    * Job priority can vary
+    * Various machine specs
+    * Imbalance in the information about the job
+]
+
+---
+# Chapter 17 - Setup
+&lt;img src="Ch17Fig01.png" height="500px" style="display: block; margin: auto;" /&gt;
+---
+# Objective
+.pull-left[
+.large[
+Predict the job class
+* very fast 51%
+* fast 31%
+* moderate 12% 
+* long 6%
+]
+]
+
+.pull-right[
+&lt;img src="Ch17Fig02.png" height="300px" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+# Data Splitting
+.large[
+* 4331 samples (80/20 split)
+* Stratified random sampling
+* five repeats, 10-fold CV
+* Custom cost fuction (p 453 Table 17.2)
+]
+---
+
+# Model Classes
+.large[
+* LDA (standard and penalized)
+* PLS
+* NN (Single hidden layer)
+* FDA (First degree MARS)
+* SVM - RBF (equal and weighted costs)
+* CART (equal and weighted costs)
+* Bagged CART (equal and weighted costs)
+* RF
+* C5.0 (Tree and rule-based models)
+]
+
+---
+# Results
+
+&lt;img src="Ch17Fig05.png" height="450px" style="display: block; margin: auto;" /&gt;
+.large[
+Linear models did poorly, the rest were about the same
+]
+---
+# Results - CART
+.large[
+Equal/Unequal costs did not have an effect on complexity parameter.
+
+Cost model caused a decrease in accuracy and Kappa]
+&lt;img src="Ch17Fig06a.png" height="300px" style="display: block; margin: auto;" /&gt;
+---
+# Results - SVM
+.large[
+Equal/Unequal weights did not have an effect on the Cost
+
+Cost model had limit effect on accuracy and Kappa
+]
+&lt;img src="Ch17Fig06b.png" height="300px" style="display: block; margin: auto;" /&gt;
+---
+
+# Chapter 18
+## Measuring Predictor Importance
+.large[
+* Goal: Quantify the strength of the relationship between the predictors and the outcome.
+* Rational: Filter inputs to the model
+* Some models have built-in measurements
+  * Trees, MARS, LinReg/LogReg
+* This chapter focuses on model agnostic approaches
+* Techniques are generally divided by type of outcome
+]
+
+---
+# Numerical Outcomes and Predictors
+.large[
+* Correlation
+  * Classical approach
+  * Measures linear association - which can be limiting
+* Spearman's Ranked Correlation
+  * Use when the data is curvilinear
+* LOESS Pseudo- `\(R^2\)`
+  * fits a local polynomial through the data
+  * Use a pseudo- `\(R^2\)` on the residuals
+* Maximal Information Coefficient
+]
+---
+# Numerical Outcomes and Predictors
+.large[
+* Univariate miss correlated variables
+  * Some models may be sensitive to this
+  * Preprocess to remove them
+* Univariate do not account for interactions
+  * Generally expert knowledge is needed
+]
+---
+# Num. Outcomes - Cat. Predictors
+.large[
+* Are average outcomes in a category different
+  * Use a t-statistic to test
+* Wilcoxon rank sum test
+  * If the t-stat assumptions are violated
+* ANOVA
+  * When there are more than 2-categories
+]
+---
+# Cat. Outcomes - Num. Predictors
+.large[
+* ROC-AUC
+  * Build a single feature model (??)
+  * Supported when there are two classes
+    * A one-vs-all approach would work
+* Mean values of predictors within a class
+  * Predictor is treated as the outcome
+]
+
+---
+# Categorial Outcomes and Predictors
+.large[
+* Two class problem
+  * Odds of probability `\(p/(1-p)\)`
+    * odds ratio = `\(\frac{p_1(1-p_2)}{p_2(1-p_1)}\)`
+  * Fisher's Exact Test
+* Multiclass problem
+  * C4.5 Gain ratio (bigger is better)
+]
+
+---
+# Relief Algo
+.large[
+* Generic method
+* Two class
+* Continuous and dummy predictors
+* Recognizes nonlinear relationships
+]
+
+---
+# Relief Algo
+&lt;img src="Relief_Algo.png" height="500px" style="display: block; margin: auto;" /&gt;
+---
+
+# Relief Algo
+&lt;img src="Ch18Fig08.png" height="300px" style="display: block; margin: auto;" /&gt;
+
+.medium[
+.pull-left[
+* Sample update
+  1. Start with the second last point on the left
+  1. Predictor A = -1.1
+  1. Nearest hit: 0.2 units away
+  1. Nearest miss: at 0.5
+]
+.pull-right[
+* Update: `\(\frac{-(-1.1 + 0.9)^2 + (-1.1 - 5)^2}{m} = \frac{2.55}{m}\)`
+* Predictor B is non-informative
+]
+]
+---
+
+# ReliefF Algo
+.large[
+* Improvement to Relief
+  * Uses more than one nearest neighbor
+  * Modified distance metric
+  * Supports more than two classes
+]
+---
+
+# Maximal Information Coefficient (MIC)
+.large[
+* Quantifies the relationship between two variables
+* Create a grid of two features
+* Partition the data into a set of grids
+* Within each grid, compute mutual information statistic
+* Repeat the process for many different grid sizes
+* The mutual information values are normalized
+* The largest value is used as the strength of association between the predictor and outcome.
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
