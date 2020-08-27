@@ -76,7 +76,99 @@ length(intersect(findCorrelation(select(predictors, -Genotype), names = TRUE, cu
 # (b) Refit the recursive feature selection models
 ################################################################################
 
+# Random Forest RFE
 
+# Orginal Model
+fiveStats <- function(...) c(twoClassSummary(...), defaultSummary(...))
+split <- createDataPartition(diagnosis, p = 0.8, list = FALSE)
+adData <- predictors
+adData$Class <- diagnosis
+training <- adData[split, ]
+testing <- adData[-split, ]
+predVars <- names(adData)[!names(adData) %in% c("Class", "Genotype")]
+index <- createMultiFolds(training$Class, times = 5)
+varSeq <- seq(1, length(predVars) - 1, by = 2)
+newRF <- rfFuncs
+newRF$summary <- fiveStats
+
+ctrl_rf <- rfeControl(method = 'repeatedcv',
+                   repeats = 5,
+                   verbose = TRUE,
+                   functions = newRF,
+                   index = index)
+rfRFE <- rfe(x = training[, predVars],
+             y = training$Class,
+             sizes = varSeq,
+             metric = "ROC",
+             rfeControl = ctrl_rf,
+             ntree = 1000)
+rfRFE
+
+---------------------------
+# High Correlation features removed
+
+adData_low_corr <- predictors_low_corr
+adData_low_corr$Class <- diagnosis
+training_low_corr <- adData_low_corr[split, ]
+testing_low_corr <- adData_low_corr[-split, ]
+predVars_low_corr <- names(adData_low_corr)[!names(adData_low_corr) %in% c("Class", "Genotype")]
+
+rfRFE_low_corr <- rfe(x = training_low_corr[, predVars_low_corr],
+             y = training_low_corr$Class,
+             sizes = varSeq,
+             metric = "ROC",
+             rfeControl = ctrl_rf,
+             ntree = 1000)
+
+rfRFE_low_corr
+
+###########################################################
+# SVM RFE
+
+# Original Model
+svmFuncs <- caretFuncs
+svmFuncs$summary <- fiveStats
+
+ctrl_svm <- rfeControl(method = 'repeatedcv',
+                   repeats = 5,
+                   verbose = TRUE,
+                   functions = svmFuncs,
+                   index = index)
+
+svmRFE <- rfe(x = training[, predVars],
+              y = training$Class,
+              sizes = varSeq,
+              metric = "ROC",
+              rfeControl = ctrl_svm,
+              method = "svmRadial",
+              tuneLength = 12,
+              preProc = c("center", "scale"),
+              trControl = trainControl(method = "cv",
+                                       verboseIter = FALSE,
+                                       classProbs = TRUE))
+svmRFE
+
+-------------
+# High Correlation features removed
+  
+adData_low_corr <- predictors_low_corr
+adData_low_corr$Class <- diagnosis
+training_low_corr <- adData_low_corr[split, ]
+testing_low_corr <- adData_low_corr[-split, ]
+predVars_low_corr <- names(adData_low_corr)[!names(adData_low_corr) %in% c("Class", "Genotype")]
+
+svmRFE_low_corr <- rfe(x = training[, predVars],
+              y = training$Class,
+              sizes = varSeq,
+              metric = "ROC",
+              rfeControl = ctrl_svm,
+              method = "svmRadial",
+              tuneLength = 12,
+              preProc = c("center", "scale"),
+              trControl = trainControl(method = "cv",
+                         verboseIter = FALSE,
+                         classProbs = TRUE))
+svmRFE_low_corr
 
 ################################################################################
 # (c) Did the RFE profiles shown in Fig 19.4 change considerably? Which models
