@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Chapter 1~2</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Xi Chen" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Chapter 1~2
+### Xi Chen
+### 9/30/2020
+
+---
+
+&lt;style type="text/css"&gt;
+
+body, td {
+   font-size: 14px; 
+}
+code.r{
+  font-size: 12px;
+}
+pre {
+  font-size: 12px;
+  background-color:lightblue;
+}
+&lt;/style&gt;
+
+
+# Chapter 1 - Introduction
+.large[
+who should read this book
+* Intermediate R programmer
+
+What you will get out of this book
+* Be familiar with the foundations of R
+* Understand what functional programming mean
+* Know about R’s rich variety of object-oriented systems
+* Appreciate the double-edged sword of metaprogramming
+* Have a good intuition for which operations in R are slow or use a lot of memory. 
+]
+
+---
+# Chapter 2.2 -  Binding basics
+.large[
+* think of a name as a reference to a value. 
+* you don’t get another copy of the value c(1, 2, 3), you get another binding to the existing object
+]
+
+
+```r
+x &lt;- c(1, 2, 3)
+y &lt;- x
+obj_addr(x) 
+```
+
+```
+## [1] "0x7fc9ab287648"
+```
+
+```r
+obj_addr(y) 
+```
+
+```
+## [1] "0x7fc9ab287648"
+```
+.pull-left[
+&lt;img src="Picture1.png" width="261" height="100px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+
+---
+# Chapter 2.3 -  Copy-on-modify
+.large[
+* While the value associated with y changed, the original object did not. Instead, R created a new object, 0xcd2, a copy of 0x74b with one value changed, then rebound y to that object.
+]
+
+
+```r
+x &lt;- c(1, 2, 3)
+y &lt;- x
+
+y[[3]] &lt;- 4
+x 
+```
+
+```
+## [1] 1 2 3
+```
+.pull-left[
+&lt;img src="Picture2.png" width="249" height="100px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+---
+# Chapter 2.3.3 -  Lists
+.large[
+* This list is more complex because instead of storing the values itself, it stores references to them
+]
+
+
+```r
+l1 &lt;- list(1, 2, 3)
+l2 &lt;- l1
+l2[[3]] &lt;- 4
+ref(l1, l2)
+```
+
+```
+## █ [1:0x7fc9a7268ea8] &lt;list&gt; 
+## ├─[2:0x7fc9aa403930] &lt;dbl&gt; 
+## ├─[3:0x7fc9aa4038f8] &lt;dbl&gt; 
+## └─[4:0x7fc9aa4037a8] &lt;dbl&gt; 
+##  
+## █ [5:0x7fc9aaf06128] &lt;list&gt; 
+## ├─[2:0x7fc9aa403930] 
+## ├─[3:0x7fc9aa4038f8] 
+## └─[6:0x7fc9aa403690] &lt;dbl&gt;
+```
+.pull-left[
+&lt;img src="Picture3.png" width="280" height="100px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+---
+# Chapter 2.3.4 -  Data frames
+.large[
+* Data frames are lists of vectors, so copy-on-modify has important consequences when you modify a data frame
+]
+
+
+```r
+d1 &lt;- data.frame(x = c(1, 5, 6), y = c(2, 4, 3))
+d2 &lt;- d1
+d2[, 2] &lt;- d2[, 2] * 2 
+```
+.pull-left[
+&lt;img src="Picture4.png" width="296" height="200px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+---
+# Chapter 2.3.4 -  Character vectors
+.large[
+* R actually uses a global string pool where each element of a character vector is a pointer to a unique string in the pool
+]
+
+
+```r
+x &lt;- c("a", "a", "abc", "d")
+ref(x, character = TRUE)
+```
+
+```
+## █ [1:0x7fc9aaf70758] &lt;chr&gt; 
+## ├─[2:0x7fc9a90986b0] &lt;string: "a"&gt; 
+## ├─[2:0x7fc9a90986b0] 
+## ├─[3:0x7fc9a9726bb8] &lt;string: "abc"&gt; 
+## └─[4:0x7fc9a7aa5e30] &lt;string: "d"&gt;
+```
+.pull-left[
+&lt;img src="Picture5.png" width="325" height="200px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+---
+# Chapter 2.4 -  Object size
+.medium[
+* Since the elements of lists are references to values, the size of a list might be much smaller than you expect
+*  R 3.5.0 and later versions have a feature that might lead to surprises: ALTREP, short for alternative representation.  
+]
+
+
+```r
+x &lt;- runif(1e6)
+obj_size(x) 
+```
+
+```
+## 8,000,048 B
+```
+
+```r
+y &lt;- list(x, x, x)
+obj_size(y) 
+```
+
+```
+## 8,000,128 B
+```
+
+```r
+obj_size(1:3) 
+```
+
+```
+## 680 B
+```
+
+```r
+obj_size(1:1e3) 
+```
+
+```
+## 680 B
+```
+
+```r
+obj_size(1:1e6) 
+```
+
+```
+## 680 B
+```
+
+```r
+obj_size(1:1e9) 
+```
+
+```
+## 680 B
+```
+
+---
+
+# Chapter 2.5 -  Modify-in-place
+.Large[
+* Objects with a single binding get a special performance optimisation
+* Environments, a special type of object, are always modified in place. 
+]
+
+.pull-left[
+&lt;img src="Picture6.png" width="624" height="200px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+.pull-left[
+&lt;img src="Picture7.png" width="561" height="200px" style="display: block; margin: auto auto auto 0;" /&gt;
+]
+---
+# Chapter 2.6 -  Unbinding and garbage collector
+.Large[
+*  The GC frees up memory by deleting R objects that are no longer used, and by requesting more memory from the operating system if needed. 
+]
+
+.pull-left[
+&lt;img src="Picture8.png" width="553" height="300px" style="display: block; margin: auto auto auto 0;" /&gt;
+] 
+---
+# Exercise -  2.2
+.Large[
+*  The following code accesses the mean function in multiple ways. Do they all point to the same underlying function object? Verify this with lobstr::obj_addr().
+]
+
+```r
+mean_functions &lt;- list(mean,
+                       base::mean,
+                       get("mean"),
+                       evalq(mean),
+                       match.fun("mean"))
+
+unique(obj_addrs(mean_functions))  
+```
+
+```
+## [1] "0x7fc9aa680d98"
+```
+---
+
+# Exercise -  2.5
+.Large[
+*  Explain why the following code doesn’t create a circular list.
+]
+
+```r
+x &lt;- list()  # creates initial object
+obj_addr(x) 
+```
+
+```
+## [1] "0x7fc9ad095af8"
+```
+
+```r
+tracemem(x) 
+```
+
+```
+## [1] "&lt;0x7fc9ad095af8&gt;"
+```
+
+```r
+x[[1]] &lt;- x  # Copy-on-modify triggers new copy 
+```
+
+```
+## tracemem[0x7fc9ad095af8 -&gt; 0x7fc9ac43c4b8]: eval eval withVisible withCallingHandlers handle timing_fn evaluate_call &lt;Anonymous&gt; evaluate in_dir block_exec call_block process_group.block process_group withCallingHandlers process_file &lt;Anonymous&gt; &lt;Anonymous&gt;
+```
+
+```r
+obj_addr(x)       # copied object has new memory address 
+```
+
+```
+## [1] "0x7fc9ac429bc0"
+```
+
+```r
+obj_addr(x[[1]])  # list element contains old memory adress 
+```
+
+```
+## [1] "0x7fc9ad095af8"
+```
+---
+.pull-center[
+&lt;img src="Picture9.png" width="332" height="250px" style="display: block; margin: auto;" /&gt;
+] 
+---
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
