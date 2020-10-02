@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2020-10-07" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R
+## Chapters 3-4
+### John Peach
+### OCRUG
+### 2020-10-07
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+# Vectors
+
+* Flavours: 
+  * atomic: all elements are the same type
+  * list: elements can have different types
+  * NULL: not a vector but serves as an empty vector
+    
+* Attributes:
+  * Stores metadata about the vector
+  
+---
+# Atomic Vectors
+
+* Types:
+  * Logical: `TRUE`, `FALSE`
+  * Integer: `1234L`, `1E4L`, `0xcafeL`
+  * Double: `0.1234`, `1.23E4`, `0xcafe`, `Inf`, `-Inf`, `NaN`
+  * Character: Strings, may need escaping
+  * Raw: Used for binary
+  * Complex: `complex(real=5, imaginary=2)`
+
+* `typeof()` returns the vector type
+    
+---
+
+# Greedy `NA`
+  
+.pull-left[
+## Greedy `NA`
+
+```r
+NA &gt; 5
+```
+
+```
+## [1] NA
+```
+
+```r
+10 * NA
+```
+
+```
+## [1] NA
+```
+
+```r
+!NA
+```
+
+```
+## [1] NA
+```
+
+```r
+c(NA, 5, NA, 10) == NA
+```
+
+```
+## [1] NA NA NA NA
+```
+]
+
+.pull-right[
+## Exceptions to Greedy `NA`
+
+```r
+NA^0
+```
+
+```
+## [1] 1
+```
+
+```r
+NA | TRUE
+```
+
+```
+## [1] TRUE
+```
+
+```r
+NA &amp; FALSE
+```
+
+```
+## [1] FALSE
+```
+]
+
+* use `is.na(x)` to determine if something is NA
+---
+# Coercion
+
+* R will coerce vectors into a common data type
+* LOGICAL -&gt; Integer -&gt; Double -&gt; Character
+  * We are increasing the domain of possible values as we move to the right
+  * A warning is generated when it cannot coerce
+* manual coercion use: `as.*()` methods where * is the type
+  * `as.integer()`, `as.logical()`, `as.double()`, etc.
+
+
+```r
+c("a", 1)
+```
+
+```
+## [1] "a" "1"
+```
+
+```r
+x &lt;- c(FALSE, FALSE, TRUE)
+mean(x)
+```
+
+```
+## [1] 0.3333333
+```
+
+```r
+as.integer(c("1", "1.5", "1.6", "a"))
+```
+
+```
+## Warning: NAs introduced by coercion
+```
+
+```
+## [1]  1  1  1 NA
+```
+---
+# Attributes
+
+* Data structures like, matrices, arrays, factors, dates etc. are built on the atomic vectors with the use of attributes.
+* attributes provide meta-data about a vector
+* attributes are name-value pairs
+* most attributes are lost on mutation
+
+Accessing and mutating attributes
+* `attribute(x)`: returns all attributes of `x`
+* `attributes(a) &lt;- list(a='foo', b='bar')`: resets all attributes
+* `attr(x, "y")`: returns the attribute "y" of `x`
+* `attr(x, "y") &lt;- 3`: sets the attribute "y" to the value 3, in `x`
+
+---
+# Assign Attributes at creation
+
+Setting attributes at creation
+
+```r
+a &lt;- structure(
+  1:3,
+  x = "abc",
+  y = 4:6
+)
+str(attributes(a))
+```
+
+```
+## List of 2
+##  $ x: chr "abc"
+##  $ y: int [1:3] 4 5 6
+```
+
+---
+# Special Attributes
+
+* Attributes `class`, `comment`, `dim`, `dimnames`, `names`, `row.names` and `tsp` have restrictions on their values.
+* There are helper functions to work with these. `names()`, `row.names()`, etc.
+* `attributes(a) &lt;-` gives an error if the rules are violated
+* `mostattributes(a) &lt;-` only mutates these attributes if they are valid.
+
+The `NULL` object cannot have attributes
+
+```r
+tryCatch(
+  {attr(NULL, 'foo') &lt;- 'bar'},
+  error = function(e) {
+    print(e$message)
+  })
+```
+
+```
+## [1] "invalid (NULL) left side of assignment"
+```
+
+---
+
+# Attribute Functions
+
+![](attribute_functions.png)
+
+---
+
+# Methods for Naming Vectors
+
+
+```r
+# In creation
+x &lt;- c(a = 1, b = 2, c = 3)
+
+# Assignment
+names(x) &lt;- c("a", "b", "c")
+
+# Inline
+x &lt;- setNames(1:3, c("a", "b", "c"))
+```
+
+---
+  
+# Dimensions
+
+
+```r
+c &lt;- 1:6
+print(c)
+```
+
+```
+## [1] 1 2 3 4 5 6
+```
+
+```r
+# Set the dimensions
+dim(c) &lt;- c(3,2)
+print(c)
+```
+
+```
+##      [,1] [,2]
+## [1,]    1    4
+## [2,]    2    5
+## [3,]    3    6
+```
+
+---
+
+# S3 Vectors
+
+* An object with a `class` attribute makes it an S3 object
+
+&lt;img src="s3.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Factors
+
+
+```r
+x &lt;- factor(c("a", "b", "c"), levels = c("a", "b", "c", "d", "e"))
+x
+```
+
+```
+## [1] a b c
+## Levels: a b c d e
+```
+
+```r
+typeof(x)
+```
+
+```
+## [1] "integer"
+```
+
+```r
+attributes(x)
+```
+
+```
+## $levels
+## [1] "a" "b" "c" "d" "e"
+## 
+## $class
+## [1] "factor"
+```
+
+---
+
+# Dates and Date-time
+
+* Both are based on a `double`
+
+## Dates 
+* number of days since the Linux Epoc of Time
+
+```r
+date &lt;- as.Date("1970-02-01")
+unclass(date)
+```
+
+```
+## [1] 31
+```
+
+## Date-time
+* `POSIXct` is `time_t` in C
+* `POSIXlt` is `struct tm` in C
+
+```r
+now_ct &lt;- as.POSIXct("2020-09-26 22:00", tz = 'UTC')
+structure(now_ct, tzone = 'America/New_York')
+```
+
+```
+## [1] "2020-09-26 18:00:00 EDT"
+```
+
+---
+
+# Lists
+
+* Each element can have any data type
+* Each element must be of the same type
+
+
+```r
+lobstr::obj_size(mtcars)
+```
+
+```
+## 7,208 B
+```
+
+```r
+lobstr::obj_size(list(mtcars, mtcars, mtcars))
+```
+
+```
+## 7,288 B
+```
+
+---
+
+# Data frames and tibbles
+
+* tibbles are lazy and surly data frames
+* data frames coerce strings to factors, tibbles do not
+* data frames transform non-syntactic names, tibbles do not.
+
+```r
+names(data.frame(`1` = 1))
+```
+
+```
+## [1] "X1"
+```
+
+```r
+names(tibble(`1` = 1))
+```
+
+```
+## [1] "1"
+```
+* data frames recycle values, tibbles only do this when the length is 1
+
+```r
+tryCatch({tibble(x=1:4, y=1:2)}, error = function(e) {cat(e$message)})
+```
+
+```
+## Tibble columns must have compatible sizes.
+## * Size 4: Existing data.
+## * Size 2: Column `y`.
+## ℹ Only values of size one are recycled.
+```
+
+---
+
+# Row names
+
+* tibbles have deprecated row names
+* use `rownames` to move a data frame row names into a tibble column
+
+```r
+df &lt;- data.frame(age=c(35, 27, 18), hair=c('blond', 'brown', 'black'))
+row.names(df) &lt;- c('Bob', 'Susan', 'Sam')
+as_tibble(df, rownames = "name")
+```
+
+```
+## # A tibble: 3 x 3
+##   name    age hair 
+##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;
+## 1 Bob      35 blond
+## 2 Susan    27 brown
+## 3 Sam      18 black
+```
+* tibbles do a better job of printing
+* tibbles do not do partial matching on `$`
+* tibbles can hold lists, tibbles, and matrices 
+
+---
+
+# `NULL`
+
+* length is always 0
+
+```r
+length(NULL)
+```
+
+```
+## [1] 0
+```
+* does not contain attributes
+
+```r
+attributes(NULL)
+```
+
+```
+## NULL
+```
+* `c()` returns `NULL`
+* `NULL` is used to remove elements from a list
+
+```r
+A &lt;- list(a=1, b=1)
+A$a &lt;- NULL
+A
+```
+
+```
+## $b
+## [1] 1
+```
+
+---
+
+# Subsetting Vectors
+
+
+```r
+x &lt;- 5:10
+```
+## Real numbers are silently truncated
+
+```r
+x[c(2.1, 2.9)]
+```
+
+```
+## [1] 6 6
+```
+
+## Cannot mix - and + indices
+
+```r
+tryCatch({x[c(-1,2)]}, error = function(e) {cat(e$message)})
+```
+
+```
+## only 0's may be mixed with negative subscripts
+```
+
+## `NA` gives `NA`
+
+```r
+x[c(TRUE, TRUE, NA, TRUE, TRUE)]
+```
+
+```
+## [1]  5  6 NA  8  9 10
+```
+
+---
+
+# Data Frame vs Tibble Selection
+
+## Data Frame list subsetting 
+
+```r
+df &lt;- data.frame(x = 1:3, y = 3:1, z = letters[1:3])
+str(df["x"])
+```
+
+```
+## 'data.frame':	3 obs. of  1 variable:
+##  $ x: int  1 2 3
+```
+
+## Data Frame matrix subsetting
+
+```r
+str(df[, "x"])
+```
+
+```
+##  int [1:3] 1 2 3
+```
+
+## Tibble matrix subsetting
+
+```r
+str(as_tibble(df)[, "x"])
+```
+
+```
+## tibble [3 × 1] (S3: tbl_df/tbl/data.frame)
+##  $ x: int [1:3] 1 2 3
+```
+Tibbles always return a Tibble
+
+---
+
+# Selecting a single element
+
+```r
+x &lt;- list(1:3, "a", 4:6)
+```
+![](train.png)&lt;!-- --&gt;
+
+```r
+typeof(x[1])
+```
+
+```
+## [1] "list"
+```
+
+```r
+typeof(x[[1]])
+```
+
+```
+## [1] "integer"
+```
+![](train-single.png)&lt;!-- --&gt;
+
+---
+
+# Advice on `[[`
+
+* `[[` and `$` operators extract single elements
+* `x$y` is short hand for `x[[y]]`
+* `[[` can only return a single item
+  * `x[[c(1,2)]]` is the same as `x[[1]][[2]]`
+* `[[` must be used to access an element in a list
+* vectors can use `[` to access an element
+* It is recommended that `[[` is also used for vectors
+
+---
+
+# Missing and out-of-bounds indices
+
+![](out-of-bounds.png)&lt;!-- --&gt;
+* Avoid these inconsistencies by using `purrr::pluck()` and `purrr::chuck()`
+* `purrr::pluck()` always returns `NULL` or the value set with `.default=`
+* `purrr:chuck()` always throws an error
+
+.pull-left[
+
+```r
+x &lt;- list(a=list(1,2,3), b=list(3,4,5))
+purrr::pluck(x, 'a')
+```
+
+```
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 2
+## 
+## [[3]]
+## [1] 3
+```
+]
+
+.pull-right[
+
+```r
+purrr::pluck(x, 'b', 2)
+```
+
+```
+## [1] 4
+```
+
+
+```r
+purrr::pluck(x, 'c', .default = NA)
+```
+
+```
+## [1] NA
+```
+]
+
+---
+
+# Subassignment
+
+* All subsetting operators can be combined with assignment
+
+```r
+x &lt;- 1:5
+x[c(3,4)] &lt;- c(101, 102)
+x
+```
+
+```
+## [1]   1   2 101 102   5
+```
+* `lapply()` always returns a list but we can get a data frame with
+
+```r
+mtcars[] &lt;- lapply(mtcars, as.integer)
+is.data.frame(mtcars)
+```
+
+```
+## [1] TRUE
+```
+
+* `x[[i]] &lt;- NULL` deletes an element of a list
+* `x[[i]] &lt;- list(NULL)` stores a literal `NULL`
+
+---
+
+# Questions
+
+1. How do you create raw and complex scalars? Hint: ?raw and ?complex. (Ex 3.2.5 #1 p45) 
+1. Why is the default missing value, `NA`, a logical vector? What's special about logical vectors? Hint: think about `c(FALSE, NA_character_)`. (Ex 3.2.5 #4 p45)
+1. Precisely what do `is.atamic()`, `is.numeric()`, and `is.vector()` test for? (Ex 3.2.5 #5 p45)
+1. How would you describe the following three objects? What makes them different from `1:5`? (Ex 3.3.4 #3 p49)
+  
+  ```r
+  x1 &lt;- array(1:5, c(1, 1, 5))
+  x2 &lt;- array(1:5, c(1, 5, 1))
+  x3 &lt;- array(1:5, c(5, 1, 1))
+  ```
+5. An early draft used this code to illustrate `structure()`:
+  
+  ```r
+  structure(1:5, comment = 'my attribute')
+  ```
+  
+  ```
+  ## [1] 1 2 3 4 5
+  ```
+But when you print that object you do not see the comment attribute. Why? Is the attribute missing, or is there something else special about it? Hint: try using help. (Ex 3.3.4 #4 p49)
+
+---
+
+# Questions
+
+1. What happens to a factor when you modify its levels? (Ex 3.4.5 #2 p55)
+  
+  ```r
+  f1 &lt;- factor(letters)
+  levels(f1) &lt;- rev(levels(f1))
+  ```
+1. What does this code do? How do `f2` and `f3` differ from `f1`? (Ex 3.4.5 #3 p55)
+  
+  ```r
+  f2 &lt;- rev(factor(letters))
+  f3 &lt;- factor(letters, levels = rev(letters))
+  ```
+1. List all the ways that a list differs from an atomic vector. (Ex 3.5.4 #1 p58)
+1. What happens if you attempt to set row names, on a data frame, that are not unique? (Ex 3.6.8 #2 p69)
+1. Why does the following code yield five missing values? Hint: why is it different from `x[NA_real_]`? (Ex 4.2.6 #2 p81)
+  
+  ```r
+  x &lt;- 1:5
+  x[NA]
+  ```
+  
+  ```
+  ## [1] NA NA NA NA NA
+  ```
+1. What does `df[is.na(df)] &lt;- 0` do? How does it work? (Ex 4.2.6 #6 p81) 
+
+---
+
+# Questions
+
+1. Brainstorm as many ways as possible to extract the third value from the `cyl` variable in the `mtcars` dataset. (Ex 4.3.5 #1 p85)
+1. How would you randomly permute the columns of a data frame? Can you simultaneously permute the rows and columns in one step? (Ex 4.5.9 #1 p94)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
