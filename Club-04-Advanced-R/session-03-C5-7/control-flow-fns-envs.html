@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ted Kyi" />
+    <meta name="date" content="2020-10-14" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R
+## Chapters 5-7
+### Ted Kyi
+### OCRUG
+### 2020-10-14
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+# Conditional statements
+
+* An `if` statement return a value, so you can assign the results
+  * If there is no `else` clause, then when condition is false returns NULL
+* Generates an error if condition can't be evaluated as a boolean
+  * Vector of booleans only generates a warning, but you can change this behavior
+* `ifelse()` is a vectorized version of `if`
+
+
+* The `switch()` statement allow more than two branches 
+  * Also returns NULL if no branches match
+  * Allows leaving right side of `=` blank if you have consecutive items with the same value
+  * Recommended to only use with string inputs
+  * Recommended to throw an error if no branches match
+* `dplyr::case_when()` is like a vectorized `switch()`
+
+  
+---
+# Loops
+
+* Most common is `for` loop
+  * Syntax is `for (item in vector) perform_action`
+  * Can use `next` to skip to next iteration
+  * Can use `break` to exit loop entirely
+
+  
+* Note that `seq_along(x)` is safer than `1:lenth(x)` because of the zero case
+* Also use `for (i in seq_along(x))` with `x[i]` when `x` is a S3 vector
+
+
+* There are also `while` and `repeat` loops if you need them
+
+---
+# Functions
+
+* Functions have three parts:  formals, body, and environment
+  * Primitive functions don't have these parts, and are written in C for performance reasons
+* Use `do.call(fn, arg_list)` if you already have arguments
+* For multiple fn calls, you call use intermediate variables, nest calls, or use pipe `%&gt;%`
+
+.pull-left[
+* R uses *lexical scoping*, except ignores non-functions when looking up names
+
+```r
+g09 &lt;- function(x) x + 100
+g10 &lt;- function() {
+  g09 &lt;- 10
+  g09(g09)
+}
+g10()
+```
+
+```
+## [1] 110
+```
+]
+.pull-right[
+* R looks for values when the function is run, not when it was created
+
+```r
+g12 &lt;- function() x + 1
+x &lt;- 15
+g12()
+```
+
+```
+## [1] 16
+```
+
+```r
+x &lt;- 20
+g12()
+```
+
+```
+## [1] 21
+```
+]
+
+---
+# Functions
+
+* Arguments are *lazily evaluated*
+  * Promises contain 3 things:  an expression; an environment; a value, initially blank, cached once computed
+* Special `...` (dot-dot-dot) argument allows any number of additional arguments
+  * Usually, though not required, the additional arguments are namedsu
+
+
+* Return values can be implicit or explicit, visible or invisible
+* `stop()` exits a function with an error
+* `on.exit()` always runs at the end of a function, even if it errors
+
+---
+# Functions
+
+* There are four function forms in R:  prefix, infix, replacement, and special
+
+
+* Prefix functions are the common ones we're used to, like `mean(1:6)`
+  * The other three types all have special names which can be called in prefix form
+
+
+* R has built in infix operators like `+`
+* You can define your own with % surrounding the name, e.g. `%my_infix%`
+
+
+* Replacement functions have a special name `xxxx&lt;-`
+  * They look like they modify their arguments in place, but is actually syntactic sugar for return a modified copy
+
+
+* Special forms also have prefix code identical to the special form.  For example:
+
+```r
+for(i in 1:10) print(i)
+`for`(i, 1:10, print(i))
+```
+
+
+---
+# Environments
+
+* Environments bind names to values
+* An environment is similar to a named list, with four differences:
+  * Every name must be unique
+  * The names in an environment are not ordered
+  * An environment has a parent
+  * Environments are not copied when modified -- reference semantics
+* Every environment has another environment as its parent, except the empty environment, `R_EmptyEnv`
+  * The ancestors of every environment eventually terminate with the empty environment
+* `rlang::env_bind()` is one way to create/set a binding in an environment
+  * `env_bind_lazy()` creates *delayed bindings*, these are promises, as with function arguments
+  * `env_bind_active()` reates *active bindings*, which are re-computed every time they are accessed
+  
+---
+# Kinds of environments
+
+* The *global environment*, sometimes called your "workspace," is where interactive computation takes place
+* The *current environment* is the environment where your code is running
+  * If you run something in the R console, the current environment starts as the global environment
+* The R base package starts as the parent to the global environment
+  * Each package you load (e.g. with `library()`) gets inserted as the new parent to the global environment
+  * The chain of packages forms the *search path* as in this diagram:
+&lt;img src="search-path.png" width="80%" /&gt;
+
+---
+# Function environments
+
+* When you define a function, it binds the current environment as its *function environment*
+  * The function environment is used to search variable names using lexical scoping
+
+```r
+y &lt;- 1
+f &lt;- function(x) x + y
+fn_env(f)
+```
+
+```
+## &lt;environment: R_GlobalEnv&gt;
+```
+&lt;img src="function-binding.png" width="30%" /&gt;
+
+---
+# Namespace environments
+
+* When you create a package, it has a special *namespace environment*
+  * Every binding in the package environment is also in the namespace environment, so package functions can find each other
+  * Its parent is the package's *imports environment* with all the functions used by that package
+  * The imports environment's parent is always the base namespace
+  * The parent of the base namespace is the global environment
+  * Illustrating the `stats` package containing functions `sd()` and `var()` we get this:
+&lt;img src="namespace.png" width="70%" /&gt;
+
+---
+# Execution environments
+
+* Each time a function is called, a new *execution environment* is created to host the execution
+  * An execution environment is usually quite temporary, going away once the function has finished execution
+  * If you return a function with a binding to that execution environment, it will persist
+  * The book has an example of a function factory, `plus()`:
+
+
+.pull-left[
+
+
+```r
+plus &lt;- function(x) {
+  function(y) x + y
+}
+
+plus_one &lt;- plus(1)
+plus_one
+```
+
+```
+## function(y) x + y
+## &lt;environment: 0x0000000019c8f480&gt;
+```
+
+]
+
+.pull-right[&lt;img src="plus_one.png" width="50%" /&gt;]
+
+
+---
+# Call stack
+
+* The call stack is made up of frames containing the function call history
+  * You can view the **c**all **s**tack **t**ree with `lobstr::cst()`
+  
+#### Key parts of a stack frame
+* An expression showing the function call with parameters
+
+* An environment, usually the execution environment of a function
+  * One exception is the one for the global frame is the global environment
+  * Another exception is if you call `eval()`, you can pass any environment for the frame that is created
+
+* A parent pointer, linking to the caller's stack frame
+
+#### Identifying a function's caller
+* Following parent links from an environment will get you its lexical ancestors
+* To figure out the caller environment, such as when you run `rlang::caller_env()`, R must use the call stack
+
+---
+# Environment miscellany
+
+* `&lt;&lt;-` differs from `&lt;-`
+  * It looks to update a variable in a parent environment
+  * If it doesn't find one, it will create a variable in the global environment
+  
+* The author mentions that you can also use environments as an alternative data structure for:
+  * Maintaining state inside a package across function calls
+  * Using large data, while ensuring copies will never be made
+  * As a hashmap
+
+
+---
+# Questions
+
+1. Why does this code succeed without errors or warnings?  (Ex. 5.3.3 #1)
+  
+  ```r
+  x &lt;- numeric()
+  out &lt;- vector("list", length(x))
+  for (i in 1:length(x)) {
+    out[i] &lt;- x[i] ^ 2
+  }
+  out
+  ```
+
+---
+# Questions
+
+1. This code makes a list of all functions in the base package. (Ex. 6.2.5 #5b)
+How many base functions have no arguments? What’s special about those functions?
+  
+  ```r
+  objs &lt;- mget(ls("package:base", all = TRUE), inherits = TRUE)
+  funs &lt;- Filter(is.function, objs)`
+  ```
+
+2. What does the following function return? (Ex 6.4.5 #3) 
+  
+  ```r
+  f &lt;- function(x) {
+    f &lt;- function(x) {
+      f &lt;- function() {
+        x ^ 2
+      }
+      f() + 1
+    }
+    f(x) * 2
+  }
+  f(10)
+  ```
+
+---
+# Questions
+
+1. Explain the following results:  (Ex. 6.6.1 #1)
+  
+  ```r
+  sum(1, 2, 3)
+  ```
+  
+  ```
+  ## [1] 6
+  ```
+  
+  ```r
+  mean(1, 2, 3)
+  ```
+  
+  ```
+  ## [1] 1
+  ```
+  
+  ```r
+  sum(1, 2, 3, na.omit = TRUE)
+  ```
+  
+  ```
+  ## [1] 7
+  ```
+  
+  ```r
+  mean(1, 2, 3, na.omit = TRUE)
+  ```
+  
+  ```
+  ## [1] 1
+  ```
+
+1. Clarify the following list of odd function calls:  (Ex. 6.8.6 #2)
+  
+  ```r
+  x &lt;- sample(replace = TRUE, 20, x = c(1:10, NA))
+  y &lt;- runif(min = 0, max = 1, 20)
+  cor(m = "k", y = y, u = "p", x = x)
+  ```
+
+---
+# Questions
+
+1. Explain why `e[[1]]` and `e[c("a", "b")]` don’t make sense when `e` is an environment. (Ex. 7.2.7 #4)
+
+2. How is `search_envs()` different from `env_parents(global_env())`?  (Ex. 7.4.5 #1)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
