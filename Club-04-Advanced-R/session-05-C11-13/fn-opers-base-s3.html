@@ -97,7 +97,7 @@ such as data frames are a list of columns, but they return the number of rows in
   For example, if you create a subclass of a tibble, then `x[1]` might return a tibble, not your subclass
   
 * Advanced dispatching gets weird, especially for base types and internal generics
-  * Because of implicit typecasting, binary operators do a double dispatch on both arguments,
+  * Infix binary operators do a double dispatch on both arguments,
   then compare results.
 
 
