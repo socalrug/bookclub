@@ -1,0 +1,306 @@
+---
+title: "Advanced R"
+subtitle: "Chapters 5-7"
+author: "Ted Kyi"
+institute: "OCRUG"
+date: "2020-10-14"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(lobstr)
+library(tibble)
+library(rlang)
+```
+
+# Conditional statements
+
+* An `if` statement return a value, so you can assign the results
+  * If there is no `else` clause, then when condition is false returns NULL
+* Generates an error if condition can't be evaluated as a boolean
+  * Vector of booleans only generates a warning, but you can change this behavior
+* `ifelse()` is a vectorized version of `if`
+
+
+* The `switch()` statement allow more than two branches 
+  * Also returns NULL if no branches match
+  * Allows leaving right side of `=` blank if you have consecutive items with the same value
+  * Recommended to only use with string inputs
+  * Recommended to throw an error if no branches match
+* `dplyr::case_when()` is like a vectorized `switch()`
+
+  
+---
+# Loops
+
+* Most common is `for` loop
+  * Syntax is `for (item in vector) perform_action`
+  * Can use `next` to skip to next iteration
+  * Can use `break` to exit loop entirely
+
+  
+* Note that `seq_along(x)` is safer than `1:lenth(x)` because of the zero case
+* Also use `for (i in seq_along(x))` with `x[i]` when `x` is a S3 vector
+
+
+* There are also `while` and `repeat` loops if you need them
+
+---
+# Functions
+
+* Functions have three parts:  formals, body, and environment
+  * Primitive functions don't have these parts, and are written in C for performance reasons
+* Use `do.call(fn, arg_list)` if you already have arguments
+* For multiple fn calls, you call use intermediate variables, nest calls, or use pipe `%>%`
+
+.pull-left[
+* R uses *lexical scoping*, except ignores non-functions when looking up names
+```{r lexical, echo=TRUE}
+g09 <- function(x) x + 100
+g10 <- function() {
+  g09 <- 10
+  g09(g09)
+}
+g10()
+```
+]
+.pull-right[
+* R looks for values when the function is run, not when it was created
+```{r dynamic, echo=TRUE}
+g12 <- function() x + 1
+x <- 15
+g12()
+
+x <- 20
+g12()
+```
+]
+
+---
+# Functions
+
+* Arguments are *lazily evaluated*
+  * Promises contain 3 things:  an expression; an environment; a value, initially blank, cached once computed
+* Special `...` (dot-dot-dot) argument allows any number of additional arguments
+  * Usually, though not required, the additional arguments are namedsu
+
+
+* Return values can be implicit or explicit, visible or invisible
+* `stop()` exits a function with an error
+* `on.exit()` always runs at the end of a function, even if it errors
+
+---
+# Functions
+
+* There are four function forms in R:  prefix, infix, replacement, and special
+
+
+* Prefix functions are the common ones we're used to, like `mean(1:6)`
+  * The other three types all have special names which can be called in prefix form
+
+
+* R has built in infix operators like `+`
+* You can define your own with % surrounding the name, e.g. `%my_infix%`
+
+
+* Replacement functions have a special name `xxxx<-`
+  * They look like they modify their arguments in place, but is actually syntactic sugar for return a modified copy
+
+
+* Special forms also have prefix code identical to the special form.  For example:
+```{r special form, echo=TRUE, eval=FALSE}
+for(i in 1:10) print(i)
+`for`(i, 1:10, print(i))
+```
+
+
+---
+# Environments
+
+* Environments bind names to values
+* An environment is similar to a named list, with four differences:
+  * Every name must be unique
+  * The names in an environment are not ordered
+  * An environment has a parent
+  * Environments are not copied when modified -- reference semantics
+* Every environment has another environment as its parent, except the empty environment, `R_EmptyEnv`
+  * The ancestors of every environment eventually terminate with the empty environment
+* `rlang::env_bind()` is one way to create/set a binding in an environment
+  * `env_bind_lazy()` creates *delayed bindings*, these are promises, as with function arguments
+  * `env_bind_active()` reates *active bindings*, which are re-computed every time they are accessed
+  
+---
+# Kinds of environments
+
+* The *global environment*, sometimes called your "workspace," is where interactive computation takes place
+* The *current environment* is the environment where your code is running
+  * If you run something in the R console, the current environment starts as the global environment
+* The R base package starts as the parent to the global environment
+  * Each package you load (e.g. with `library()`) gets inserted as the new parent to the global environment
+  * The chain of packages forms the *search path* as in this diagram:
+<img src="search-path.png" width="80%" />
+
+---
+# Function environments
+
+* When you define a function, it binds the current environment as its *function environment*
+  * The function environment is used to search variable names using lexical scoping
+```{r function environment, echo=TRUE}
+y <- 1
+f <- function(x) x + y
+fn_env(f)
+```
+<img src="function-binding.png" width="30%" />
+
+---
+# Namespace environments
+
+* When you create a package, it has a special *namespace environment*
+  * Every binding in the package environment is also in the namespace environment, so package functions can find each other
+  * Its parent is the package's *imports environment* with all the functions used by that package
+  * The imports environment's parent is always the base namespace
+  * The parent of the base namespace is the global environment
+  * Illustrating the `stats` package containing functions `sd()` and `var()` we get this:
+<img src="namespace.png" width="70%" />
+
+---
+# Execution environments
+
+* Each time a function is called, a new *execution environment* is created to host the execution
+  * An execution environment is usually quite temporary, going away once the function has finished execution
+  * If you return a function with a binding to that execution environment, it will persist
+  * The book has an example of a function factory, `plus()`:
+
+
+.pull-left[
+
+```{r function, echo=TRUE}
+plus <- function(x) {
+  function(y) x + y
+}
+
+plus_one <- plus(1)
+plus_one
+
+```
+
+]
+
+.pull-right[<img src="plus_one.png" width="50%" />]
+
+
+---
+# Call stack
+
+* The call stack is made up of frames containing the function call history
+  * You can view the **c**all **s**tack **t**ree with `lobstr::cst()`
+  
+#### Key parts of a stack frame
+* An expression showing the function call with parameters
+
+* An environment, usually the execution environment of a function
+  * One exception is the one for the global frame is the global environment
+  * Another exception is if you call `eval()`, you can pass any environment for the frame that is created
+
+* A parent pointer, linking to the caller's stack frame
+
+#### Identifying a function's caller
+* Following parent links from an environment will get you its lexical ancestors
+* To figure out the caller environment, such as when you run `rlang::caller_env()`, R must use the call stack
+
+---
+# Environment miscellany
+
+* `<<-` differs from `<-`
+  * It looks to update a variable in a parent environment
+  * If it doesn't find one, it will create a variable in the global environment
+  
+* The author mentions that you can also use environments as an alternative data structure for:
+  * Maintaining state inside a package across function calls
+  * Using large data, while ensuring copies will never be made
+  * As a hashmap
+
+
+---
+# Questions
+
+1. Why does this code succeed without errors or warnings?  (Ex. 5.3.3 #1)
+  ```{r, echo=TRUE, eval=FALSE}
+  x <- numeric()
+  out <- vector("list", length(x))
+  for (i in 1:length(x)) {
+    out[i] <- x[i] ^ 2
+  }
+  out
+  ```
+
+---
+# Questions
+
+1. This code makes a list of all functions in the base package. (Ex. 6.2.5 #5b)
+How many base functions have no arguments? What’s special about those functions?
+  ```{r, echo=TRUE, eval=FALSE}
+  objs <- mget(ls("package:base", all = TRUE), inherits = TRUE)
+  funs <- Filter(is.function, objs)`
+  ```
+
+2. What does the following function return? (Ex 6.4.5 #3) 
+  ```{r, echo=TRUE, eval=FALSE}
+  f <- function(x) {
+    f <- function(x) {
+      f <- function() {
+        x ^ 2
+      }
+      f() + 1
+    }
+    f(x) * 2
+  }
+  f(10)
+  ```
+
+---
+# Questions
+
+1. Explain the following results:  (Ex. 6.6.1 #1)
+  ```{r, echo=TRUE}
+  sum(1, 2, 3)
+  mean(1, 2, 3)
+  
+  sum(1, 2, 3, na.omit = TRUE)
+  mean(1, 2, 3, na.omit = TRUE)
+  ```
+
+1. Clarify the following list of odd function calls:  (Ex. 6.8.6 #2)
+  ```{r, echo=TRUE, eval=FALSE}
+  x <- sample(replace = TRUE, 20, x = c(1:10, NA))
+  y <- runif(min = 0, max = 1, 20)
+  cor(m = "k", y = y, u = "p", x = x)
+  ```
+
+---
+# Questions
+
+1. Explain why `e[[1]]` and `e[c("a", "b")]` don’t make sense when `e` is an environment. (Ex. 7.2.7 #4)
+
+2. How is `search_envs()` different from `env_parents(global_env())`?  (Ex. 7.4.5 #1)
