@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2020-11-11" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R
+## Chapters 17-19
+### John Peach
+### OCRUG
+### 2020-11-11
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+# Code and Data
+
+* `expr()` returns an expression. Used interactively
+* `expr()` and `enquo()` are defusing functions (a.k.a. quoting)
+* expressions are either a call, symbol, constant or pairlist
+* `enexpr()` is used to capture user input
+
+---
+
+# Code is a tree
+
+
+```r
+lobstr::ast(f(a, "b"))
+```
+
+```
+## █─f 
+## ├─a 
+## └─"b"
+```
+
+---
+
+# Code can generate code
+
+* Create on AST with `call2()`
+
+```r
+rlang::call2("+", 1, call2("*", 2, 3))
+```
+
+```
+## 1 + 2 * 3
+```
+
+* Use `!!` to insert an expression into an AST
+
+```r
+xx &lt;- expr(x + x)
+yy &lt;- expr(y + y)
+expr(!!xx / !!yy)
+```
+
+```
+## (x + x)/(y + y)
+```
+
+---
+
+# Evaluation run code
+
+* `base::eval()` used to evaluate expressions
+
+```r
+x &lt;- 10
+y &lt;- 100
+eval(expr(x + y))
+```
+
+```
+## [1] 110
+```
+
+
+```r
+string_math &lt;- function(x) {
+  e &lt;- env(
+    caller_env(),
+    `+` = function(x, y) paste0(x, y),
+    `*` = function(x, y) strrep(x, y)
+  )
+  eval(enexpr(x), e)
+}
+string_math("Hello " + "John")
+```
+
+```
+## [1] "Hello John"
+```
+
+```r
+string_math(("x" * 2 + "-y") * 3)
+```
+
+```
+## [1] "xx-yxx-yxx-y"
+```
+
+---
+
+# Data mask
+
+* `eval_tidy()` powers the tidy eval framework
+
+```r
+df &lt;- data.frame(x=1:5, y = 11:15)
+eval_tidy(expr(2 * x + y), df)
+```
+
+```
+## [1] 13 16 19 22 25
+```
+
+---
+
+# Quosures
+
+
+```r
+with2 &lt;- function(df, expr) {
+  a &lt;- 1000
+  eval_tidy(enexpr(expr), df)
+}
+df &lt;- data.frame(x = 1:3)
+a &lt;- 10
+with2(df, x + a)
+```
+
+```
+## [1] 1001 1002 1003
+```
+
+
+```r
+with2 &lt;- function(df, expr) {
+  a &lt;- 1000
+  eval_tidy(enquo(expr), df)
+}
+with2(df, x + a)
+```
+
+```
+## [1] 11 12 13
+```
+
+* Always use `enquo()` with data masks
+* `expr()` defuses your own expression
+* `enquo()` defuses expressions supplied as argument by the user of a function
+
+---
+
+# Symbols
+
+* A symbol represents the name of an object
+* `rlang::sym()` turn a string into a symbol
+
+```r
+expr(x)
+```
+
+```
+## x
+```
+
+```r
+sym("x")
+```
+
+```
+## x
+```
+
+Convert a symbol back into a string
+
+```r
+as_string(sym("x"))
+```
+
+```
+## [1] "x"
+```
+
+---
+
+# Calls
+
+* A call object represents a captured function call
+* Calls behave like lists
+
+
+```r
+x &lt;- expr(read.table("important.csv", row.names = FALSE))
+ast(!!x)
+```
+
+```
+## █─read.table 
+## ├─"important.csv" 
+## └─row.names = FALSE
+```
+
+Standardize the arguments
+
+```r
+rlang::call_standardise(x)
+```
+
+```
+## read.table(file = "important.csv", row.names = FALSE)
+```
+
+```r
+ast(!!rlang::call_standardise(x))
+```
+
+```
+## █─read.table 
+## ├─file = "important.csv" 
+## └─row.names = FALSE
+```
+
+---
+
+# Parsing
+
+* `rlang::parse_expr()` Convert text into code
+
+```r
+x &lt;- rlang::parse_expr("y &lt;- x + 10")
+is_call(x)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+x
+```
+
+```
+## y &lt;- x + 10
+```
+
+* `rlang::parse_exprs()` returns a list of expressions
+* deparse with `rlang::expr_text()`
+
+```r
+expr_text(x)
+```
+
+```
+## [1] "y &lt;- x + 10"
+```
+
+---
+
+# Quasiquotation
+
+* quotation is the act of capturing an unevaluated expression
+* unquotation is the ability to selectively evaluate parts of an quoted expression
+* quasiquotation is quotation and unquotation
+* In tidy evaluation, all quoting functions are actually quasiquoting functions because they also support unquoting
+* tidy evaluation consists of:
+  1. quasiquotation
+  1. quasures
+  1. data mask
+* The distinction between quoted and evaluated arguments is important:
+  * An evaluated argument obeys R’s usual evaluation rules.
+  * A quoted argument is captured by the function, and is processed in some custom way.
+  
+---
+
+# Unquoting
+
+* `!!` unqoute an expression
+
+Unquoting a function, wrap it in ( )
+
+```r
+f &lt;- expr(pkg::foo)
+expr((!!f)(x, y))
+```
+
+```
+## pkg::foo(x, y)
+```
+
+Unquoting a missing argument
+
+```r
+arg &lt;- missing_arg()
+expr(foo(!!arg, !!arg))
+```
+Above is an error, use `rlang::maybe_missing()`
+
+```r
+arg &lt;- missing_arg()
+expr(foo(!!maybe_missing(arg), !!maybe_missing(arg)))
+```
+
+```
+## foo(, )
+```
+
+---
+# Unquoting
+
+Unquoting special forms
+* `expr(df$!!x)` creates an error
+
+```r
+x &lt;- expr(x)
+expr(`$`(df, !!x))
+```
+
+```
+## df$x
+```
+
+---
+
+# Unquote-splice
+
+* `!!!` unquote many arguments
+
+```r
+xs &lt;- exprs(1, a, -b)
+exprs(f(!!!xs, y))
+```
+
+```
+## [[1]]
+## f(1, a, -b, y)
+```
+
+Use `!!!` when the parameters are already in a list (a.k.a. spatting)
+
+```r
+dfs &lt;- list(
+  a = data.frame(x = 1, y = 2),
+  b = data.frame(x = 3, y = 4)
+)
+dplyr::bind_rows(!!!dfs)
+```
+
+```
+##   x y
+## 1 1 2
+## 2 3 4
+```
+
+---
+
+# Unquoting on the left-hand side
+
+Use `:=` when unquoting on the LFS of an evaluation
+
+```r
+var &lt;- "x"
+val &lt;- c(4, 3, 9)
+tibble::tibble(!!var := val)
+```
+
+```
+## # A tibble: 3 x 1
+##       x
+##   &lt;dbl&gt;
+## 1     4
+## 2     3
+## 3     9
+```
+
+---
+
+# Calling a function that does not support tidy dots
+
+Use `exec`. This looks to work just like `do.call()`
+
+```r
+arg_name &lt;- "na.rm"
+arg_val &lt;- TRUE
+exec("mean", 1:10, !!arg_name := arg_val)
+```
+
+```
+## [1] 5.5
+```
+Note the use of `!!` and `:=`
+
+Or use a list with `!!!`
+
+```r
+args &lt;- list(x = 1:10, na.rm = TRUE, trim = 0.1)
+exec("mean", !!!args)
+```
+
+```
+## [1] 5.5
+```
+
+---
+
+# `dots_list`
+
+* Used to control lists. It allows for empty elements and homonyms
+* `list2()` is a wrapper around `dots_list()` with common defaults.
+* `dots_list()` has more control over behaviour of elements in the list
+
+
+```r
+dots_list(
+  y = 1:5,
+  z = 3:-1,
+  x = 5:1,
+)
+```
+
+```
+## $y
+## [1] 1 2 3 4 5
+## 
+## $z
+## [1]  3  2  1  0 -1
+## 
+## $x
+## [1] 5 4 3 2 1
+```
+
+
+Note the comma on the last line. Normally this would be an error.
+
+---
+
+# Questions
+
+1. 18.2.4 Exercise Question 1
+1. 18.3.5 Exercise Question 1
+1. 18.3.5 Exercise Question 4
+1. 18.3.5 Exercise Question 5
+1. 18.4.4 Exercise Question 1
+1. 18.4.4 Exercise Question 9
+1. 19.2.2 Exercise Question 2
+1. 19.3.6 Exercise Question 2
+1. 19.3.6 Exercise Question 4
+1. 19.4.8 Exercise Question 1
+1. 19.6.5 Exercise Question 3
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
