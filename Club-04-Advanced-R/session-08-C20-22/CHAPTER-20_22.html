@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="XI" />
+    <meta name="date" content="2020-11-17" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R
+## CHAPTER 20-22
+### XI
+### 11/17/2020
+
+---
+
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+# Evaluation
+
+* `quosure` data structure includes both expression and its associated env
+* `data mask` makes it easier to evaluate an expression in the context of a data frame 
+* `eval()` has two arguments: `expr` and `envir` 
+
+```r
+x &lt;- 10
+y &lt;- 2
+# first argument is evaluated, not quoted
+# env override is not working
+eval(print(x+1), env(x = 1000))
+```
+
+```
+## [1] 11
+```
+
+```
+## [1] 11
+```
+
+```r
+# manually quote
+# env override is working
+eval(expr(print(x+1)), env(x = 1000))
+```
+
+```
+## [1] 1001
+```
+---
+
+# Function
+* functions print their `srcref` attribute
+* because `srcref` is a base R feature it’s unaware of `quasiquotation`
+
+```r
+x &lt;- 10
+y &lt;- 20
+f &lt;- eval(expr(function(x, y) !!x + !!y))
+f
+```
+
+```
+## function(x, y) !!x + !!y
+```
+
+```r
+f()
+```
+
+```
+## [1] 30
+```
+
+```r
+attr(f, "srcref") &lt;- NULL
+f 
+```
+
+```
+## function (x, y) 
+## 10 + 20
+```
+
+---
+
+# Quosures - Creating
+
+  * Use `enquo()` and `enquos()` to capture user-supplied expressions
+
+```r
+foo &lt;- function(x) enquo(x)
+foo(a + b) 
+```
+
+```
+## &lt;quosure&gt;
+## expr: ^a + b
+## env:  global
+```
+  * Use `quo()` and `quos()`
+
+```r
+quo(x + y + z) 
+```
+
+```
+## &lt;quosure&gt;
+## expr: ^x + y + z
+## env:  global
+```
+ * Use `new_quosure()` create a `quosure` from its components
+
+```r
+new_quosure(expr(x + y), env(x = 1, y = 10)) 
+```
+
+```
+## &lt;quosure&gt;
+## expr: ^x + y
+## env:  0x7f9652857b48
+```
+
+
+---
+
+# Quosures - Evaluation 
+
+* `Quosures` are paired with a new evaluation function eval_tidy() that takes a single `quosure` instead of an expression-environment pair
+
+```r
+q1 &lt;- new_quosure(expr(x + y), env(x = 1, y = 10))
+eval_tidy(q1) 
+```
+
+```
+## [1] 11
+```
+---
+# Quosures - Evaluation 
+* `Dots` possible each argument passed to ... to be associated with a different env
+&lt;img src="Picture4.png" width="30%" height="20%" style="display: block; margin: auto;" /&gt;&lt;img src="Picture5.png" width="30%" height="20%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Data mask
+
+* The data mask allows you to mingle variables from an environment and a data frame in a single expression
+
+```r
+q1 &lt;- new_quosure(expr(x * y), env(x = 100))
+df &lt;- data.frame(y = 1:10)
+eval_tidy(q1, df)
+```
+
+```
+##  [1]  100  200  300  400  500  600  700  800  900 1000
+```
+
+
+```r
+# same thing, fancy function
+with2 &lt;- function(data, expr) {
+  expr &lt;- enquo(expr)
+  eval_tidy(expr, data)
+}
+x &lt;- 100
+with2(df, x * y)
+```
+
+```
+##  [1]  100  200  300  400  500  600  700  800  900 1000
+```
+
+---
+# Data mask
+
+* Using a data mask introduces ambiguity. For example, in the following code you can’t know whether x will come from the data mask or the environment, unless you know what variables are found in df.
+* pronouns: `.data` and `.env`.
+  * `.data$x` always refers to x in the data mask.
+  * `.env$x` always refers to x in the environment.
+
+```r
+x &lt;- 1
+df &lt;- data.frame(x = 2)
+
+with2(df, .data$x) 
+```
+
+```
+## [1] 2
+```
+
+```r
+with2(df, .env$x) 
+```
+
+```
+## [1] 1
+```
+---
+
+# Using tidy evaluation
+* why this is not working? 
+
+
+
+```r
+subsample &lt;- function(df, cond, n = nrow(df)) {
+  df &lt;- subset2(df, cond)
+  resample(df, n)
+}
+
+df &lt;- data.frame(x = c(1, 1, 1, 2, 2), y = 1:5)
+subsample(df, x == 1) 
+```
+
+```
+##     x y
+## 2   1 2
+## 4   2 4
+## 5   2 5
+## 3   1 3
+## 2.1 1 2
+```
+
+---
+# Using tidy evaluation - Quoting
+* `cond` is evaluated normally, and we get an error when it tries to find a binding for `x`
+
+
+```r
+subsample &lt;- function(df, cond, n = nrow(df)) {
+  cond &lt;- enquo(cond)
+
+  df &lt;- subset2(df, !!cond)
+  resample(df, n)
+}
+
+subsample(df, x == 1)  
+```
+
+```
+##     x y
+## 2   1 2
+## 1   1 1
+## 2.1 1 2
+```
+
+---
+
+# Using tidy evaluation - 
+handling ambiguity
+
+*  each variable can be found in either the data mask or the environment
+*  need to remove the ambiguity using the .data and .env pronouns
+
+
+```r
+threshold_x &lt;- function(df, val) {
+  subset2(df, .data$x &gt;= .env$val)
+} 
+x &lt;- 10
+no_x &lt;- data.frame(y = 1:3)
+has_val &lt;- data.frame(x = 1:3, val = 9:11)
+#threshold_x(no_x, 2) 
+#&gt; Error: Column `x` not found in `.data`
+threshold_x(has_val, 2)
+```
+
+```
+##   x val
+## 2 2  10
+## 3 3  11
+```
+
+
+---
+
+# Translating R
+
+* R -&gt; HTML
+* R -&gt; LaTex
+
+* HTML - goal
+
+&lt;img src="Picture1.png" height="100px" style="display: block; margin: auto auto auto 0;" /&gt;
+
+&lt;img src="Picture2.png" height="120px" style="display: block; margin: auto 0 auto auto;" /&gt;
+&lt;img src="Picture3.png" height="150px" style="display: block; margin: auto 0 auto auto;" /&gt;
+
+---
+
+# Debugging
+
+* Google
+* make it repeatable
+  * make the example minimal
+* identify the location of error
+  * traceback()
+  * interactive debugger:
+      *  browser(), 
+      *  breakpoints, 
+      *  options, 
+      *  debug()
+  * non-interactive debugging
+      *  check common issues such as global env, working dir, R_LIBS, PATH...
+* fix it and test it
+  * automated test
+
+
+
+---
+
+# Questions
+
+1. 20.2.4 Exercise Question 2
+2. 20.3.6 Exercise Question 1
+3. 20.4.6 Exercise Question 1
+4. 20.4.6 Exercise Question 3
+5. 20.5.4 Exercise Question 1  
+6. 21.2.6 Exercise Question 2
+7. 21.3.8 Exercise Question 1
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
