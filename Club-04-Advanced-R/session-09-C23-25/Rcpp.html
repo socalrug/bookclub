@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2020-12-02" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R
+## Chapter 25
+### John Peach
+### OCRUG
+### 2020-12-02
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+# When to use RCpp
+
+* Loops that cannot be easily vectorised because subsequent iterations depend on previous ones.
+
+* Recursive functions, or problems which involve calling functions millions of times. The overhead of calling a function in C++ is much lower than in R.
+
+* Problems that require advanced data structures and algorithms that R does not provide. Through the standard template library (STL), C++ has efficient implementations of many important data structures, from ordered maps to double-ended queues.
+
+---
+
+# Writing Cpp Inline
+
+
+```r
+library(Rcpp)
+cppFunction('int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}')
+# add works like a regular R function
+add
+```
+
+```
+## function (x, y, z) 
+## .Call(&lt;pointer: 0x1137ea900&gt;, x, y, z)
+```
+
+
+```r
+add(1, 2, 3)
+```
+
+```
+## [1] 6
+```
+
+---
+
+# R Type Vectors
+
+The classes for the most common types of R vectors are: 
+* `NumericVector`
+* `IntegerVector`
+* `CharacterVector`
+* `LogicalVector`
+
+* Scalars types
+* `int`
+* `double`
+* `bool`
+* `String`
+
+Notice `char` is not supported
+
+---
+
+# Using sourceCpp
+
+* use a stand alone `.cpp` file and include
+
+```cpp
+#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+```
+
+For each function you want to export add
+
+
+```cpp
+// [[Rcpp::export]]
+```
+
+---
+
+# Lists and Dataframes
+
+* `List` and `Dataframes` are supported
+* templates are supported for data type conversion
+
+
+```cpp
+#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double mpe(List mod) {
+  if (!mod.inherits("lm")) stop("Input must be a linear model");
+
+  NumericVector resid = as&lt;NumericVector&gt;(mod["residuals"]);
+  NumericVector fitted = as&lt;NumericVector&gt;(mod["fitted.values"]);
+
+  int n = resid.size();
+  double err = 0;
+  for(int i = 0; i &lt; n; ++i) {
+    err += resid[i] / (fitted[i] + resid[i]);
+  }
+  return err / n;
+}
+```
+
+* Also note the `.inherits()` method for assessing class information
+
+---
+
+# Functions
+
+* The `Function` class supports functions
+
+
+```cpp
+#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+RObject callWithOne(Function f) {
+  return f(1);
+}
+```
+
+---
+
+# Attributes
+
+The following methods are used to access R attributes
+* `.attrib()`
+* `.names()`
+* `.slot()` for S4 objects
+
+
+```r
+library(Rcpp)
+cppFunction('NumericVector attribs() {
+  NumericVector out = NumericVector::create(1, 2, 3);
+
+  out.names() = CharacterVector::create("a", "b", "c");
+  out.attr("my-attr") = "my-value";
+  out.attr("class") = "my-class";
+
+  return out;
+}')
+attribs()
+```
+
+```
+## a b c 
+## 1 2 3 
+## attr(,"my-attr")
+## [1] "my-value"
+## attr(,"class")
+## [1] "my-class"
+```
+
+
+* The `::create()` method allows a vector to be created
+
+---
+
+# Missing Values
+
+Scaler values have special cases
+* `NA_INTEGER` smallest integer, but still an integer
+* `NA_STRING` Strings knows how to deal with missing values
+* `NA_LOGICAL` NA are converted to TRUE in C++
+* `NA_REAL` All logical expression of NaN return FALSE
+
+Vectors support NA
+
+```r
+cppFunction('List missing_sampler() {
+  return List::create(
+    NumericVector::create(NA_REAL), IntegerVector::create(NA_INTEGER),
+    LogicalVector::create(NA_LOGICAL), CharacterVector::create(NA_STRING));
+}')
+str(missing_sampler())
+```
+
+```
+## List of 4
+##  $ : num NA
+##  $ : int NA
+##  $ : logi NA
+##  $ : chr NA
+```
+
+---
+
+# STL - Interators
+
+
+```r
+double sum3(NumericVector x) {
+  double total = 0;
+  
+  NumericVector::iterator it;
+  for(it = x.begin(); it != x.end(); ++it) {
+    total += *it;
+  }
+  return total;
+}
+```
+
+* Create an iterator with `::iterator`
+* First element is `.begin()`
+* Last element is `.end()`
+* increment with the standard `++`
+
+---
+
+# STL - Data Structures / Vectors
+
+Has a huge number of data structures that will make your life easier
+
+* `array`, `bitset`, `list`, `forward_list`, `map`, `multimap`, `multiset`, `priority_queue`, `queue`, `deque`, `set`, `stack`, `unordered_map`, `unordered_set`, `unordered_multimap`, `unordered_multiset`, and `vector`
+
+`vector` class is templated and allows for efficient growth.
+
+* `vector&lt;int&gt;`, `vector&lt;bool&gt;`, `vector&lt;double&gt;`, `vector&lt;String&gt;`
+* Add new elements with `.push_back()`
+* Preallocate space with `.reserve()`
+
+---
+
+# STL - Sets and Maps
+
+Sets are collections of unique values
+* Ordered `std::set&lt;TYPE&gt;` and unordered `std::unordered_set&lt;TYPE&gt;`
+* It stores the presence or absence
+
+Map like a set but stores additional date
+* Ordered `std::map&lt;KEY TYPE, VALUE TYPE&gt;` and unordered `std::unordered_map&lt;KEY TYPE, VALUE TYPE&gt;`
+
+---
+
+# Questions
+
+1. 25.2.6 Question 2
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

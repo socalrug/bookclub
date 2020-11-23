@@ -1,0 +1,240 @@
+---
+title: "Advanced R"
+subtitle: "Chapter 25"
+author: "John Peach"
+institute: "OCRUG"
+date: "2020-12-02"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(lobstr)
+library(tibble)
+library(rlang)
+library(purrr)
+```
+
+# When to use RCpp
+
+* Loops that cannot be easily vectorised because subsequent iterations depend on previous ones.
+
+* Recursive functions, or problems which involve calling functions millions of times. The overhead of calling a function in C++ is much lower than in R.
+
+* Problems that require advanced data structures and algorithms that R does not provide. Through the standard template library (STL), C++ has efficient implementations of many important data structures, from ordered maps to double-ended queues.
+
+---
+
+# Writing Cpp Inline
+
+```{r, echo=TRUE, eval=TRUE}
+library(Rcpp)
+cppFunction('int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}')
+# add works like a regular R function
+add
+```
+
+```{r, echo=TRUE}
+add(1, 2, 3)
+```
+
+---
+
+# R Type Vectors
+
+The classes for the most common types of R vectors are: 
+* `NumericVector`
+* `IntegerVector`
+* `CharacterVector`
+* `LogicalVector`
+
+* Scalars types
+* `int`
+* `double`
+* `bool`
+* `String`
+
+Notice `char` is not supported
+
+---
+
+# Using sourceCpp
+
+* use a stand alone `.cpp` file and include
+```{cpp, echo=TRUE, eval=FALSE}
+#include <Rcpp.h>
+using namespace Rcpp;
+```
+
+For each function you want to export add
+
+```{cpp, echo=TRUE, eval=FALSE}
+// [[Rcpp::export]]
+```
+
+---
+
+# Lists and Dataframes
+
+* `List` and `Dataframes` are supported
+* templates are supported for data type conversion
+
+```{cpp, echo=TRUE, eval=FALSE}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double mpe(List mod) {
+  if (!mod.inherits("lm")) stop("Input must be a linear model");
+
+  NumericVector resid = as<NumericVector>(mod["residuals"]);
+  NumericVector fitted = as<NumericVector>(mod["fitted.values"]);
+
+  int n = resid.size();
+  double err = 0;
+  for(int i = 0; i < n; ++i) {
+    err += resid[i] / (fitted[i] + resid[i]);
+  }
+  return err / n;
+}
+```
+
+* Also note the `.inherits()` method for assessing class information
+
+---
+
+# Functions
+
+* The `Function` class supports functions
+
+```{cpp, echo=TRUE, eval=FALSE}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+RObject callWithOne(Function f) {
+  return f(1);
+}
+```
+
+---
+
+# Attributes
+
+The following methods are used to access R attributes
+* `.attrib()`
+* `.names()`
+* `.slot()` for S4 objects
+
+```{r, echo=TRUE, eval=TRUE}
+library(Rcpp)
+cppFunction('NumericVector attribs() {
+  NumericVector out = NumericVector::create(1, 2, 3);
+
+  out.names() = CharacterVector::create("a", "b", "c");
+  out.attr("my-attr") = "my-value";
+  out.attr("class") = "my-class";
+
+  return out;
+}')
+attribs()
+```
+
+
+* The `::create()` method allows a vector to be created
+
+---
+
+# Missing Values
+
+Scaler values have special cases
+* `NA_INTEGER` smallest integer, but still an integer
+* `NA_STRING` Strings knows how to deal with missing values
+* `NA_LOGICAL` NA are converted to TRUE in C++
+* `NA_REAL` All logical expression of NaN return FALSE
+
+Vectors support NA
+```{r, echo=TRUE, eval=TRUE}
+cppFunction('List missing_sampler() {
+  return List::create(
+    NumericVector::create(NA_REAL), IntegerVector::create(NA_INTEGER),
+    LogicalVector::create(NA_LOGICAL), CharacterVector::create(NA_STRING));
+}')
+str(missing_sampler())
+```
+
+---
+
+# STL - Interators
+
+```{r, echo=TRUE, eval=FALSE}
+double sum3(NumericVector x) {
+  double total = 0;
+  
+  NumericVector::iterator it;
+  for(it = x.begin(); it != x.end(); ++it) {
+    total += *it;
+  }
+  return total;
+}
+```
+
+* Create an iterator with `::iterator`
+* First element is `.begin()`
+* Last element is `.end()`
+* increment with the standard `++`
+
+---
+
+# STL - Data Structures / Vectors
+
+Has a huge number of data structures that will make your life easier
+
+* `array`, `bitset`, `list`, `forward_list`, `map`, `multimap`, `multiset`, `priority_queue`, `queue`, `deque`, `set`, `stack`, `unordered_map`, `unordered_set`, `unordered_multimap`, `unordered_multiset`, and `vector`
+
+`vector` class is templated and allows for efficient growth.
+
+* `vector<int>`, `vector<bool>`, `vector<double>`, `vector<String>`
+* Add new elements with `.push_back()`
+* Preallocate space with `.reserve()`
+
+---
+
+# STL - Sets and Maps
+
+Sets are collections of unique values
+* Ordered `std::set<TYPE>` and unordered `std::unordered_set<TYPE>`
+* It stores the presence or absence
+
+Map like a set but stores additional date
+* Ordered `std::map<KEY TYPE, VALUE TYPE>` and unordered `std::unordered_map<KEY TYPE, VALUE TYPE>`
+
+---
+
+# Questions
+
+1. 25.2.6 Question 2
+
