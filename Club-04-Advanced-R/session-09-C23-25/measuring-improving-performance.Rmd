@@ -1,0 +1,86 @@
+---
+title: "Advanced R"
+subtitle: "Chapters 23-24"
+author: "Ted Kyi"
+institute: "OCRUG"
+date: "2020-12-02"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(profvis)
+library(bench)
+library(tibble)
+```
+
+# Measuring Performance
+
+* R uses a sampling profiler
+* Recommend visualizing using RStudio Profile menu, `profvis::profvis()`, or similar instead of `utils::Rprof()`
+* Limitations/warnings
+  * Can't profile C code
+  * Anonymous functions are hard to track (you can temporarily name them)
+  * Lazy evaluation can be confusing (you can temporarily use `force()`)
+
+---
+# Measuring Performance
+
+* Microbenchmarking
+* `bench::mark()` measures/compares time to run small snippets of code
+* Focus on the minimum and median times (slow times can be caused by external things also running)
+
+```{r bench example, echo=TRUE}
+x <- runif(100)
+(lb <- bench::mark(
+  sqrt(x),
+  x ^ 0.5
+))
+```
+
+  
+---
+# Improving Performance
+
+* Recommendations start with structuring your code to make optimization easy
+* Search online for existing solutions
+* Make your code do less -- skip nonessential parts
+* Vectorize your code
+* Avoid lots of copying of data
+
+
+---
+# Questions
+
+### Chapter 23
+
+1. 23.2.4 Question 1
+2. 23.3.3 Question 2
+
+### Chapter 24
+
+1. 24.3.1 Question 2
+2. 24.3.1 Question 3
+3. 24.4.3 Question 1
+4. 24.5.1 Question 1
+5. 24.5.1 Question 3
