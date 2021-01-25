@@ -1,0 +1,63 @@
+---
+title: "Mastering Spark with R"
+author: "John Peach"
+institute: "Orange County R Users Group"
+date: "2021-02-01"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+
+# Welcome to Session 1
+
+
+## **When**: 
+
+Feb. 1st 6:30pm ~ 8:00pm
+
+## **Where**: 
+
+[Zoom](https://oracle.zoom.us/j/97965194907?pwd=MmVyVk9vK24rUjI5eWt1eDJqY0FvQT09)
+
+## **Schedule**: 
+
+1. 6:30pm ~ 7:00 PM networking and setup
+2. 7:00pm ~ 8:00 PM Chapter 1 ~ 3 discussion 
+
+---
+
+# Slack channel
+
+A slack channel has been set up for the book club. This will be used for general announcements but it is also a great source for you to ask questions to other participants.
+
+Slack Group [Sign-up](https://tinyurl.com/socalrug-slack-signup)
+    
+[Slack Group](https://tinyurl.com/socalrug-slack)
+
+Slack channel: #oc_rug-bookclub.
+
+---
+
+# Resources
+
+1. [online free book](https://therinspark.com/)
+1. [Book on Amazon](https://www.amazon.com/dp/149204637X/)
+ 

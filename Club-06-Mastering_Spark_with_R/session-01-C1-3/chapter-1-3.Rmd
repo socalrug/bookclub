@@ -1,0 +1,246 @@
+---
+title: "Mastering Spark with R"
+subtitle: 'Chapters 1-3'
+author: "John Peach"
+institute: "Orange County R Users Group"
+date: "2021-02-01"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(comment = "")
+```
+
+# What is Spark
+
+A unified analytics engine for large-scale data processing.
+
+* **Unified**: Spark supports many libraries, cluster technologies, and storage systems.
+* **Analytics**:  Analytics is the discovery and interpretation of data to produce and communicate information.
+* **Engine**: Spark is expected to be efficient and generic.
+* **Large-Scale**: Cluster-scale using a set of connected computers working together.
+
+![](intro-spark-unified-1.png)
+
+---
+
+# Dealing with Big Data or Big Compute
+
+.large[
+1. **Sampling**: reduce the amount of data by sampling. 
+1. **Profiling**: Understand why a computation is slow and make the necessary improvements by profiling.
+1. **Scaling Up**: Speeding up computation by using faster or more capable hardware.
+1. **Scaling Out**: Spreading computation and storage across multiple machines.
+]
+
+---
+
+# Sparklyr
+
+.large[
+`sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+]
+---
+
+# Setup Local Cluster
+
+## Setup java 8
+```{r, echo=TRUE}
+java8_home = system("/usr/libexec/java_home -v 1.8", intern = TRUE)
+Sys.setenv(JAVA_HOME = java8_home)
+system("java -version")
+```
+
+## Setup Spark and Sparklyr
+```{r, echo=TRUE, message=FALSE}
+if (!require(sparklyr)) {
+  install.packages("sparklyr")
+}
+library(sparklyr)
+spark_install("2.3")
+```
+
+---
+
+# Connection
+
+`sc` is the standard variable name to represent a handle to the spark cluster
+
+```{r, echo=TRUE}
+sc <- spark_connect(master = "local", version = "2.3")
+```
+
+What class is the `sc` object
+```{r, echo=TRUE, comment=""}
+class(sc)
+```
+
+---
+
+# Move data from R to Spark
+
+Copy mtcars to the cluster
+
+```{r, echo=TRUE, comment=""}
+cars <- copy_to(sc, mtcars)
+cars
+```
+Row count is missing
+
+---
+
+# Classes
+
+```{r, echo=TRUE, comment=""}
+class(cars)
+```
+
+It inherits the tibble (`tbl`) class. Thus, tidyverse methods will generally work.
+
+---
+
+# Web Interface
+
+```{r, echo=TRUE, eval=FALSE}
+spark_web(sc)
+```
+
+![](starting-spark-web-resized.png)
+---
+
+# Analysis
+
+## Using `DBI`
+
+```{r, echo=TRUE, comment=""}
+library(DBI)
+dbGetQuery(sc, "SELECT COUNT(*) FROM mtcars")
+```
+
+## Using `dplyr`
+
+```{r, echo=TRUE, comment=""}
+library(dplyr)
+count(cars)
+```
+
+---
+
+# Chaining `dplyr` commands
+
+```{r, echo=TRUE}
+select(cars, hp, mpg) %>%
+  sample_n(100) %>%
+  collect() %>%
+  plot()
+```
+
+---
+
+# Modelling
+
+Spark has a large library of modelling commands.
+
+You cannot use the standard R models
+
+```{r, echo=TRUE}
+model <- ml_linear_regression(cars, mpg ~ hp)
+model
+```
+
+---
+
+# Serialization
+
+Supports a wide collection of methods to serialize and deserialize data
+
+## CSV
+
+```{r}
+tmp_dir = file.path("/tmp", "spark")
+dir.create(tmp_dir, recursive = TRUE, showWarnings = FALSE)
+file = file.path(tmp_dir, "cars.csv")
+```
+
+```{r, echo=TRUE}
+spark_write_csv(cars, file)  # Serialize
+cars_csv <- spark_read_csv(sc, file) # Deserialize
+```
+
+```{r}
+unlink(tmp_dir, recursive = TRUE, force = TRUE)
+```
+
+### JSON
+* `spark_read_json()`
+* `spark_write_json()`
+
+---
+
+# Streaming
+
+Write multiple files to a directory
+```{r}
+tmp_dir = file.path('/tmp', 'spark')
+input_path = file.path(tmp_dir, "input")
+dir.create(input_path, recursive = TRUE, showWarnings = FALSE)
+```
+
+```{r, echo=TRUE}
+write.csv(mtcars, file.path(input_path, "cars_1.csv"), row.names = FALSE)
+write.csv(mtcars, file.path(input_path, "cars_2.csv"), row.names = FALSE)
+write.csv(mtcars, file.path(input_path, "cars_3.csv"), row.names = FALSE)
+```
+
+Stream each file in and write results to a directory
+```{r}
+output_path = file.path(tmp_dir, "output")
+```
+```{r, echo=TRUE}
+stream <- stream_read_csv(sc, input_path) %>%
+    select(mpg, cyl, disp) %>%
+    stream_write_csv(output_path)
+```
+
+See the output files
+```{r, echo=TRUE}
+dir(output_path, pattern = ".csv")
+```
+
+```{r}
+unlink(tmp_dir, recursive = TRUE, force = TRUE)
+```
+
+---
+
+# Logs & Disconnect
+
+## Logs
+
+* Use the log button in the `Connections`
+* Use `spark_log(sc)` or `spark_log(sc, filter = "INFO sparklyr: Gateway")`
+
+## Disconnect
+
+* `spark_disconnect(sc)`
+* `spark_disconnect_all()`
