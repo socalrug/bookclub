@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Session 1: Chapter 1 ~ 8</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Xi Chen" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Session 1: Chapter 1 ~ 8
+### Xi Chen
+### OCRUG
+### 1/25/2021
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+
+# Logistics
+  * 6:30pm ~ 6:40pm networking
+    * slack chanel #oc_rug-bookclub
+  * 6:40pm ~ 7:40pm summary and exercises
+  * 7:40pm ~ 8:00pm discussion 
+
+---
+
+# Chapter 1: Introduction
+
+.pull-left[
+* what you will learn:
+  + import
+  + wrangling
+  + visualization
+  + models
+  + communication
+* how this book is organized
+  + start from visual
+  + start with examples, paired with exercises
+* prerequisites
+  + R
+  + Rstudio
+  + tidyverse
+* running R code
+  
+]
+
+.pull-right[
+ &lt;img src="data-science-explore.png" width="100%" /&gt;
+
+* getting help
+  + packages
+  + reproducible data
+  + code
+  
+]
+
+---
+
+# Chapter 3: Data visualization
+
+
+```r
+library(tidyverse)
+```
+
+
+
+```r
+glimpse(mpg) 
+```
+
+```
+## Rows: 234
+## Columns: 11
+## $ manufacturer &lt;chr&gt; "audi", "audi", "audi", "audi", "audi", "audi", "audi", …
+## $ model        &lt;chr&gt; "a4", "a4", "a4", "a4", "a4", "a4", "a4", "a4 quattro", …
+## $ displ        &lt;dbl&gt; 1.8, 1.8, 2.0, 2.0, 2.8, 2.8, 3.1, 1.8, 1.8, 2.0, 2.0, 2…
+## $ year         &lt;int&gt; 1999, 1999, 2008, 2008, 1999, 1999, 2008, 1999, 1999, 20…
+## $ cyl          &lt;int&gt; 4, 4, 4, 4, 6, 6, 6, 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 8, 8,…
+## $ trans        &lt;chr&gt; "auto(l5)", "manual(m5)", "manual(m6)", "auto(av)", "aut…
+## $ drv          &lt;chr&gt; "f", "f", "f", "f", "f", "f", "f", "4", "4", "4", "4", "…
+## $ cty          &lt;int&gt; 18, 21, 20, 21, 16, 18, 18, 18, 16, 20, 19, 15, 17, 17, …
+## $ hwy          &lt;int&gt; 29, 29, 31, 30, 26, 26, 27, 26, 25, 28, 27, 25, 25, 25, …
+## $ fl           &lt;chr&gt; "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "…
+## $ class        &lt;chr&gt; "compact", "compact", "compact", "compact", "compact", "…
+```
+
+---
+
+# Aesthetic mappings
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-2-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-2-2.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-2-3.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-2-4.png" width="50%" /&gt;
+
+``` 
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy, shape = class))
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy, size = class)) 
+```
+
+---
+
+# Facets
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-3-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-3-2.png" width="50%" /&gt;
+
+``` 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+  
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(drv ~ cyl)
+```
+
+---
+
+# Geometric objects
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-4-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-4-2.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-4-3.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-4-4.png" width="50%" /&gt;
+
+``` 
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + geom_smooth(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + geom_point() + 
+  geom_smooth(mapping = aes(linetype = drv))
+```
+
+---
+
+# Geometric objects II
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-5-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-5-2.png" width="50%" /&gt;
+
+``` 
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth()
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth(data = filter(mpg, class == "subcompact"), se = FALSE)
+```
+
+---
+
+# Statistical transformations
+
+![](visualization-stat-bar.png)&lt;!-- --&gt;
+---
+
+# Statistical transformations II
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-7-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-7-2.png" width="50%" /&gt;
+
+.pull-left[
+```
+ggplot(data = diamonds) + 
+  stat_count(mapping = aes(x = cut))
+
+```
+]
+
+.pull-right[
+```
+demo &lt;- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+ggplot(data = demo) +
+  geom_bar(mapping = aes(x = cut, y = freq)
+    , stat = "identity")
+```
+]
+
+---
+
+# Statistical transformations III
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-8-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-8-2.png" width="50%" /&gt;
+
+.pull-left[
+```
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, 
+  y = stat(prop), group = 1))
+```
+]
+
+.pull-right[
+```
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, 
+  fill = clarity), position = "dodge")
+```
+]
+
+---
+
+# Coordinate systems
+
+*   `coord_flip()` switches the x and y axes. This is useful (for example),
+    if you want horizontal boxplots. It's also useful for long labels: it's
+    hard to get them to fit without overlapping on the x-axis.
+    
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-9-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-9-2.png" width="50%" /&gt;
+
+```
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+      geom_boxplot()
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+      geom_boxplot() +
+      coord_flip()
+```
+
+---
+
+# ggplot Formula:
+
+![](visualization-grammar-1.png)
+![](visualization-grammar-2.png)
+
+---
+
+# ggplot Formula II
+
+![](visualization-grammar-3.png)
+
+```
+ggplot(data = &lt;DATA&gt;) + 
+  &lt;GEOM_FUNCTION&gt;(
+     mapping = aes(&lt;MAPPINGS&gt;),
+     stat = &lt;STAT&gt;, 
+     position = &lt;POSITION&gt;
+  ) +
+  &lt;COORDINATE_FUNCTION&gt; +
+  &lt;FACET_FUNCTION&gt;
+```
+---
+
+# Chapter 4: Workflow basics
+
+* Coding basics: assignment statement Alt+ -
+* what's in a name:
+  + snake_case
+  + case sensitive
+  + use tab to speedup, add matching parentheses
+* surrounding the assignment with () to "print to screen" 
+
+---
+
+# Chapter 5: Data transformation
+
+`nycflights13::flights`.  and is documented in `?flights`.
+
+
+```
+## # A tibble: 336,776 x 19
+##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+##  1  2013     1     1      517            515         2      830            819
+##  2  2013     1     1      533            529         4      850            830
+##  3  2013     1     1      542            540         2      923            850
+##  4  2013     1     1      544            545        -1     1004           1022
+##  5  2013     1     1      554            600        -6      812            837
+##  6  2013     1     1      554            558        -4      740            728
+##  7  2013     1     1      555            600        -5      913            854
+##  8  2013     1     1      557            600        -3      709            723
+##  9  2013     1     1      557            600        -3      838            846
+## 10  2013     1     1      558            600        -2      753            745
+## # … with 336,766 more rows, and 11 more variables: arr_delay &lt;dbl&gt;,
+## #   carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;, dest &lt;chr&gt;,
+## #   air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;, time_hour &lt;dttm&gt;
+```
+it's a __tibble__. 
+ 
+---
+
+# dplyr basics
+
+* Pick observations by their values (`filter()`).
+  + `(dec25 &lt;- filter(flights, month == 12, day == 25))`
+  + `sqrt(2) ^ 2 == 2`
+  + `nov_dec &lt;- filter(flights, month %in% c(11, 12))`
+  + `NA`to determine if a value is missing, use `is.na()` 
+* Reorder the rows (`arrange()`).
+  + Missing values are always sorted at the end
+* Pick variables by their names (`select()`).
+  + use `rename()` keeps all the variables that aren't explicitly mentioned
+  + use `select()` in conjunction with the `everything()`to move variables to the start of the data frame
+* Create new variables with functions of existing variables (`mutate()`).
+  + can refer to columns that you’ve just created
+  + want to keep the new variables, use transmute()
+``` 
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours
+)
+```
+---
+
+# dplyr II: Grouped summaries
+
+* Collapse many values down to a single summary (`summarise()`)
+
+```r
+by_dest &lt;- group_by(flights, dest)
+delay &lt;- summarise(by_dest,
+  count = n(),
+  dist = mean(distance, na.rm = TRUE),
+  delay = mean(arr_delay, na.rm = TRUE)
+)
+delay &lt;- filter(delay, count &gt; 20, dest != "HNL") 
+```
+  + Group flights by destination.
+  + Summarise to compute distance, average delay, and number of flights.
+  + Filter to remove noisy points and Honolulu airport, which is almost twice as far away as the next closest airport.
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-12-1.png" width="50%" style="display: block; margin: auto 0 auto auto;" /&gt;
+---
+
+# dplyr III: Missing values
+
+* missing values
+  + aggregation functions obey the usual rule of missing values: if there’s any missing value in the input, the output will be a missing value
+  + could also tackle the problem by first removing the NA
+
+.pull-left[
+
+```r
+flights %&gt;% 
+  group_by(year, month, day) %&gt;% 
+  summarise(mean = 
+              mean(dep_delay,
+                   na.rm = TRUE))
+```
+]
+
+.pull-right[
+
+```r
+not_cancelled &lt;- flights %&gt;% 
+  filter(!is.na(dep_delay), 
+         !is.na(arr_delay)
+         )
+
+not_cancelled %&gt;% 
+  group_by(year, month, day) %&gt;% 
+  summarise(mean = mean(dep_delay))
+```
+] 
+
+---
+
+# dplyr IV: Counts
+
+* count
+  + aggregation functions obey the usual rule of missing values: if there’s any missing value in the input, the output will be a missing value
+  + could also tackle the problem by first removing the NA
+
+.pull-left[
+
+```r
+delays &lt;- not_cancelled %&gt;% 
+  group_by(tailnum) %&gt;% 
+  summarise(
+    delay = mean(arr_delay, na.rm = TRUE),
+    n = n()
+  )
+ggplot(data = delays, mapping = aes(x = n, y = delay)) + 
+  geom_point(alpha = 1/10)
+```
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-15-1.png" width="100%" style="display: block; margin: auto 0 auto auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+delays %&gt;% 
+  filter(n &gt; 25) %&gt;% 
+  ggplot(mapping = aes(x = n, y = delay)) + 
+    geom_point(alpha = 1/10)
+```
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-16-1.png" width="100%" style="display: block; margin: auto 0 auto auto;" /&gt;
+] 
+
+---
+
+# dplyr V: Grouping multiple variables
+
+* Useful summary function
+  + Measures of location: `mean(x)`,`median(x)`
+  + Measures of spread: `sd(x)`, `IQR(x)`, `mad(x)`
+  + Measures of rank: `min(x)`, `quantile(x, 0.25)`, `max(x)`
+  + Measures of position: `first(x)`, `nth(x, 2)`, `last(x)`
+  + Counts:  `n()`,  `sum(!is.na(x))`, `n_distinct(x)`.
+
+* When you group by multiple variables, each summary peels off one level of the grouping
+
+```r
+daily &lt;- group_by(flights, year, month, day)
+(per_day   &lt;- summarise(daily, flights = n()))
+(per_month &lt;- summarise(per_day, flights = sum(flights)))
+(per_year  &lt;- summarise(per_month, flights = sum(flights)))
+```
+
+---
+
+# dplyr VI: grouped mutates
+
+* Find all groups bigger than a threshold:
+.pull-left[
+
+```r
+popular_dests &lt;- flights %&gt;% 
+  group_by(dest) %&gt;% 
+  filter(n() &gt; 365)
+popular_dests
+```
+]
+
+* Standardise to compute per group metrics:
+.pull-right[
+
+```r
+popular_dests %&gt;% 
+  filter(arr_delay &gt; 0) %&gt;% 
+  mutate(prop_delay = arr_delay / sum(arr_delay)) %&gt;% 
+  select(year:day, dest, arr_delay, prop_delay)
+```
+]
+---
+
+# Chapter 7
+
+* EDA is an iterative cycle
+1. Generate questions about your data.
+1. Search for answers by visualising, transforming, and modelling your data.
+1. Use what you learn to refine your questions and/or generate new questions.
+
+*  Questions
+1. What type of variation occurs within my variables?
+
+1. What type of covariation occurs between my variables?
+
+*   A __variable__ is a quantity, quality, or property that you can measure. 
+
+*   A __value__ is the state of a variable when you measure it. The value of a
+    variable may change from measurement to measurement.
+  
+*   An __observation__ is a set of measurements made under similar conditions
+
+*   __Tabular data__ is a set of values, each associated with a variable and an
+    observation. 
+---
+
+# Chapter 7.3 Visualising distribution
+
+* **Variation** is the tendency of the values of a variable to change from measurement to measurement.
+
+&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-20-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-20-2.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-20-3.png" width="50%" /&gt;
+---
+
+# Chapter 7.3 Typical values
+
+In both bar charts and histograms, tall bars show the common values of a variable, and shorter bars show less-common values. Places that do not have bars reveal values that were not seen in your data.  
+
+.pull-left[
+* Which values are the most common? Why?
+* Which values are rare? Why? Does that match your expectations?
+* Can you see any unusual patterns? What might explain them?
+]
+
+.pull-right[
+![](SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-21-1.png)&lt;!-- --&gt;
+]
+---
+
+# Chapter 7.3 Unusual values
+
+There are so many observations in the common bins that the rare bins are so short that you can't see them  
+.pull-left[
+```
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), 
+  binwidth = 0.5) +
+  coord_cartesian(ylim = c(0, 50))
+```
+]
+.pull-right[
+![](SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-22-1.png)&lt;!-- --&gt;
+]
+---
+
+# Chapter 7.4 Missing values
+
+.pull-left[
+1.  Drop the entire row with the strange values:
+
+    ``` 
+    diamonds2 &lt;- diamonds %&gt;% 
+      filter(between(y, 3, 20))
+    ```
+
+2.  replacing the unusual values with missing values. 
+
+    ``` 
+    diamonds2 &lt;- diamonds %&gt;% 
+      mutate(y = ifelse(y &lt; 3 | y &gt; 20, NA, y))
+    ```
+]
+.pull-right[
+  
+  ```
+  ## Warning: Removed 9 rows containing missing values (geom_point).
+  ```
+  
+  &lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-23-1.png" width="50%" /&gt;
+]
+---
+
+# Chapter 7.5 Covariation
+
+*  A categorical and continuous variable:
+  + geom_freqpoly
+  + boxplot
+
+  &lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-24-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-24-2.png" width="50%" /&gt;
+
+---
+
+# Chapter 7.5 two categorical
+
+* two categorical variable:
+  + geom_count
+  + geom_tile
+
+
+  &lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-25-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-25-2.png" width="50%" /&gt;
+]
+---
+
+# Chapter 7.5 two continuous
+
+* two categorical variable:
+  + geom_point
+  + geom_bin2d
+  + geom_hex
+  + geom_boxplot
+
+
+  &lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-26-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-26-2.png" width="50%" /&gt;
+]
+---
+
+# Chapter 7.5 two continuous
+
+* two categorical variable:
+  + geom_point
+  + geom_bin2d
+  + geom_hex
+  + geom_boxplot
+
+
+  &lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-27-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-27-2.png" width="50%" /&gt;
+]
+---
+
+# Chapter 7.6 patterns
+
+consider the diamonds data. It’s hard to understand the relationship between cut and price, because cut and carat, and carat and price are tightly related. It’s possible to use a model to remove the very strong relationship between price and carat so we can explore the subtleties that remain.
+
+  &lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-28-1.png" width="50%" /&gt;&lt;img src="SESSION-1-C3-C8-_files/figure-html/unnamed-chunk-28-2.png" width="50%" /&gt;
+]
+---
+
+# Exercises
+
+* 3.6.1(6)
+* 3.7.1(5)
+* 3.8.1(1)
+* 5.2.4(4)
+* 5.6.7(2)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
