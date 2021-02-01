@@ -244,3 +244,66 @@ unlink(tmp_dir, recursive = TRUE, force = TRUE)
 
 * `spark_disconnect(sc)`
 * `spark_disconnect_all()`
+
+---
+
+# `dplyr` writes Spark SQL commands
+
+```{r, echo=TRUE, warning=FALSE}
+summarise_all(cars, mean) %>% 
+  show_query()
+```
+
+If the function is not supported by `dpylr` it is passed onto Spark. Thus, you can use Spark functions.
+
+---
+
+# Visualizations
+
+* Pass only aggregated data back to R from Spark 
+* `dbplot` works with Spark and `ggplot` to do this
+* `dbplot::dbplot_raster` will aggregate data for scatter plots
+```{r, echo=TRUE, fig.height=4}
+dbplot::dbplot_raster(cars, mpg, wt, resolution = 16)
+```
+
+---
+
+# Caching
+
+* Cache a result in Spark memory for future use
+* use `compute()` with a name 
+```{r, echo=TRUE}
+cached_cars <- cars %>% 
+  mutate(cyl = paste0('cyl_', cyl)) %>% 
+  compute("cached_cars")
+```
+---
+
+# Questions 1
+1. Install Spark V2.3, and `sparklyr`
+1. What version of Hadoop is installed?
+1. Is Spark V3.0 available?
+1. Make a connection to the local spark cluster.
+1. Load the `zillow.csv` file into Spark.
+1. Using the web interface, find the job that you just ran.
+1. Using the web interface, find the objects that are loaded into memory.
+1. Using RStudio UI, find the objects that are loaded into Spark.
+1. Write a Spark SQL command to get the mean list price by Zip code.
+1. Create a scatter plot of year built vs living space.
+1. Create a linear regression on the list price using all the features except Zip and index.
+1. Predict the list price of a home with 2000 sq ft, 3 Beds, 2 Baths, Year = 2000
+1. You needed to create a data.frame in Spark to do the above command. How many bytes were used to create it?
+1. Make three copies of the `zillow.csv` file (`zillow1.csv`, `zillow2.csv`, `zillow3.csv`) and scream read them into Spark, select the Zip and List Price, and write it out to `output/`
+1. Programmatically check the logs for all the warning messages
+1. Get the maximum value in each column of the `zillow` dataset.
+
+---
+
+# Questions 2
+1. What is the Spark SQL used to create the above command.
+1. Using the `stddev_samp` method in Spark. Compute the standard deviation of the sample for the list price.
+1. Create a histogram of the list price. Make the bin width 100,000. Have Spark compute the actual histogram (i.e. due not pull the data back into R)
+1. Compute the mean listing price by zip code and store it in Spark with the variable name `MEAN_BY_ZIP`.
+1. What is the actual variable name in Spark for `MEAN_BY_ZIP`?
+1. Disconnect R from Spark

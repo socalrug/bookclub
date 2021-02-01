@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Mastering Spark with R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2021-02-01" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Mastering Spark with R
+## Chapters 1-3
+### John Peach
+### Orange County R Users Group
+### 2021-02-01
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+# What is Spark
+
+A unified analytics engine for large-scale data processing.
+
+* **Unified**: Spark supports many libraries, cluster technologies, and storage systems.
+* **Analytics**:  Analytics is the discovery and interpretation of data to produce and communicate information.
+* **Engine**: Spark is expected to be efficient and generic.
+* **Large-Scale**: Cluster-scale using a set of connected computers working together.
+
+![](intro-spark-unified-1.png)
+
+---
+
+# Dealing with Big Data or Big Compute
+
+.large[
+1. **Sampling**: reduce the amount of data by sampling. 
+1. **Profiling**: Understand why a computation is slow and make the necessary improvements by profiling.
+1. **Scaling Up**: Speeding up computation by using faster or more capable hardware.
+1. **Scaling Out**: Spreading computation and storage across multiple machines.
+]
+
+---
+
+# Sparklyr
+
+.large[
+`sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+]
+---
+
+# Setup Local Cluster
+
+## Setup java 8
+
+```r
+java8_home = system("/usr/libexec/java_home -v 1.8", intern = TRUE)
+Sys.setenv(JAVA_HOME = java8_home)
+system("java -version")
+```
+
+## Setup Spark and Sparklyr
+
+```r
+if (!require(sparklyr)) {
+  install.packages("sparklyr")
+}
+library(sparklyr)
+spark_install("2.3")
+```
+
+---
+
+# Connection
+
+`sc` is the standard variable name to represent a handle to the spark cluster
+
+
+```r
+sc &lt;- spark_connect(master = "local", version = "2.3")
+```
+
+What class is the `sc` object
+
+```r
+class(sc)
+```
+
+```
+[1] "spark_connection"       "spark_shell_connection" "DBIConnection"         
+```
+
+---
+
+# Move data from R to Spark
+
+Copy mtcars to the cluster
+
+
+```r
+cars &lt;- copy_to(sc, mtcars)
+cars
+```
+
+```
+# Source: spark&lt;mtcars&gt; [?? x 11]
+     mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
+   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1  21       6  160    110  3.9   2.62  16.5     0     1     4     4
+ 2  21       6  160    110  3.9   2.88  17.0     0     1     4     4
+ 3  22.8     4  108     93  3.85  2.32  18.6     1     1     4     1
+ 4  21.4     6  258    110  3.08  3.22  19.4     1     0     3     1
+ 5  18.7     8  360    175  3.15  3.44  17.0     0     0     3     2
+ 6  18.1     6  225    105  2.76  3.46  20.2     1     0     3     1
+ 7  14.3     8  360    245  3.21  3.57  15.8     0     0     3     4
+ 8  24.4     4  147.    62  3.69  3.19  20       1     0     4     2
+ 9  22.8     4  141.    95  3.92  3.15  22.9     1     0     4     2
+10  19.2     6  168.   123  3.92  3.44  18.3     1     0     4     4
+# … with more rows
+```
+Row count is missing
+
+---
+
+# Classes
+
+
+```r
+class(cars)
+```
+
+```
+[1] "tbl_spark" "tbl_sql"   "tbl_lazy"  "tbl"      
+```
+
+It inherits the tibble (`tbl`) class. Thus, tidyverse methods will generally work.
+
+---
+
+# Web Interface
+
+
+```r
+spark_web(sc)
+```
+
+![](starting-spark-web-resized.png)
+---
+
+# Analysis
+
+## Using `DBI`
+
+
+```r
+library(DBI)
+dbGetQuery(sc, "SELECT COUNT(*) FROM mtcars")
+```
+
+```
+  count(1)
+1       32
+```
+
+## Using `dplyr`
+
+
+```r
+library(dplyr)
+count(cars)
+```
+
+```
+# Source: spark&lt;?&gt; [?? x 1]
+      n
+  &lt;dbl&gt;
+1    32
+```
+
+---
+
+# Chaining `dplyr` commands
+
+
+```r
+select(cars, hp, mpg) %&gt;%
+  sample_n(100) %&gt;%
+  collect() %&gt;%
+  plot()
+```
+
+![](chapter-1-3_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+---
+
+# Modelling
+
+Spark has a large library of modelling commands.
+
+You cannot use the standard R models
+
+
+```r
+model &lt;- ml_linear_regression(cars, mpg ~ hp)
+model
+```
+
+```
+Formula: mpg ~ hp
+
+Coefficients:
+(Intercept)          hp 
+30.09886054 -0.06822828 
+```
+
+---
+
+# Serialization
+
+Supports a wide collection of methods to serialize and deserialize data
+
+## CSV
+
+
+
+
+```r
+spark_write_csv(cars, file)  # Serialize
+cars_csv &lt;- spark_read_csv(sc, file) # Deserialize
+```
+
+
+
+### JSON
+* `spark_read_json()`
+* `spark_write_json()`
+
+---
+
+# Streaming
+
+Write multiple files to a directory
+
+
+
+```r
+write.csv(mtcars, file.path(input_path, "cars_1.csv"), row.names = FALSE)
+write.csv(mtcars, file.path(input_path, "cars_2.csv"), row.names = FALSE)
+write.csv(mtcars, file.path(input_path, "cars_3.csv"), row.names = FALSE)
+```
+
+Stream each file in and write results to a directory
+
+
+```r
+stream &lt;- stream_read_csv(sc, input_path) %&gt;%
+    select(mpg, cyl, disp) %&gt;%
+    stream_write_csv(output_path)
+```
+
+See the output files
+
+```r
+dir(output_path, pattern = ".csv")
+```
+
+```
+[1] "part-00000-1099eba4-bc07-431b-b499-583cbd8e2b9b-c000.csv"
+[2] "part-00001-edc8a132-5a02-4104-a18f-541dc5b30654-c000.csv"
+[3] "part-00002-e675dcf4-93ac-48a7-b108-eced7f7e4871-c000.csv"
+```
+
+
+
+---
+
+# Logs &amp; Disconnect
+
+## Logs
+
+* Use the log button in the `Connections`
+* Use `spark_log(sc)` or `spark_log(sc, filter = "INFO sparklyr: Gateway")`
+
+## Disconnect
+
+* `spark_disconnect(sc)`
+* `spark_disconnect_all()`
+
+---
+
+# `dplyr` writes Spark SQL commands
+
+
+```r
+summarise_all(cars, mean) %&gt;% 
+  show_query()
+```
+
+```
+&lt;SQL&gt;
+SELECT AVG(`mpg`) AS `mpg`, AVG(`cyl`) AS `cyl`, AVG(`disp`) AS `disp`, AVG(`hp`) AS `hp`, AVG(`drat`) AS `drat`, AVG(`wt`) AS `wt`, AVG(`qsec`) AS `qsec`, AVG(`vs`) AS `vs`, AVG(`am`) AS `am`, AVG(`gear`) AS `gear`, AVG(`carb`) AS `carb`
+FROM `mtcars`
+```
+
+If the function is not supported by `dpylr` it is passed onto Spark. Thus, you can use Spark functions.
+
+---
+
+# Visualizations
+
+* Pass only aggregated data back to R from Spark 
+* `dbplot` works with Spark and `ggplot` to do this
+* `dbplot::dbplot_raster` will aggregate data for scatter plots
+
+```r
+dbplot::dbplot_raster(cars, mpg, wt, resolution = 16)
+```
+
+![](chapter-1-3_files/figure-html/unnamed-chunk-22-1.png)&lt;!-- --&gt;
+
+---
+
+# Caching
+
+* Cache a result in Spark memory for future use
+* use `compute()` with a name 
+
+```r
+cached_cars &lt;- cars %&gt;% 
+  mutate(cyl = paste0('cyl_', cyl)) %&gt;% 
+  compute("cached_cars")
+```
+---
+
+# Questions 1
+1. Install Spark V2.3, and `sparklyr`
+1. What version of Hadoop is installed?
+1. Is Spark V3.0 available?
+1. Make a connection to the local spark cluster.
+1. Load the `zillow.csv` file into Spark.
+1. Using the web interface, find the job that you just ran.
+1. Using the web interface, find the objects that are loaded into memory.
+1. Using RStudio UI, find the objects that are loaded into Spark.
+1. Write a Spark SQL command to get the mean list price by Zip code.
+1. Create a scatter plot of year built vs living space.
+1. Create a linear regression on the list price using all the features except Zip and index.
+1. Predict the list price of a home with 2000 sq ft, 3 Beds, 2 Baths, Year = 2000
+1. You needed to create a data.frame in Spark to do the above command. How many bytes were used to create it?
+1. Make three copies of the `zillow.csv` file (`zillow1.csv`, `zillow2.csv`, `zillow3.csv`) and scream read them into Spark, select the Zip and List Price, and write it out to `output/`
+1. Programmatically check the logs for all the warning messages
+1. Get the maximum value in each column of the `zillow` dataset.
+
+---
+
+# Questions 2
+1. What is the Spark SQL used to create the above command.
+1. Using the `stddev_samp` method in Spark. Compute the standard deviation of the sample for the list price.
+1. Create a histogram of the list price. Make the bin width 100,000. Have Spark compute the actual histogram (i.e. due not pull the data back into R)
+1. Compute the mean listing price by zip code and store it in Spark with the variable name `MEAN_BY_ZIP`.
+1. What is the actual variable name in Spark for `MEAN_BY_ZIP`?
+1. Disconnect R from Spark
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
