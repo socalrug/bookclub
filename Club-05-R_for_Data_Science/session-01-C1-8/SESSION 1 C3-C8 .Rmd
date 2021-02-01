@@ -1,0 +1,684 @@
+---
+title: "Session 1: Chapter 1 ~ 8"
+author: "Xi Chen"
+date: "1/25/2021"
+institute: "OCRUG" 
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(nycflights13) 
+```
+
+# Logistics
+  * 6:30pm ~ 6:40pm networking
+    * slack chanel #oc_rug-bookclub
+  * 6:40pm ~ 7:40pm summary and exercises
+  * 7:40pm ~ 8:00pm discussion 
+
+---
+
+# Chapter 1: Introduction
+
+.pull-left[
+* what you will learn:
+  + import
+  + wrangling
+  + visualization
+  + models
+  + communication
+* how this book is organized
+  + start from visual
+  + start with examples, paired with exercises
+* prerequisites
+  + R
+  + Rstudio
+  + tidyverse
+* running R code
+  
+]
+
+.pull-right[
+ ```{r echo = FALSE, out.width = "100%"}
+knitr::include_graphics("data-science-explore.png")
+```
+
+* getting help
+  + packages
+  + reproducible data
+  + code
+  
+]
+
+---
+
+# Chapter 3: Data visualization
+
+```{r chapter3.1.1, echo = T, results='hide'}
+library(tidyverse)
+```
+
+
+```{r chapter3.2, echo = T }
+glimpse(mpg) 
+```
+
+---
+
+# Aesthetic mappings
+
+````{r out.width = "50%", fig.align = 'default', warning = FALSE, fig.asp = 1/2, fig.cap =""}
+# Left
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
+# Right
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, shape = class))
+#
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
+#
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, size = class)) 
+```
+
+``` 
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy, shape = class))
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
+ggplot(data = mpg)+geom_point(mapping = aes(x = displ, y = hwy, size = class)) 
+```
+
+---
+
+# Facets
+
+````{r out.width = "50%", fig.align = 'default', warning = FALSE, fig.asp = 1/2, fig.cap =""}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(drv ~ cyl)
+```
+
+``` 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+  
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(drv ~ cyl)
+```
+
+---
+
+# Geometric objects
+
+````{r out.width = "50%", fig.align = 'default',fig.asp = 1/2, message = FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() +
+  geom_smooth(mapping = aes(linetype = drv))
+```
+
+``` 
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + geom_smooth(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + geom_point() + 
+  geom_smooth(mapping = aes(linetype = drv))
+```
+
+---
+
+# Geometric objects II
+
+````{r out.width = "50%", fig.align = 'default',fig.asp = 1/2, message = FALSE}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth()
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth(data = filter(mpg, class == "subcompact"), se = FALSE)
+
+```
+
+``` 
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth()
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth(data = filter(mpg, class == "subcompact"), se = FALSE)
+```
+
+---
+
+# Statistical transformations
+
+```{r, echo = FALSE, out.hight = "50%"}
+knitr::include_graphics("visualization-stat-bar.png")
+```
+---
+
+# Statistical transformations II
+
+````{r out.width = "50%", fig.align = 'default',fig.asp = 1/2, message = FALSE}
+ggplot(data = diamonds) + 
+  stat_count(mapping = aes(x = cut))
+demo <- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+
+ggplot(data = demo) +
+  geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
+
+```
+
+.pull-left[
+```
+ggplot(data = diamonds) + 
+  stat_count(mapping = aes(x = cut))
+
+```
+]
+
+.pull-right[
+```
+demo <- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+ggplot(data = demo) +
+  geom_bar(mapping = aes(x = cut, y = freq)
+    , stat = "identity")
+```
+]
+
+---
+
+# Statistical transformations III
+
+````{r out.width = "50%", fig.align = 'default',fig.asp = 1/2, message = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = stat(prop), group = 1))
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+```
+
+.pull-left[
+```
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, 
+  y = stat(prop), group = 1))
+```
+]
+
+.pull-right[
+```
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, 
+  fill = clarity), position = "dodge")
+```
+]
+
+---
+
+# Coordinate systems
+
+*   `coord_flip()` switches the x and y axes. This is useful (for example),
+    if you want horizontal boxplots. It's also useful for long labels: it's
+    hard to get them to fit without overlapping on the x-axis.
+    
+```{r out.width = "50%", fig.align = "default",fig.asp = 1/2, message = FALSE}
+    ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+      geom_boxplot()
+    ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+      geom_boxplot() +
+      coord_flip()
+```
+
+```
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+      geom_boxplot()
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+      geom_boxplot() +
+      coord_flip()
+```
+
+---
+
+# ggplot Formula:
+
+![](visualization-grammar-1.png)
+![](visualization-grammar-2.png)
+
+---
+
+# ggplot Formula II
+
+![](visualization-grammar-3.png)
+
+```
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(
+     mapping = aes(<MAPPINGS>),
+     stat = <STAT>, 
+     position = <POSITION>
+  ) +
+  <COORDINATE_FUNCTION> +
+  <FACET_FUNCTION>
+```
+---
+
+# Chapter 4: Workflow basics
+
+* Coding basics: assignment statement Alt+ -
+* what's in a name:
+  + snake_case
+  + case sensitive
+  + use tab to speedup, add matching parentheses
+* surrounding the assignment with () to "print to screen" 
+
+---
+
+# Chapter 5: Data transformation
+
+`nycflights13::flights`.  and is documented in `?flights`.
+
+```{r}
+flights
+```
+it's a __tibble__. 
+ 
+---
+
+# dplyr basics
+
+* Pick observations by their values (`filter()`).
+  + `(dec25 <- filter(flights, month == 12, day == 25))`
+  + `sqrt(2) ^ 2 == 2`
+  + `nov_dec <- filter(flights, month %in% c(11, 12))`
+  + `NA`to determine if a value is missing, use `is.na()` 
+* Reorder the rows (`arrange()`).
+  + Missing values are always sorted at the end
+* Pick variables by their names (`select()`).
+  + use `rename()` keeps all the variables that aren't explicitly mentioned
+  + use `select()` in conjunction with the `everything()`to move variables to the start of the data frame
+* Create new variables with functions of existing variables (`mutate()`).
+  + can refer to columns that you’ve just created
+  + want to keep the new variables, use transmute()
+``` 
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours
+)
+```
+---
+
+# dplyr II: Grouped summaries
+
+* Collapse many values down to a single summary (`summarise()`)
+```{r, results='hide',echo=TRUE, message=FALSE, warning=FALSE}
+by_dest <- group_by(flights, dest)
+delay <- summarise(by_dest,
+  count = n(),
+  dist = mean(distance, na.rm = TRUE),
+  delay = mean(arr_delay, na.rm = TRUE)
+)
+delay <- filter(delay, count > 20, dest != "HNL") 
+```
+  + Group flights by destination.
+  + Summarise to compute distance, average delay, and number of flights.
+  + Filter to remove noisy points and Honolulu airport, which is almost twice as far away as the next closest airport.
+```{r, echo = FALSE, out.width = "50%", fig.align ='right',fig.asp = 1/2, message = FALSE}
+ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+  geom_point(aes(size = count), alpha = 1/3) +
+  geom_smooth(se = FALSE)
+```
+---
+
+# dplyr III: Missing values
+
+* missing values
+  + aggregation functions obey the usual rule of missing values: if there’s any missing value in the input, the output will be a missing value
+  + could also tackle the problem by first removing the NA
+
+.pull-left[
+```{r, results='hide',echo=TRUE, message=FALSE, warning=FALSE}
+flights %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = 
+              mean(dep_delay,
+                   na.rm = TRUE))
+```
+]
+
+.pull-right[
+```{r,  results='hide',echo=TRUE, message=FALSE, warning=FALSE}
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), 
+         !is.na(arr_delay)
+         )
+
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = mean(dep_delay))
+```
+] 
+
+---
+
+# dplyr IV: Counts
+
+* count
+  + aggregation functions obey the usual rule of missing values: if there’s any missing value in the input, the output will be a missing value
+  + could also tackle the problem by first removing the NA
+
+.pull-left[
+```{r, out.width = "100%", fig.align ='right',fig.asp = 1/2,results='hide',echo=TRUE, message=FALSE, warning=FALSE}
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(
+    delay = mean(arr_delay, na.rm = TRUE),
+    n = n()
+  )
+ggplot(data = delays, mapping = aes(x = n, y = delay)) + 
+  geom_point(alpha = 1/10)
+```
+]
+
+.pull-right[
+```{r, out.width = "100%", fig.align ='right',fig.asp = 1/2, results='hide',echo=TRUE, message=FALSE, warning=FALSE}
+delays %>% 
+  filter(n > 25) %>% 
+  ggplot(mapping = aes(x = n, y = delay)) + 
+    geom_point(alpha = 1/10)
+```
+] 
+
+---
+
+# dplyr V: Grouping multiple variables
+
+* Useful summary function
+  + Measures of location: `mean(x)`,`median(x)`
+  + Measures of spread: `sd(x)`, `IQR(x)`, `mad(x)`
+  + Measures of rank: `min(x)`, `quantile(x, 0.25)`, `max(x)`
+  + Measures of position: `first(x)`, `nth(x, 2)`, `last(x)`
+  + Counts:  `n()`,  `sum(!is.na(x))`, `n_distinct(x)`.
+
+* When you group by multiple variables, each summary peels off one level of the grouping
+```{r, echo = TRUE, results='hide',warning=FALSE, message=FALSE}
+daily <- group_by(flights, year, month, day)
+(per_day   <- summarise(daily, flights = n()))
+(per_month <- summarise(per_day, flights = sum(flights)))
+(per_year  <- summarise(per_month, flights = sum(flights)))
+```
+
+---
+
+# dplyr VI: grouped mutates
+
+* Find all groups bigger than a threshold:
+.pull-left[
+```{r, echo = TRUE,  results='hide', warning=FALSE, message=FALSE}
+popular_dests <- flights %>% 
+  group_by(dest) %>% 
+  filter(n() > 365)
+popular_dests
+```
+]
+
+* Standardise to compute per group metrics:
+.pull-right[
+```{r, echo = TRUE,  results='hide', warning=FALSE, message=FALSE}
+popular_dests %>% 
+  filter(arr_delay > 0) %>% 
+  mutate(prop_delay = arr_delay / sum(arr_delay)) %>% 
+  select(year:day, dest, arr_delay, prop_delay)
+```
+]
+---
+
+# Chapter 7
+
+* EDA is an iterative cycle
+1. Generate questions about your data.
+1. Search for answers by visualising, transforming, and modelling your data.
+1. Use what you learn to refine your questions and/or generate new questions.
+
+*  Questions
+1. What type of variation occurs within my variables?
+
+1. What type of covariation occurs between my variables?
+
+*   A __variable__ is a quantity, quality, or property that you can measure. 
+
+*   A __value__ is the state of a variable when you measure it. The value of a
+    variable may change from measurement to measurement.
+  
+*   An __observation__ is a set of measurements made under similar conditions
+
+*   __Tabular data__ is a set of values, each associated with a variable and an
+    observation. 
+---
+
+# Chapter 7.3 Visualising distribution
+
+* **Variation** is the tendency of the values of a variable to change from measurement to measurement.
+
+```{r out.width = "50%", fig.align = 'default',fig.asp = 1/2, message = FALSE}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut))
+ggplot(data = diamonds) +
+  geom_histogram(mapping = aes(x = carat), binwidth = 0.5)
+smaller <- diamonds %>% 
+  filter(carat < 3)
+ggplot(data = smaller, mapping = aes(x = carat)) +
+  geom_histogram(binwidth = 0.1)
+```
+---
+
+# Chapter 7.3 Typical values
+
+In both bar charts and histograms, tall bars show the common values of a variable, and shorter bars show less-common values. Places that do not have bars reveal values that were not seen in your data.  
+
+.pull-left[
+* Which values are the most common? Why?
+* Which values are rare? Why? Does that match your expectations?
+* Can you see any unusual patterns? What might explain them?
+]
+
+.pull-right[
+```{r}
+ggplot(data = smaller, mapping = aes(x = carat)) +
+  geom_histogram(binwidth = 0.01)
+```
+]
+---
+
+# Chapter 7.3 Unusual values
+
+There are so many observations in the common bins that the rare bins are so short that you can't see them  
+.pull-left[
+```
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), 
+  binwidth = 0.5) +
+  coord_cartesian(ylim = c(0, 50))
+```
+]
+.pull-right[
+```{r}
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), binwidth = 0.5) +
+  coord_cartesian(ylim = c(0, 50))
+```   
+]
+---
+
+# Chapter 7.4 Missing values
+
+.pull-left[
+1.  Drop the entire row with the strange values:
+
+    ``` 
+    diamonds2 <- diamonds %>% 
+      filter(between(y, 3, 20))
+    ```
+
+2.  replacing the unusual values with missing values. 
+
+    ``` 
+    diamonds2 <- diamonds %>% 
+      mutate(y = ifelse(y < 3 | y > 20, NA, y))
+    ```
+]
+.pull-right[
+  ```{r out.width = "50%"}
+  diamonds2 <- diamonds %>% 
+  mutate(y = ifelse(y < 3 | y > 20, NA, y))
+  ggplot(data = diamonds2, mapping = aes(x = x, y = y)) + 
+  geom_point() 
+  ```
+]
+---
+
+# Chapter 7.5 Covariation
+
+*  A categorical and continuous variable:
+  + geom_freqpoly
+  + boxplot
+
+  ```{r out.width = "50%"}
+  ggplot(data = diamonds, mapping = aes(x = price, y = ..density..)) + 
+  geom_freqpoly(mapping = aes(colour = cut), binwidth = 500)
+  ggplot(data = mpg) +
+  geom_boxplot(mapping = aes(x = reorder(class, hwy, FUN = median), y = hwy))
+  ```
+
+---
+
+# Chapter 7.5 two categorical
+
+* two categorical variable:
+  + geom_count
+  + geom_tile
+
+
+  ```{r out.width = "50%"}
+  ggplot(data = diamonds) +
+  geom_count(mapping = aes(x = cut, y = color))
+  diamonds %>% 
+  count(color, cut) %>%  
+  ggplot(mapping = aes(x = color, y = cut)) +
+    geom_tile(mapping = aes(fill = n))
+  ```
+]
+---
+
+# Chapter 7.5 two continuous
+
+* two categorical variable:
+  + geom_point
+  + geom_bin2d
+  + geom_hex
+  + geom_boxplot
+
+
+  ```{r out.width = "50%"}
+  ggplot(data = smaller) +
+  geom_bin2d(mapping = aes(x = carat, y = price))
+  ggplot(data = smaller, mapping = aes(x = carat, y = price)) + 
+  geom_boxplot(mapping = aes(group = cut_width(carat, 0.1)))
+  ```
+]
+---
+
+# Chapter 7.5 two continuous
+
+* two categorical variable:
+  + geom_point
+  + geom_bin2d
+  + geom_hex
+  + geom_boxplot
+
+
+  ```{r out.width = "50%"}
+  ggplot(data = smaller) +
+  geom_bin2d(mapping = aes(x = carat, y = price))
+  ggplot(data = smaller, mapping = aes(x = carat, y = price)) + 
+  geom_boxplot(mapping = aes(group = cut_width(carat, 0.1)))
+  ```
+]
+---
+
+# Chapter 7.6 patterns
+
+consider the diamonds data. It’s hard to understand the relationship between cut and price, because cut and carat, and carat and price are tightly related. It’s possible to use a model to remove the very strong relationship between price and carat so we can explore the subtleties that remain.
+
+  ```{r out.width = "50%"}
+library(modelr)
+
+mod <- lm(log(price) ~ log(carat), data = diamonds)
+
+diamonds2 <- diamonds %>% 
+  add_residuals(mod) %>% 
+  mutate(resid = exp(resid))
+
+ggplot(data = diamonds2) + 
+  geom_point(mapping = aes(x = carat, y = resid)) 
+ggplot(data = diamonds2) + 
+  geom_boxplot(mapping = aes(x = cut, y = resid))
+  ```
+]
+---
+
+# Exercises
+
+* 3.6.1(6)
+* 3.7.1(5)
+* 3.8.1(1)
+* 5.2.4(4)
+* 5.6.7(2)
