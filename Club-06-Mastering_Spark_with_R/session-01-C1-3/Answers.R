@@ -2,6 +2,10 @@
 # Questions 1
 ################################################################################
 
+java8_home = system("/usr/libexec/java_home -v 1.8", intern = TRUE)
+Sys.setenv(JAVA_HOME = java8_home)
+system("java -version")
+
 # Question 1
 spark_install("2.3")
 install.packages("sparklyr")
@@ -19,7 +23,10 @@ sc <- spark_connect(master = 'local', version = "2.3")
 # Question 5
 library(tidyverse)
 df <- read_csv("zillow.csv")
-zillow <- copy_to(sc, df)
+zillow <- copy_to(sc, df, name = "zillow", overwrite = TRUE)
+
+# Or a way that does not need the data to fit into memory first
+zillow2 <- spark_read_csv(sc, path = 'zillow.csv', name = "zillow2")
 
 # Question 6
 spark_web(sc) # Click on the jobs tab
@@ -32,7 +39,7 @@ spark_web(sc) # Click on the storage tab
 
 # Question 9
 library(DBI)
-dbGetQuery(sc, "SELECT Zip, MEAN(List_Price_) AS Mean_Price FROM df GROUP BY Zip")
+dbGetQuery(sc, "SELECT Zip, MEAN(List_Price_) AS Mean_Price FROM zillow GROUP BY Zip")
 
 # Question 10
 library(tidyverse)
