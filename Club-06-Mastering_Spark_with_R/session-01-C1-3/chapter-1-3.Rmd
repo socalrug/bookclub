@@ -65,19 +65,18 @@ A unified analytics engine for large-scale data processing.
 # Setup Local Cluster
 
 ## Setup java 8
-```{r, echo=TRUE}
+```{r eval=FALSE, include=FALSE}
 java8_home = system("/usr/libexec/java_home -v 1.8", intern = TRUE)
 Sys.setenv(JAVA_HOME = java8_home)
 system("java -version")
 ```
 
 ## Setup Spark and Sparklyr
-```{r, echo=TRUE, message=FALSE}
+```{r echo=TRUE, message=FALSE}
 if (!require(sparklyr)) {
   install.packages("sparklyr")
 }
 library(sparklyr)
-spark_install("2.3")
 ```
 
 ---
@@ -86,12 +85,12 @@ spark_install("2.3")
 
 `sc` is the standard variable name to represent a handle to the spark cluster
 
-```{r, echo=TRUE}
-sc <- spark_connect(master = "local", version = "2.3")
+```{r echo=TRUE}
+sc <- spark_connect(master = "local", version = "2.4.3")
 ```
 
 What class is the `sc` object
-```{r, echo=TRUE, comment=""}
+```{r echo=TRUE, comment=""}
 class(sc)
 ```
 
@@ -101,7 +100,7 @@ class(sc)
 
 Copy mtcars to the cluster
 
-```{r, echo=TRUE, comment=""}
+```{r echo=TRUE, comment=""}
 cars <- copy_to(sc, mtcars)
 cars
 ```

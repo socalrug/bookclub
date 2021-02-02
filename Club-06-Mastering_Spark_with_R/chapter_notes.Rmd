@@ -1,0 +1,94 @@
+---
+title: "chapter_notes"
+author: "Aaron"
+date: "2/1/2021"
+output: html_document
+---
+
+## Chapter 1
+
+Apache Spark is a unified analytics engine for large-scale data processing.
+
+— spark.apache.org
+
+To help us understand this definition of Apache Spark, we break it down as follows:
+
+Unified
+Spark supports many libraries, cluster technologies, and storage systems.
+Analytics
+Analytics is the discovery and interpretation of data to produce and communicate information.
+Engine
+Spark is expected to be efficient and generic.
+Large-Scale
+You can interpret large-scale as cluster-scale, a set of connected computers working together.
+
+```{r chapter1, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Chapter 2
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r chapter2}
+# install.packages("sparklyr")
+library(sparklyr)
+packageVersion("sparklyr")
+# spark_install()
+spark_installed_versions()
+spark_available_versions()
+# library(sparklyr)
+
+sc <- spark_connect(master = "local", version = "2.4.3")
+
+
+```
+
+
+
+## Chapter 3
+
+You can also embed plots, for example:
+
+```{r chapter3, echo=FALSE}
+# plot(pressure)
+# install.packages("rtools")
+install.packages("ggplot2")
+install.packages("corrr")
+install.packages("dbplot")
+install.packages("rmarkdown")
+
+```
+
+```{r}
+# library(sparklyr)
+library(dplyr)
+
+
+```
+
+```{r}
+sc <- spark_connect(master = "local", version = "2.4.3")
+
+```
+
+```{r wrangle}
+cars <- copy_to(sc, mtcars)
+```
+
+```{r summarize}
+summarise_all(cars, mean)
+
+```
+
+```{r model}
+cars %>% 
+  ml_linear_regression(mpg ~ .) %>% 
+  summary()
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

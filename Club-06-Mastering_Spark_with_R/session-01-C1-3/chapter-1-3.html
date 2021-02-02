@@ -15,6 +15,7 @@
 class: center, middle, inverse, title-slide
 
 # Mastering Spark with R
+## Chapters 1-3
 ### John Peach
 ### Orange County R Users Group
 ### 2021-02-01
@@ -34,40 +35,306 @@ pre {
 }
 &lt;/style&gt;
 
-# Welcome to Session 1
 
+# What is Spark
 
-## **When**: 
+A unified analytics engine for large-scale data processing.
 
-Feb. 1st 6:30pm ~ 8:00pm
+* **Unified**: Spark supports many libraries, cluster technologies, and storage systems.
+* **Analytics**:  Analytics is the discovery and interpretation of data to produce and communicate information.
+* **Engine**: Spark is expected to be efficient and generic.
+* **Large-Scale**: Cluster-scale using a set of connected computers working together.
 
-## **Where**: 
-
-[Zoom](https://oracle.zoom.us/j/97965194907?pwd=MmVyVk9vK24rUjI5eWt1eDJqY0FvQT09)
-
-## **Schedule**: 
-
-1. 6:30pm ~ 7:00 PM networking and setup
-2. 7:00pm ~ 8:00 PM Chapter 1 ~ 3 discussion 
+![](intro-spark-unified-1.png)
 
 ---
 
-# Slack channel
+# Dealing with Big Data or Big Compute
 
-A slack channel has been set up for the book club. This will be used for general announcements but it is also a great source for you to ask questions to other participants.
-
-Slack Group [Sign-up](https://tinyurl.com/socalrug-slack-signup)
-    
-[Slack Group](https://tinyurl.com/socalrug-slack)
-
-Slack channel: #oc_rug-bookclub.
+.large[
+1. **Sampling**: reduce the amount of data by sampling. 
+1. **Profiling**: Understand why a computation is slow and make the necessary improvements by profiling.
+1. **Scaling Up**: Speeding up computation by using faster or more capable hardware.
+1. **Scaling Out**: Spreading computation and storage across multiple machines.
+]
 
 ---
 
-# Resources
+# Sparklyr
 
-1. [online free book](https://therinspark.com/)
-1. [Book on Amazon](https://www.amazon.com/dp/149204637X/)
+.large[
+`sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+]
+---
+
+# Setup Local Cluster
+
+## Setup java 8
+
+
+## Setup Spark and Sparklyr
+
+```r
+if (!require(sparklyr)) {
+  install.packages("sparklyr")
+}
+```
+
+```
+Warning: package 'sparklyr' was built under R version 4.0.3
+```
+
+```r
+library(sparklyr)
+```
+
+---
+
+# Connection
+
+`sc` is the standard variable name to represent a handle to the spark cluster
+
+
+```r
+sc &lt;- spark_connect(master = "local", version = "2.4.3")
+```
+
+What class is the `sc` object
+
+```r
+class(sc)
+```
+
+```
+[1] "spark_connection"       "spark_shell_connection" "DBIConnection"         
+```
+
+---
+
+# Move data from R to Spark
+
+Copy mtcars to the cluster
+
+
+```r
+cars &lt;- copy_to(sc, mtcars)
+cars
+```
+
+```
+# Source: spark&lt;mtcars&gt; [?? x 11]
+     mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
+   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1  21       6  160    110  3.9   2.62  16.5     0     1     4     4
+ 2  21       6  160    110  3.9   2.88  17.0     0     1     4     4
+ 3  22.8     4  108     93  3.85  2.32  18.6     1     1     4     1
+ 4  21.4     6  258    110  3.08  3.22  19.4     1     0     3     1
+ 5  18.7     8  360    175  3.15  3.44  17.0     0     0     3     2
+ 6  18.1     6  225    105  2.76  3.46  20.2     1     0     3     1
+ 7  14.3     8  360    245  3.21  3.57  15.8     0     0     3     4
+ 8  24.4     4  147.    62  3.69  3.19  20       1     0     4     2
+ 9  22.8     4  141.    95  3.92  3.15  22.9     1     0     4     2
+10  19.2     6  168.   123  3.92  3.44  18.3     1     0     4     4
+# ... with more rows
+```
+Row count is missing
+
+---
+
+# Classes
+
+
+```r
+class(cars)
+```
+
+```
+[1] "tbl_spark" "tbl_sql"   "tbl_lazy"  "tbl"      
+```
+
+It inherits the tibble (`tbl`) class. Thus, tidyverse methods will generally work.
+
+---
+
+# Web Interface
+
+
+```r
+spark_web(sc)
+```
+
+![](starting-spark-web-resized.png)
+---
+
+# Analysis
+
+## Using `DBI`
+
+
+```r
+library(DBI)
+```
+
+```
+Warning: package 'DBI' was built under R version 4.0.3
+```
+
+```r
+dbGetQuery(sc, "SELECT COUNT(*) FROM mtcars")
+```
+
+```
+  count(1)
+1       32
+```
+
+## Using `dplyr`
+
+
+```r
+library(dplyr)
+```
+
+```
+Warning: package 'dplyr' was built under R version 4.0.3
+```
+
+```
+
+Attaching package: 'dplyr'
+```
+
+```
+The following objects are masked from 'package:stats':
+
+    filter, lag
+```
+
+```
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+```
+
+```r
+count(cars)
+```
+
+```
+# Source: spark&lt;?&gt; [?? x 1]
+      n
+  &lt;dbl&gt;
+1    32
+```
+
+---
+
+# Chaining `dplyr` commands
+
+
+```r
+select(cars, hp, mpg) %&gt;%
+  sample_n(100) %&gt;%
+  collect() %&gt;%
+  plot()
+```
+
+![](chapter-1-3_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+---
+
+# Modelling
+
+Spark has a large library of modelling commands.
+
+You cannot use the standard R models
+
+
+```r
+model &lt;- ml_linear_regression(cars, mpg ~ hp)
+model
+```
+
+```
+Formula: mpg ~ hp
+
+Coefficients:
+(Intercept)          hp 
+30.09886054 -0.06822828 
+```
+
+---
+
+# Serialization
+
+Supports a wide collection of methods to serialize and deserialize data
+
+## CSV
+
+
+
+
+```r
+spark_write_csv(cars, file)  # Serialize
+cars_csv &lt;- spark_read_csv(sc, file) # Deserialize
+```
+
+
+
+### JSON
+* `spark_read_json()`
+* `spark_write_json()`
+
+---
+
+# Streaming
+
+Write multiple files to a directory
+
+
+
+```r
+write.csv(mtcars, file.path(input_path, "cars_1.csv"), row.names = FALSE)
+write.csv(mtcars, file.path(input_path, "cars_2.csv"), row.names = FALSE)
+write.csv(mtcars, file.path(input_path, "cars_3.csv"), row.names = FALSE)
+```
+
+Stream each file in and write results to a directory
+
+
+```r
+stream &lt;- stream_read_csv(sc, input_path) %&gt;%
+    select(mpg, cyl, disp) %&gt;%
+    stream_write_csv(output_path)
+```
+
+See the output files
+
+```r
+dir(output_path, pattern = ".csv")
+```
+
+```
+[1] "part-00000-812888dc-801d-43e1-9e41-20c4eb62af1f-c000.csv"
+[2] "part-00001-79aa7514-4d78-4085-9b61-a87fe874e277-c000.csv"
+[3] "part-00002-4942cf5a-8aec-4bb5-83de-25e996e0ac09-c000.csv"
+```
+
+
+
+---
+
+# Logs &amp; Disconnect
+
+## Logs
+
+* Use the log button in the `Connections`
+* Use `spark_log(sc)` or `spark_log(sc, filter = "INFO sparklyr: Gateway")`
+
+## Disconnect
+
+* `spark_disconnect(sc)`
+* `spark_disconnect_all()`
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
