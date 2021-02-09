@@ -154,6 +154,7 @@ ml_als() # Alternating Least Squares Factorization
 
 # Pipelines
 
+Pipelines could be used to express workflow of training a model. We build a pipeline object by providing it with a list of steps.
 In spark, the building blocks of pipelines are:
 
 * **Estimator**:  can be used to create a transformer giving some training data
@@ -292,7 +293,7 @@ Scoring one or a few records at a time, but the latency is crucial (on the scale
 1. Disconnect to the spark cluster
 ---
 
-# Questions 5
+# Questions 5 Unsupervised Learning
 1. Make a connection to the local spark cluster.
 1. Load `iris` dataset into spark.
 1. Take a look at the data.
