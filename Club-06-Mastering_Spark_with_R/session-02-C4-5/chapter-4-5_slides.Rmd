@@ -48,18 +48,17 @@ knitr::opts_chunk$set(comment = "")
 
 
 .large[
-1. **Check for data quality**  
+* **Check for data quality**  
 e.g., ` mutate(sex = ifelse(is.na(sex), "missing", sex))` , `glimpse()`
 
 <br>
 
-2. **Understand univariate relationships between variables**  
+* **Understand univariate relationships between variables**  
 e.g., `sdf_describe()`, `dbplot_histogram()`, `sdf_crosstab()`, `FactoMineR::CA()`
 
 <br>
 
-3. **Perform an initial assessment on what variables to include and what transformations need to be done on them**  
-e.g., `sdf_crosstab()`, `FactoMineR::CA()`
+* **Perform an initial assessment on what variables to include and what transformations need to be done on them**  
 ]
 
 ---
@@ -69,17 +68,17 @@ e.g., `sdf_crosstab()`, `FactoMineR::CA()`
 The feature engineering exercise comprises transforming the data to increase the performance of the model.
 
 .large[
-1. **centering and scaling numerical values**  
+* **centering and scaling numerical values**  
 e.g., `scaled_age = (age - mean(age)) / sd(age)`
 
 <br>
 
-2. **performing string manipulation to extract meaningful variables**  
+* **performing string manipulation to extract meaningful variables**  
 e.g., convert ethnicity to dummy variables
 
 <br>
 
-3. **variable selection**  
+* **variable selection**  
 e.g., selecting which predictors are used in the model
 
 In addition, save dataset as a Parquet file—an efficient file format ideal for numeric data:
@@ -261,35 +260,44 @@ Scoring one or a few records at a time, but the latency is crucial (on the scale
 `mleap`
 ---
 
-# Questions 1
+# Questions 1 Preparation
 
 1. Make a connection to the local spark cluster.
 1. Load the `house_price.csv` file into Spark.
+---
+
+# Questions 2 EDA
 1. Take a look at the data.
 1. Check missing value for all features.
-1. Normalize all features.
+1. Drop the first column of the data.
 1. Split data into train and test (size = 0.05) set.
-1. Create a pipeline model with decision tree.
-1. Fit model with training data.
-1. Evaluate the model.
+1. Get numerical summaries of age and distance of the training data.
+---
+
+# Questions 3 Supervised Learning
+1. Fit training data with decision tree.
+1. Make prediction on test data.
+1. Evaluate the prediction (report r2).
+---
+
+# Questions 4 Pipelines
+1. Build a transformer for turning all features into vectors.
+1. Build an estimator that estimates feature mean and standard deviation.
+1. Create a pipeline with transformer, estimator, and decision tree.
+1. Fit the pipeline model with training data.
+1. Make prediction on test data using the pipeline model and evaluate the prediction (report r2).
 1. Save pipeline model.
 1. Reload pipeline model.
 1. Extract one estimator from the pipeline.
 1. Disconnect to the spark cluster
 ---
 
-# Questions 2
+# Questions 5
 1. Make a connection to the local spark cluster.
 1. Load `iris` dataset into spark.
 1. Take a look at the data.
 1. Check missing value for chosen features (petal length, petal width).
-1. Create a pipeline model with k-means model with 3 clusters.
-1. Fit model with data.
+1. Fit a model using k-means model with 3 clusters.
 1. Predict the associated class.
 1. Plot cluster membership.
-1. Save pipeline model.
-1. Reload pipeline model.
-1. Extract one estimator from the pipeline.
 1. Disconnect to the spark cluster.
-
-

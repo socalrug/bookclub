@@ -1,0 +1,210 @@
+---
+title: "Chap_4-5_exercise_template"
+author: "Your Name"
+date: "2/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Step 1. Preparation
+
+## 1.1 Load libraries
+```{r}
+library(sparklyr)
+library(ggplot2)
+library(dbplot)
+library(dplyr)
+```
+
+## 1.2 Make a connection to the local spark cluster.
+```{r}
+
+
+```
+
+## 1.3 Load data to the spark cluster. file name: house_price.csv
+```{r}
+
+
+```
+
+### Step 2. EDA
+
+## 2.1 Take a look at the data.
+```{r}
+
+
+```
+
+## 2.2 Check missing value for all features.
+```{r}
+ 
+
+
+```
+
+## 2.3 Drop the first column of the data.
+```{r}
+
+
+```
+
+## 2.4 Split data into train and test (size = 0.05) set.
+```{r}
+
+
+```
+
+## 2.5 Get numerical summaries of age and distance of the training data.
+```{r}
+
+
+```
+
+### Step 3. Supervised Learning
+
+## 3.1 Fit training data with decision tree.
+```{r}
+
+
+```
+
+## 3.2 Make prediction on test data.
+```{r}
+
+
+```
+
+## 3.3 Evaluate the prediction (report r2).
+```{r}
+
+
+```
+
+### Step 4. Pipelines
+
+## 4.1 Build a transformer for turning all features into vectors.
+```{r}
+
+
+```
+
+## 4.2 Build an estimator that estimates feature mean and standard deviation.
+```{r}
+
+
+
+```
+
+## 4.3 Create a pipeline with transformer, estimator, and decision tree.
+```{r}
+
+```
+
+## 4.4 Fit the pipeline model with training data.
+```{r}
+
+
+```
+
+## 4.5 Make prediction on test data using the pipeline model and evaluate the prediction (report r2).
+```{r}
+
+```
+
+## 4.6 Save pipeline model.
+```{r}
+ 
+
+
+```
+
+## 4.7 Reload pipeline model.
+```{r}
+
+
+
+
+```
+
+## 4.8 Extract one estimator from the pipeline.
+```{r}
+
+
+
+```
+
+## 4.9 Disconnect to the spark cluster
+```{r}
+
+
+
+```
+
+### Step 5. Unsupervised Learning
+
+## 5.1 Make a connection to the local spark cluster.
+```{r}
+
+
+
+```
+
+## 5.2 Load `iris` dataset into spark.
+```{r}
+
+
+
+```
+
+## 5.3 Take a look at the data.
+```{r}
+
+
+
+```
+
+## 5.4 Check missing value for chosen features (Petal_Length, Petal_Width).
+```{r}
+
+
+
+
+```
+
+## 5.4 Check missing value for chosen features (Petal_Length, Petal_Width).
+```{r}
+
+
+
+```
+
+## 5.5 Fit a model using k-means model with 3 clusters.
+```{r}
+
+
+
+```
+
+## 5.6 Predict the associated class.
+```{r}
+
+
+
+```
+
+## 5.7 Plot cluster membership.
+```{r}
+
+
+```
+
+## 5.8 Disconnect to the spark cluster.
+```{r}
+
+
+```
+
