@@ -1,0 +1,176 @@
+---
+title: "Chap_4-5_exercise_template"
+author: "Your Name"
+date: "2/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Step 1. Preparation
+
+## 1.1 Load libraries
+```{r include=FALSE}
+library(sparklyr)
+library(ggplot2)
+library(dbplot)
+library(dplyr)
+```
+
+
+What are the three major trends in [cluster computing](https://therinspark.com/clusters.html#clusters-overview)?
+* **On-premises**  
+  * on-premises clusters represent a set of computing instances procured and managed by staff members from your organization
+* **Cloud**  
+  * starting with a cloud cluster can be quite convenient since it will allow you to access a proper cluster in a matter of minutes.
+* **Kubernetes**  
+  * open source container orchestration system for automating deployment, scaling, and management of containerized application
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+What are (some) attributes of [on-premise clusters](https://therinspark.com/clusters.html#on-premise)?
+**PRO**: highly customized and controlled
+**CON**: incur higher initial expenses and maintenance costs
+  * on-premises clusters represent a set of computing instances procured and managed by staff members from your organization
+  * purchased physical computers that were intended to be used for cluster computing. 
+  * off-the-shelf hardware, meaning that someone placed an order to purchase computers usually found on store shelves
+  * or high-performance hardware, meaning that a computing vendor provided highly customized computing hardware, 
+  * optimized for high-performance network connectivity, power consumption, and so on.
+  
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+What are (some) benefits of [cloud computing clusters](https://therinspark.com/clusters.html#cloud)?
+**PRO**: Allows access to a proper cluster in a matter of minutes.
+**CON**: Requires knowledge and access to cloud providers (Amazon (AWS), Microsoft (Azure), Google (GCP)...)
+  * the cluster you use is not owned by you, and it’s not in your physical building; 
+  * instead it’s a datacenter owned and managed by someone else.
+  * Most cloud computing platforms provide a user interface through either a web application or command line to request and manage resources.
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+```
+
+Can someone [explain Kubernetes](https://therinspark.com/clusters.html#kubernetes) to me like I'm a five year old?
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+What is the purpose of [cluster managers](https://therinspark.com/clusters.html#clusters-manager) in Spark?
+* a cluster manager allows multiple applications to be run in the same cluster. You need to choose one yourself when working with on-premises clusters.
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+What [cluster managers](https://therinspark.com/clusters.html#clusters-manager) are available in Spark?
+  * **Standalone**: Allows you to use Spark without installing additional software in your cluster.
+  * **Yarn**: the resource manager of the Hadoop project
+  * **Mesos**: an open source project to manage computer cluster
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+What [distributions](https://therinspark.com/clusters.html#distributions) are available for Spark?
+  * Cloudera
+  * Hortonworks
+  * MapR
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+What are some [common tools](https://therinspark.com/clusters.html#tools) available for Spark?
+  * RStudio
+  * Jupyter
+  * Livy
+  * Ganglia
+  * Hue
+  * Oozie 
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+```
+
+
+## Start a [cluster manager](https://therinspark.com/clusters.html#clusters-manager) of your choice
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+
+# Build paths and classes
+spark_path <- file.path(spark_home, "bin", "spark-class")
+
+# Start cluster manager master node
+system2(spark_path, "org.apache.spark.deploy.master.Master", wait = FALSE)
+
+
+
+http://localhost:8080/
+
+```
+
+
+## Retrieve the Spark installation directory
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+# Retrieve the Spark installation directory
+
+
+```
+library(sparklyr)
+
+ 
+## How do you find installed versions of Spark?
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+spark_installed_versions()
+
+
+# spark_uninstall(version = "2.3.3", hadoop_version = "2.7")
+# spark_uninstall(version = "2.4.3", hadoop_version = "2.7")
+
+
+```
+
+## How do you specify [SPARK_HOME](https://therinspark.com/connections.html#connections-spark-home) environment variable in your cluster
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+
+# WIP
+Sys.getenv("SPARK_HOME")
+spark_home_dir()
+spark_home <- spark_home_dir()
+
+
+sc <- spark_connect(master = "local", spark_home = spark_installed_versions()$dir)
+
+```
+
+## How do you make a [standalone connection](https://therinspark.com/connections.html#connections-standalone?
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+# Retrieve the Spark installation directory
+spark_home <- spark_home_dir()
+
+# Build paths and classes
+spark_path <- file.path(spark_home, "bin", "spark-class")
+
+# Start cluster manager master node
+system2(spark_path, "org.apache.spark.deploy.master.Master", wait = FALSE)
+
+```
+
+
+## Start a worker node
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+# Start worker node, find master URL at http://localhost:8080/
+system2(spark_path, c("org.apache.spark.deploy.worker.Worker",
+                      "spark://192.168.0.31:7077"), wait = FALSE)
+```
+
+
+
+## 5.8 Disconnect to the spark cluster.
+```{r}
+spark_disconnect(sc)
+
+```
+
