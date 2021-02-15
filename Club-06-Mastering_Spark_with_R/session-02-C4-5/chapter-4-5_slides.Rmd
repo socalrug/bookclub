@@ -1,0 +1,304 @@
+---
+title: "Mastering Spark with R"
+subtitle: 'Chapters 4-5'
+author: "Lily Cheng"
+institute: "Orange County R Users Group"
+date: "2021-02-08"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(comment = "")
+```
+
+# Intro, Set up, Analysis
+
+* **Spark**: A unified analytics engine for large-scale data processing.
+* **Set up**:  `sc <- spark_connect(master = "local", version = "2.3")`
+* **Analysis**: `sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+
+<br>
+
+* However, you cannot use the standard R models. Spark has a large library of modeling commands `MLlib`. 
+
+---
+
+# Exploratory Data Analysis (EDA)
+
+
+
+.large[
+* **Check for data quality**  
+e.g., ` mutate(sex = ifelse(is.na(sex), "missing", sex))` , `glimpse()`
+
+<br>
+
+* **Understand univariate relationships between variables**  
+e.g., `sdf_describe()`, `dbplot_histogram()`, `sdf_crosstab()`, `FactoMineR::CA()`
+
+<br>
+
+* **Perform an initial assessment on what variables to include and what transformations need to be done on them**  
+]
+
+---
+
+# Feature Engineering
+
+The feature engineering exercise comprises transforming the data to increase the performance of the model.
+
+.large[
+* **centering and scaling numerical values**  
+e.g., `scaled_age = (age - mean(age)) / sd(age)`
+
+<br>
+
+* **performing string manipulation to extract meaningful variables**  
+e.g., convert ethnicity to dummy variables
+
+<br>
+
+* **variable selection**  
+e.g., selecting which predictors are used in the model
+
+In addition, save dataset as a Parquet file—an efficient file format ideal for numeric data:
+
+`spark_write_parquet(okc_train, "data/okc-train.parquet")`
+
+]
+---
+
+# Supervised Learning
+Learning a function that maps an input to an output based on example input-output pairs. It infers a function from labeled training data consisting of a set of training examples.
+
+## Data Split
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+data_splits <- sdf_random_split(okc, training = 0.8, testing = 0.2, seed = 42)
+okc_train <- data_splits$training
+okc_test <- data_splits$testing
+```
+
+## Cross-Validation Folds
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+vfolds <- sdf_random_split(
+  okc_train,
+  weights = purrr::set_names(rep(0.1, 10), paste0("fold", 1:10)),
+  seed = 42
+)
+```
+
+---
+
+# Supervised Learning
+
+## Classification
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+lr <- ml_logistic_regression(
+  analysis_set, not_working ~ scaled_age + sex + drinks + drugs + essay_length
+)
+```
+
+## Evaluation
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+validation_summary <- ml_evaluate(lr, assessment_set)
+```
+
+Note: Spark provides evaluation methods for only generalized linear models (including linear models and logistic regression). For other algorithms, you can use the evaluator functions (e.g., ml_binary_classification_evaluator() on the prediction DataFrame) or compute your own metrics. 
+Other models, see section 14.5.
+
+---
+
+# Unsupervised Learning
+A type of algorithm that learns patterns from untagged data. The hope is that through mimicry, the machine is forced to build a compact internal representation of its world.
+
+## Topic Modeling
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+stop_words <- ml_default_stop_words(sc) %>%
+  c(
+    "like", "love", "good", "music", "friends", "people", "life",
+    "time", "things", "food", "really", "also", "movies"
+  )
+# Latent Dirichlet Allocation
+lda_model <-  ml_lda(essays, ~ words, k = 6, max_iter = 1, min_token_length = 4, 
+                     stop_words = stop_words, min_df = 5)
+```
+
+## Other Models (see section 14.5)
+e.g.,
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+ml_kmeans() # K-Means Clustering
+ml_als() # Alternating Least Squares Factorization
+```
+
+---
+
+# Pipelines
+
+Pipelines could be used to express workflow of training a model. We build a pipeline object by providing it with a list of steps.
+In spark, the building blocks of pipelines are:
+
+* **Estimator**:  can be used to create a transformer giving some training data
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+scaler <- ft_standard_scaler(
+  sc,
+  input_col = "features",
+  output_col = "features_scaled",
+  with_mean = TRUE)
+```
+
+* **Transformers**: apply transformations to a DataFrame and return another DataFrame; the resulting DataFrame often comprises the original DataFrame with new columns appended to it
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+df <- copy_to(sc, data.frame(value = rnorm(100000))) %>% 
+  ft_vector_assembler(input_cols = "value", output_col = "features")
+```
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+scaler_model <- ml_fit(scaler, df)
+```
+
+---
+
+# How to create pipelines?
+
+`ml_pipeline()`
+
+## initialize an empty pipeline with ml_pipeline(sc) and append stages to it:
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+ml_pipeline(sc) %>% 
+  ft_standard_scaler(
+    input_col = "features",
+    output_col = "features_scaled", 
+    with_mean = TRUE)
+```
+
+## pass stages directly to ml_pipeline():
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+pipeline <- ml_pipeline(scaler)
+
+pipeline_model <- ml_fit(pipeline, df)
+pipeline_model
+```
+
+---
+
+# Use Case
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+cv <- ml_cross_validator(
+  sc,
+  estimator = pipeline,
+  estimator_param_maps = list(
+    standard_scaler = list(with_mean = c(TRUE, FALSE)),
+    logistic_regression = list(
+      elastic_net_param = c(0.25, 0.75),
+      reg_param = c(1e-2, 1e-3)
+    )
+  ),
+  evaluator = ml_binary_classification_evaluator(sc, label_col = "not_working"),
+  num_folds = 10)
+```
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+cv_model <- ml_fit(cv, okc_train)
+```
+
+---
+
+# Interoperability
+Pipelines are fully interoperable with the other Spark APIs such as Python and Scala. 
+
+## Save Pipeline Model
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+model_dir <- file.path("spark_model")
+ml_save(cv_model$best_model, model_dir, overwrite = TRUE)
+```
+
+## Reconstruct the Model
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+model_reload <- ml_load(sc, model_dir)
+```
+
+## Retrieve a Stage from the Model
+
+```{r, eval = FALSE, echo=TRUE, message=FALSE}
+ml_stage(model_reload, "logistic_regression")
+```
+
+
+---
+
+# Deployment
+The process of taking a model and turning it into a service that others can consume.
+
+## Batch
+Processing many records at the same time. Execution time is not important as long it is reasonable.
+`plumber`, `callr`, `httr`
+
+## Real-Time
+Scoring one or a few records at a time, but the latency is crucial (on the scale of <1 second).
+`mleap`
+---
+
+# Questions 1 Preparation
+
+1. Make a connection to the local spark cluster.
+1. Load the `house_price.csv` file into Spark.
+---
+
+# Questions 2 EDA
+1. Take a look at the data.
+1. Check missing value for all features.
+1. Drop the first column of the data.
+1. Split data into train and test (size = 0.05) set.
+1. Get numerical summaries of age and distance of the training data.
+---
+
+# Questions 3 Supervised Learning
+1. Fit training data with decision tree.
+1. Make prediction on test data.
+1. Evaluate the prediction (report r2).
+---
+
+# Questions 4 Pipelines
+1. Build a transformer for turning all features into vectors.
+1. Build an estimator that estimates feature mean and standard deviation.
+1. Create a pipeline with transformer, estimator, and decision tree.
+1. Fit the pipeline model with training data.
+1. Make prediction on test data using the pipeline model and evaluate the prediction (report r2).
+1. Save pipeline model.
+1. Reload pipeline model.
+1. Extract one estimator from the pipeline.
+1. Disconnect to the spark cluster
+---
+
+# Questions 5 Unsupervised Learning
+1. Make a connection to the local spark cluster.
+1. Load `iris` dataset into spark.
+1. Take a look at the data.
+1. Check missing value for chosen features (petal length, petal width).
+1. Fit a model using k-means model with 3 clusters.
+1. Predict the associated class.
+1. Plot cluster membership.
+1. Disconnect to the spark cluster.
