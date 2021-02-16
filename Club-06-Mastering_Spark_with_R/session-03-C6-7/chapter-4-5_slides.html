@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Mastering Spark with R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Lily Cheng" />
+    <meta name="date" content="2021-02-08" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Mastering Spark with R
+## Chapters 4-5
+### Lily Cheng
+### Orange County R Users Group
+### 2021-02-08
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+# Intro, Set up, Analysis
+
+* **Spark**: A unified analytics engine for large-scale data processing.
+* **Set up**:  `sc &lt;- spark_connect(master = "local", version = "2.3")`
+* **Analysis**: `sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+
+&lt;br&gt;
+
+* However, you cannot use the standard R models. Spark has a large library of modeling commands `MLlib`. 
+
+---
+
+# Exploratory Data Analysis (EDA)
+
+
+
+.large[
+* **Check for data quality**  
+e.g., ` mutate(sex = ifelse(is.na(sex), "missing", sex))` , `glimpse()`
+
+&lt;br&gt;
+
+* **Understand univariate relationships between variables**  
+e.g., `sdf_describe()`, `dbplot_histogram()`, `sdf_crosstab()`, `FactoMineR::CA()`
+
+&lt;br&gt;
+
+* **Perform an initial assessment on what variables to include and what transformations need to be done on them**  
+]
+
+---
+
+# Feature Engineering
+
+The feature engineering exercise comprises transforming the data to increase the performance of the model.
+
+.large[
+* **centering and scaling numerical values**  
+e.g., `scaled_age = (age - mean(age)) / sd(age)`
+
+&lt;br&gt;
+
+* **performing string manipulation to extract meaningful variables**  
+e.g., convert ethnicity to dummy variables
+
+&lt;br&gt;
+
+* **variable selection**  
+e.g., selecting which predictors are used in the model
+
+In addition, save dataset as a Parquet file—an efficient file format ideal for numeric data:
+
+`spark_write_parquet(okc_train, "data/okc-train.parquet")`
+
+]
+---
+
+# Supervised Learning
+Learning a function that maps an input to an output based on example input-output pairs. It infers a function from labeled training data consisting of a set of training examples.
+
+## Data Split
+
+```r
+data_splits &lt;- sdf_random_split(okc, training = 0.8, testing = 0.2, seed = 42)
+okc_train &lt;- data_splits$training
+okc_test &lt;- data_splits$testing
+```
+
+## Cross-Validation Folds
+
+```r
+vfolds &lt;- sdf_random_split(
+  okc_train,
+  weights = purrr::set_names(rep(0.1, 10), paste0("fold", 1:10)),
+  seed = 42
+)
+```
+
+---
+
+# Supervised Learning
+
+## Classification
+
+```r
+lr &lt;- ml_logistic_regression(
+  analysis_set, not_working ~ scaled_age + sex + drinks + drugs + essay_length
+)
+```
+
+## Evaluation
+
+```r
+validation_summary &lt;- ml_evaluate(lr, assessment_set)
+```
+
+Note: Spark provides evaluation methods for only generalized linear models (including linear models and logistic regression). For other algorithms, you can use the evaluator functions (e.g., ml_binary_classification_evaluator() on the prediction DataFrame) or compute your own metrics. 
+Other models, see section 14.5.
+
+---
+
+# Unsupervised Learning
+A type of algorithm that learns patterns from untagged data. The hope is that through mimicry, the machine is forced to build a compact internal representation of its world.
+
+## Topic Modeling
+
+```r
+stop_words &lt;- ml_default_stop_words(sc) %&gt;%
+  c(
+    "like", "love", "good", "music", "friends", "people", "life",
+    "time", "things", "food", "really", "also", "movies"
+  )
+# Latent Dirichlet Allocation
+lda_model &lt;-  ml_lda(essays, ~ words, k = 6, max_iter = 1, min_token_length = 4, 
+                     stop_words = stop_words, min_df = 5)
+```
+
+## Other Models (see section 14.5)
+e.g.,
+
+```r
+ml_kmeans() # K-Means Clustering
+ml_als() # Alternating Least Squares Factorization
+```
+
+---
+
+# Pipelines
+
+Pipelines could be used to express workflow of training a model. We build a pipeline object by providing it with a list of steps.
+In spark, the building blocks of pipelines are:
+
+* **Estimator**:  can be used to create a transformer giving some training data
+
+```r
+scaler &lt;- ft_standard_scaler(
+  sc,
+  input_col = "features",
+  output_col = "features_scaled",
+  with_mean = TRUE)
+```
+
+* **Transformers**: apply transformations to a DataFrame and return another DataFrame; the resulting DataFrame often comprises the original DataFrame with new columns appended to it
+
+```r
+df &lt;- copy_to(sc, data.frame(value = rnorm(100000))) %&gt;% 
+  ft_vector_assembler(input_cols = "value", output_col = "features")
+```
+
+
+```r
+scaler_model &lt;- ml_fit(scaler, df)
+```
+
+---
+
+# How to create pipelines?
+
+`ml_pipeline()`
+
+## initialize an empty pipeline with ml_pipeline(sc) and append stages to it:
+
+```r
+ml_pipeline(sc) %&gt;% 
+  ft_standard_scaler(
+    input_col = "features",
+    output_col = "features_scaled", 
+    with_mean = TRUE)
+```
+
+## pass stages directly to ml_pipeline():
+
+```r
+pipeline &lt;- ml_pipeline(scaler)
+
+pipeline_model &lt;- ml_fit(pipeline, df)
+pipeline_model
+```
+
+---
+
+# Use Case
+
+
+```r
+cv &lt;- ml_cross_validator(
+  sc,
+  estimator = pipeline,
+  estimator_param_maps = list(
+    standard_scaler = list(with_mean = c(TRUE, FALSE)),
+    logistic_regression = list(
+      elastic_net_param = c(0.25, 0.75),
+      reg_param = c(1e-2, 1e-3)
+    )
+  ),
+  evaluator = ml_binary_classification_evaluator(sc, label_col = "not_working"),
+  num_folds = 10)
+```
+
+
+```r
+cv_model &lt;- ml_fit(cv, okc_train)
+```
+
+---
+
+# Interoperability
+Pipelines are fully interoperable with the other Spark APIs such as Python and Scala. 
+
+## Save Pipeline Model
+
+
+```r
+model_dir &lt;- file.path("spark_model")
+ml_save(cv_model$best_model, model_dir, overwrite = TRUE)
+```
+
+## Reconstruct the Model
+
+
+```r
+model_reload &lt;- ml_load(sc, model_dir)
+```
+
+## Retrieve a Stage from the Model
+
+
+```r
+ml_stage(model_reload, "logistic_regression")
+```
+
+
+---
+
+# Deployment
+The process of taking a model and turning it into a service that others can consume.
+
+## Batch
+Processing many records at the same time. Execution time is not important as long it is reasonable.
+`plumber`, `callr`, `httr`
+
+## Real-Time
+Scoring one or a few records at a time, but the latency is crucial (on the scale of &lt;1 second).
+`mleap`
+---
+
+# Questions 1 Preparation
+
+1. Make a connection to the local spark cluster.
+1. Load the `house_price.csv` file into Spark.
+---
+
+# Questions 2 EDA
+1. Take a look at the data.
+1. Check missing value for all features.
+1. Drop the first column of the data.
+1. Split data into train and test (size = 0.05) set.
+1. Get numerical summaries of age and distance of the training data.
+---
+
+# Questions 3 Supervised Learning
+1. Fit training data with decision tree.
+1. Make prediction on test data.
+1. Evaluate the prediction (report r2).
+---
+
+# Questions 4 Pipelines
+1. Build a transformer for turning all features into vectors.
+1. Build an estimator that estimates feature mean and standard deviation.
+1. Create a pipeline with transformer, estimator, and decision tree.
+1. Fit the pipeline model with training data.
+1. Make prediction on test data using the pipeline model and evaluate the prediction (report r2).
+1. Save pipeline model.
+1. Reload pipeline model.
+1. Extract one estimator from the pipeline.
+1. Disconnect to the spark cluster
+---
+
+# Questions 5 Unsupervised Learning
+1. Make a connection to the local spark cluster.
+1. Load `iris` dataset into spark.
+1. Take a look at the data.
+1. Check missing value for chosen features (petal length, petal width).
+1. Fit a model using k-means model with 3 clusters.
+1. Predict the associated class.
+1. Plot cluster membership.
+1. Disconnect to the spark cluster.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

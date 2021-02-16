@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Mastering Spark with R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Aaron Hardisty" />
+    <meta name="date" content="2021-02-15" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Mastering Spark with R
+## Chapters 6-7
+### Aaron Hardisty
+### Orange County R Users Group
+### 2021-02-15
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+# Intro, Set up, Analysis
+
+* **Spark**: A unified analytics engine for large-scale data processing.
+* **Set up**:  `sc &lt;- spark_connect(master = "local", version = "2.3")`
+* **Analysis**: `sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+
+&lt;br&gt;
+
+* However, you cannot use the standard R models. Spark has a large library of modeling commands `MLlib`. 
+
+---
+
+# Major Trends in Cluster Computing
+
+
+.large[
+* **On-premises**  
+  * on-premises clusters represent a set of computing instances procured and managed by staff members from your organization
+
+* **Cloud**  
+  * starting with a cloud cluster can be quite convenient since it will allow you to access a proper cluster in a matter of minutes.
+  
+* **Kubernetes**  
+  * open source container orchestration system for automating deployment, scaling, and management of containerized applications
+
+* **Tools**  
+  * improve monitoring, SQL analysis, workflow coordination, and more
+
+]
+
+---
+
+# On-premises ("on-prem") clusters
+
+.large[
+* **PRO**: highly customized and controlled
+* **CON**: incur higher initial expenses and maintenance costs.
+]
+
+When using on-premises Spark clusters, there are two concepts you should consider:
+
+**Cluster manager**: allows multiple applications to be run in the same cluster
+To run Spark within a computing cluster, you will need to run software capable of initializing Spark over each physical machine and register all the available computing nodes. This software is known as a cluster manager. 
+  * **Standalone**: Allows you to use Spark without installing additional software in your cluster.
+  * **Yarn**: the resource manager of the Hadoop project
+  * **Mesos**: an open source project to manage computer cluster
+    
+
+---
+
+# Standalone Cluster Manager Example
+In Spark Standalone, Spark uses itself as its own cluster manager, which allows you to use Spark without installing additional software in your cluster
+
+## Standalone Cluster Manager
+
+```r
+# Retrieve the Spark installation directory
+
+spark_home &lt;- spark_home_dir()
+
+# Build paths and classes
+spark_path &lt;- file.path(spark_home, "bin", "spark-class")
+
+# Start cluster manager master node
+system2(spark_path, "org.apache.spark.deploy.master.Master", wait = FALSE)
+
+# Start worker node, find master URL at http://localhost:8080/
+system2(spark_path, c("org.apache.spark.deploy.worker.Worker",
+                      "spark://192.168.0.31:7077"), wait = FALSE)
+
+# http://localhost:8080/
+```
+---
+# Distributions
+
+**Spark distribution**: The support and enhancements to Apache Spark by companies providing additional management software, services, and resources to help manage applications in their cluster.
+  * Cloudera
+  * Hortonworks
+  * MapR
+
+---
+
+# Cloud Clusters
+.large[
+**PRO**: Allows access to a proper cluster in a matter of minutes
+**CON**: Requires knowledge and access to cloud providers (Amazon (AWS), Microsoft (Azure), Google (GCP)...)
+]
+* [Amazon (AWS)](https://aws.amazon.com/): 
+  * provides an on-demand Spark cluster through [Amazon EMR](https://aws.amazon.com/emr/?whats-new-cards.sort-by=item.additionalFields.postDateTime&amp;whats-new-cards.sort-order=desc).
+* [Google](https://cloud.google.com/)
+  * [Google Cloud Dataproc](https://cloud.google.com/dataproc) as a cloud-based managed Spark and Hadoop service offered on Google Cloud Platform (GCP).
+* [Microsoft](https://azure.microsoft.com/en-us/)
+  *  [Azure HDInsight](https://azure.microsoft.com/en-us/services/hdinsight/) service provides support for on-demand Spark clusters
+---
+
+# Cloud Cluster Example
+In Spark Standalone, Spark uses itself as its own cluster manager, which allows you to use Spark without installing additional software in your cluster
+
+## Cloud Example: AWS
+
+```r
+aws emr create-cluster --applications Name=Hadoop Name=Spark Name=Hive \
+  --release-label emr-5.8.0 --service-role EMR_DefaultRole --instance-groups \
+  InstanceGroupType=MASTER,InstanceCount=1,InstanceType=m3.2xlarge \
+  InstanceGroupType=CORE,InstanceCount=2,InstanceType=m3.2xlarge \ 
+  --bootstrap-action Path=s3://aws-bigdata-blog/artifacts/aws-blog-emr-\
+rstudio-sparklyr/rstudio_sparklyr_emr5.sh,Args=["--user-pw", "&lt;password&gt;", \
+  "--rstudio", "--arrow"] --ec2-attributes InstanceProfile=EMR_EC2_DefaultRole
+```
+
+
+---
+
+# Kubernetes
+.large[
+* **PRO**: open source container orchestration system for automating deployment, scaling, and management of containerized applications
+* **CON**: Complex configuration and orchestration
+]
+  * Kubernetes is supported across all major cloud providers - launch, manage, and tear down Kubernetes clusters
+  * You can deploy Spark over any Kubernetes cluster, and you can use R to connect, analyze, model, and more
+  
+
+---
+
+# Tools
+.large[
+Improve monitoring, SQL analysis, workflow coordination, and more
+]
+  * **RStudio Server**: run RStudio as a web service within a Spark cluster.
+
+
+* **RStudio Server**:  WIP
+
+
+---
+
+# Connections
+The overall connection architecture for a Spark cluster is composed of three types of compute instances: the driver node, the worker nodes, and the cluster manager
+.large[
+* **Driver node**  
+  * delegating work to the worker nodes, but also with aggregating their results and controlling computation flow
+
+* **Worker nodes**  
+  * execute compute tasks over partitioned data and communicate intermediate results to other workers or back to the driver node.
+  
+* **Cluster manager**  
+  * allows Spark to be executed in the cluster;
+]
+---
+
+# Connection architecture
+![](https://therinspark.com/the-r-in-spark_files/figure-html/connections-architecture-1.png)
+
+---
+
+# Edge Nodes
+
+.large[
+* Computing clusters are configured to enable high bandwidth and fast network connectivity between nodes. 
+* To optimize network connectivity, the nodes in the cluster are configured to trust one another and to disable security features
+]
+
+**Two connection methods**:
+  * **Terminal**: establish a remote connection into the cluster; after you connect into the cluster, you can launch R and then use sparklyr.
+    * **PRO**: Uses terminal and Secure Shell - used only while configuring the cluster or troubleshooting issues.
+    * **CON**: terminal can be cumbersome for some tasks, like exploratory data analysis
+    
+  * **Web Browser**: Install a web server in an edge node that provides access to run R with sparklyr from a web browser.
+    * **PRO**: "Usually more productive to install a web server in an edge node..."
+    * **CON**: terminal can be cumbersome for some tasks, like exploratory data analysis
+
+---
+# Connecting to Spark's edge node
+![](https://therinspark.com/the-r-in-spark_files/figure-html/connections-spark-edge-1.png)
+---
+
+# Spark Home
+
+.large[
+* After you connect to an edge node, the next step is to determine where Spark is installed, a location known as the SPARK_HOME 
+* if this code returns an empty string, this would mean that the SPARK_HOME environment variable is not set in your cluster, so you will need to specify SPARK_HOME while using spark_connect(), as follows:
+]
+
+## Spark Home example
+
+```r
+library(sparklyr)
+Sys.getenv("SPARK_HOME")
+spark_home_dir()
+
+
+sc &lt;- spark_connect(master = "local", spark_home = spark_installed_versions()$dir)
+# spark_uninstall(version = "2.3.3", hadoop_version = "2.7")
+# spark_uninstall(version = "2.4.3", hadoop_version = "2.7")
+```
+
+
+---
+# Local Connection
+.large[
+* Spark starts a single process that runs most of the cluster components like the Spark context and a single executor 
+* This is ideal to learn Spark, work offline, troubleshoot issues, or test code before you run it over a large compute cluster
+]
+
+
+```r
+# Connect to local Spark instance
+sc &lt;- spark_connect(master = "local")
+```
+
+---
+# Standalone
+.large[
+* Connecting to a Spark Standalone cluster requires the location of the cluster manager’s master instance, 
+* A connection in standalone mode starts from sparklyr, which launches spark-submit
+* submits the sparklyr application and creates the Spark Context, which requests executors from the Spark Standalone instance running under the given master address
+
+
+
+```r
+# Connect to Spark Standalone connection
+
+sc &lt;- spark_connect(master = "spark://spark://192.168.0.31:7077")
+```
+
+![](connections-standalone-diagram-1.png)
+
+
+
+---
+# Additional Connections
+
+
+```r
+# To connect, use master = "spark://hostname:port" in spark_connect() as follows:
+library(sparklyr)
+sc &lt;- sparklyr::spark_connect(master = "spark://192.168.0.31:7077")
+sc &lt;- spark_connect(master = "yarn")
+sc &lt;- spark_connect(master = "yarn-cluster")
+```
+
+
+---
+# Kubernetes
+
+
+```r
+library(sparklyr)
+sc &lt;- spark_connect(config = spark_config_kubernetes(
+  "k8s://https://&lt;apiserver-host&gt;:&lt;apiserver-port&gt;",
+  account = "default",
+  image = "docker.io/owner/repo:version",
+  version = "2.3.1"))
+```
+
+
+
+
+---
+# Questions: Clusters Overview
+
+1. What are the three major trends in [cluster computing](https://therinspark.com/clusters.html#clusters-overview)?
+1. What are (some) attributes of [on-premise clusters](https://therinspark.com/clusters.html#on-premise)?
+1. What are (some) benefits of [cloud computing clusters](https://therinspark.com/clusters.html#cloud)?
+1. Can someone [explain Kubernetes](https://therinspark.com/clusters.html#kubernetes) to me like I'm a five year old?
+1. What is the purpose of [cluster managers](https://therinspark.com/clusters.html#clusters-manager) in Spark?
+1. What [cluster managers](https://therinspark.com/clusters.html#clusters-manager) are available in Spark?
+1. What [distributions](https://therinspark.com/clusters.html#distributions) are available for Spark?
+1. What are some [common tools](https://therinspark.com/clusters.html#tools) available for Spark?
+---
+
+# Questions: Clusters Applied
+1. Start a [cluster manager](https://therinspark.com/clusters.html#clusters-manager) of your choice - AWS?
+1. Retrieve the Spark installation directory
+1. Start cluster manager master node
+1. Start worker node, find master URL at http://localhost:8080/
+
+---
+
+# Questions: Connections Overview
+1. Spark cluster is composed of what three types of [compute instances](https://therinspark.com/connections.html#connections-overview)?
+1. What are [edge nodes](https://therinspark.com/connections.html#connections-spark-edge-nodes)?
+1. What are the attributes of a terminal connection to an edge node? 
+1. What are the attributes of a web browser connection to an edge node? 
+
+---
+# Questions: Connections Applied
+1. How do you find installed versions of Spark?
+1. How do you specify [SPARK_HOME](https://therinspark.com/connections.html#connections-spark-home) environment variable in your cluster 
+1. How do you make a [standalone connection](https://therinspark.com/connections.html#connections-standalone?
+1. Standalone connection: Where do you find the cluster manager’s [master instance](https://therinspark.com/connections.html#connections-standalone)
+---
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
