@@ -135,11 +135,101 @@ For the latter, you can use the _callback_ parameter to collect data larger that
 
 **Generally, you should not need to worry about copying large datasets; instead, you can focus on reading and writing different file formats**
 
+
+---
+
+# Supported File Formats
+
+Out of the box supported formats: 
+
+```{r, echo=FALSE}
+knitr::include_graphics("file-formats.png")
+```
+
+---
+
+# CSV
+
+Handling poorly formatted csv files:
+
+- **Permissive**: Inserts NULL values for missing tokens
+- **Drop Malformed**: Drops lines that are malformed
+- **Fail Fast**: Aborts if it encounters any malformed line
+
+---
+Example:
+
 ```{r}
+library(sparklyr)
+
+sc <- spark_connect(master = "local", version = "2.3")
+
+## Creates bad test file
+writeLines(c("bad", 1, 2, 3, "broken"), "bad.csv")
+
+spark_read_csv(
+  sc,
+  "bad3",
+  "bad.csv",
+  columns = list(foo = "integer"),
+  options = list(mode = "PERMISSIVE"))
 
 ```
 
+---
 
+# JSON
+
+```{r}
+writeLines("{'a':1, 'b': {'f1': 2, 'f3': 3}}", "data.json")
+simple_json <- spark_read_json(sc, "data.json")
+simple_json
+```
+To extract f1 you would run the following transformation:
+```{r, eval=FALSE}
+simple_json %>% dplyr::transmute(z = get_json_object(to_json(b), 
+                                                     '$.f1'))
+```
+
+Unnesting:
+```{r}
+sparklyr.nested::sdf_unnest(simple_json, "b")
+
+spark_disconnect(sc)
+```
+
+---
+
+# Apache Parquet
+
+Parquet and ORC store data in columnar format, while AVRO is row-based. 
+
+All of them are binary file formats, which reduces storage space and improves performance, but make them harder ot read.
+
+Spark makes their import pretty straight forward.
+
+
+---
+There is more
+
+There are extension programs, called packages, that let you handle additional formats. 
+
+- You need to load those packages when creating the connection
+- `spark_read_source()` and `spark_write_source()` are the generic functions used to read and write thos additional formats
+
+Example:
+```{r, eval=FALSE}
+sc <- spark_connect(master = "local", version = "2.3", config = list(
+  sparklyr.connect.packages = "com.databricks:spark-xml_2.11:0.5.0"))
+
+writeLines("<ROWS><ROW><text>Hello World</text></ROW>", "simple.xml")
+spark_read_source(sc, "simple_xml", "simple.xml", "xml")
+
+spark_disconnect(sc)
+```
+
+---
+File Systems
 
 ---
 # Questions: Clusters Overview
