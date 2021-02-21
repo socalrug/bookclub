@@ -1,0 +1,186 @@
+---
+title: "Mastering Spark with R"
+subtitle: 'Chapters 8-9'
+author: "Julien Brun"
+institute: "Orange County R Users Group"
+date: "2021-02-22"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = "")
+```
+
+# Intro, Set up, Analysis
+
+* **Spark**: A unified analytics engine for large-scale data processing.
+* **Set up**:  `sc <- spark_connect(master = "local", version = "2.3")`
+* **Analysis**: `sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+
+<br>
+
+* However, you cannot use the standard R models. Spark has a large library of modeling commands `MLlib`. 
+
+---
+
+# Data Handling
+
+Beyond big data and big compute, you can also use Spark to improve data:
+.large[
+* Velocity
+* Variety
+* Veracity
+]
+
+.large[
+Data management shift from normalizing all data into centralized databases and/or data warehouses to embracing variety of data managed as data lake.
+]
+
+.large[
+**=> You  can use Spark to unify data processing from data lakes, databases, and data warehouses through a single interface that is scalable across all of these solutions** 
+]
+
+```{r, out.width="60%", echo=FALSE}
+knitr::include_graphics("data-data-lake-1.png")
+```
+---
+
+# Reading Data
+
+- **Folder as a dataset**: Instead of enumerating each file, simply pass the path containing all the files. Spark assumes that every file in that folder is part of the same dataset.
+Note: no data is transferred between machines when distributed files are read
+- **Predefine a Schema**: either a small sample of the data or an explicitc definition of the columns type as a named vector
+
+Define the schema:
+```{r, include=TRUE}
+spec_explicit <- c(x = "character", y = "numeric")
+spec_explicit
+```
+
+
+Use it When reading the data in:
+```{r, eval=FALSE}
+spark_read_csv(sc, "data-csv/", columns = spec_with_r)
+```
+
+---
+
+# Data in-Memory or as "virtual table"
+
+When you read data in using Spark with R: 
+
+- Default: data is copied into Spark’s distributed memory
+
+- Spark can alo just "map" the files without copying data into memory 
+
+_=> The advantage of this method is that there is almost no up-front time cost to “reading” the file; the mapping is very fast._
+
+_=> The downside is that running queries that actually extract data will take longer._
+
+This is controlled by the memory argument:
+
+```{r, eval = FALSE}
+mapped_csv <- spark_read_csv(sc, "data-csv/", memory = FALSE)
+```
+
+Selecting a subset of column and caching it in-memory:
+
+```{r, eval=FALSE}
+mapped_csv %>%
+  dplyr::select(y) %>%
+  dplyr::compute("test")
+```
+
+---
+# Writing Data
+
+All efforts should be made to have reading, processing, and writing of data  happening within the same Spark session and not via R.
+
+```{r, echo=FALSE}
+knitr::include_graphics("data-recommended-approach-1.png")
+```
+
+What to do if the target is not within the Spark cluster?
+
+- **Spark transfer**: Spark connects to the remote target location and copies the new data; Good if within same data center or cloud provider.
+- **External transfer**: Spark writes qury results as fileas and then in the target location, you would use a separate process to transfer the data into the target location.
+
+---
+
+# Copying Data
+
+`copy_to()` and `collect()` are good for data that fites into memory. Use the Hadoop command-line tool to manage such manipulation on large datasets. 
+
+For the latter, you can use the _callback_ parameter to collect data larger that available memory.
+
+**Generally, you should not need to worry about copying large datasets; instead, you can focus on reading and writing different file formats**
+
+```{r}
+
+```
+
+
+
+---
+# Questions: Clusters Overview
+
+1. What are the three major trends in [cluster computing](https://therinspark.com/clusters.html#clusters-overview)?
+1. What are (some) attributes of [on-premise clusters](https://therinspark.com/clusters.html#on-premise)?
+1. What are (some) benefits of [cloud computing clusters](https://therinspark.com/clusters.html#cloud)?
+1. Can someone [explain Kubernetes](https://therinspark.com/clusters.html#kubernetes) to me like I'm a five year old?
+1. What is the purpose of [cluster managers](https://therinspark.com/clusters.html#clusters-manager) in Spark?
+1. What [cluster managers](https://therinspark.com/clusters.html#clusters-manager) are available in Spark?
+1. What [distributions](https://therinspark.com/clusters.html#distributions) are available for Spark?
+1. What are some [common tools](https://therinspark.com/clusters.html#tools) available for Spark?
+---
+
+# Questions: Clusters Applied
+1. Start a [cluster manager](https://therinspark.com/clusters.html#clusters-manager) of your choice - AWS?
+1. Retrieve the Spark installation directory
+1. Start cluster manager master node
+1. Start worker node, find master URL at http://localhost:8080/
+
+---
+
+# Questions: Connections Overview
+1. Spark cluster is composed of what three types of [compute instances](https://therinspark.com/connections.html#connections-overview)?
+1. What are [edge nodes](https://therinspark.com/connections.html#connections-spark-edge-nodes)?
+1. What are the attributes of a terminal connection to an edge node? 
+1. What are the attributes of a web browser connection to an edge node? 
+
+---
+# Questions: Connections Applied
+1. How do you find installed versions of Spark?
+1. How do you specify [SPARK_HOME](https://therinspark.com/connections.html#connections-spark-home) environment variable in your cluster 
+1. How do you make a [standalone connection](https://therinspark.com/connections.html#connections-standalone?
+1. Standalone connection: Where do you find the cluster manager’s [master instance](https://therinspark.com/connections.html#connections-standalone)
+---
+
+
+
+
+
+
+
+
+
