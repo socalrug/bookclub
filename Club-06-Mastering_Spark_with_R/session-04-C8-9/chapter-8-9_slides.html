@@ -185,16 +185,6 @@ spark_read_csv(
   options = list(mode = "PERMISSIVE"))
 ```
 
-```
-# Source: spark&lt;bad3&gt; [?? x 1]
-    foo
-  &lt;int&gt;
-1     1
-2     2
-3     3
-4    NA
-```
-
 ---
 
 # JSON
@@ -204,13 +194,6 @@ spark_read_csv(
 writeLines("{'a':1, 'b': {'f1': 2, 'f3': 3}}", "data.json")
 simple_json &lt;- spark_read_json(sc, "data.json")
 simple_json
-```
-
-```
-# Source: spark&lt;data_5c9aa9ee_4b5d_4180_83d2_a7ccf1ca2bc3&gt; [?? x 2]
-      a b               
-  &lt;dbl&gt; &lt;list&gt;          
-1     1 &lt;named list [2]&gt;
 ```
 To extract f1 you would run the following transformation:
 
@@ -223,23 +206,7 @@ Unnesting:
 
 ```r
 sparklyr.nested::sdf_unnest(simple_json, "b")
-```
 
-```
-Warning: `select_vars()` is deprecated as of dplyr 0.8.4.
-Please use `tidyselect::vars_select()` instead.
-This warning is displayed once every 8 hours.
-Call `lifecycle::last_warnings()` to see where this warning was generated.
-```
-
-```
-# Source: spark&lt;?&gt; [?? x 3]
-      a    f1    f3
-  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1     1     2     3
-```
-
-```r
 spark_disconnect(sc)
 ```
 
@@ -275,46 +242,68 @@ spark_disconnect(sc)
 ```
 
 ---
-File Systems
+# File Systems
+
+**Spark defaults to the file system on which it is currently running**.
+
+- YARN managed cluster: the default file system will be HDFS
+- Standalone: filesystem
+
+However, the file system protocol can be changed when reading or writing. You will need the `sparklyr.connect.packages` spark package to configure this: 
+ 
+ - filesystem: `_file://home/user/file.csv_`
+ - Databricks: `_dbfs://_`
+ - AWS: `_s3a://_`
+ - MS Azure: `_wasb://_`
+ - Google Cloud: `_gs://_`
+ 
+
+```r
+Sys.setenv(AWS_ACCESS_KEY_ID = my_key_id)
+Sys.setenv(AWS_SECRET_ACCESS_KEY = my_secret_key)
+
+sc &lt;- spark_connect(master = "local", version = "2.3", config = list(
+  sparklyr.connect.packages = "org.apache.hadoop:hadoop-aws:2.7.7"))
+
+my_file &lt;- spark_read_csv(sc, "my-file", path = "s3a://my-bucket/my-file.csv")
+```
 
 ---
-# Questions: Clusters Overview
+# Storage Systems
 
-1. What are the three major trends in [cluster computing](https://therinspark.com/clusters.html#clusters-overview)?
-1. What are (some) attributes of [on-premise clusters](https://therinspark.com/clusters.html#on-premise)?
-1. What are (some) benefits of [cloud computing clusters](https://therinspark.com/clusters.html#cloud)?
-1. Can someone [explain Kubernetes](https://therinspark.com/clusters.html#kubernetes) to me like I'm a five year old?
-1. What is the purpose of [cluster managers](https://therinspark.com/clusters.html#clusters-manager) in Spark?
-1. What [cluster managers](https://therinspark.com/clusters.html#clusters-manager) are available in Spark?
-1. What [distributions](https://therinspark.com/clusters.html#distributions) are available for Spark?
-1. What are some [common tools](https://therinspark.com/clusters.html#tools) available for Spark?
----
+Data lake and Spark usually go hand-in-hand, with optional access to storage systems like databases and data warehouses. 
 
-# Questions: Clusters Applied
-1. Start a [cluster manager](https://therinspark.com/clusters.html#clusters-manager) of your choice - AWS?
-1. Retrieve the Spark installation directory
-1. Start cluster manager master node
-1. Start worker node, find master URL at http://localhost:8080/
+Spark can push down computation to the database, a feature known as pushdown _predicates_, which ipmroves performances.
+
+Options:
+
+- **Apache Hive**: data warehouse software natively well integrated in Spark
+- **Apache Cassandra**: NoSQL database
+- **JBDC**: interface for the programming language Java; when no packages exist for your sepcfic connection
 
 ---
+# Questions: Data Overview
 
-# Questions: Connections Overview
-1. Spark cluster is composed of what three types of [compute instances](https://therinspark.com/connections.html#connections-overview)?
-1. What are [edge nodes](https://therinspark.com/connections.html#connections-spark-edge-nodes)?
-1. What are the attributes of a terminal connection to an edge node? 
-1. What are the attributes of a web browser connection to an edge node? 
+1. question
+2. question
+
+
 
 ---
-# Questions: Connections Applied
-1. How do you find installed versions of Spark?
-1. How do you specify [SPARK_HOME](https://therinspark.com/connections.html#connections-spark-home) environment variable in your cluster 
-1. How do you make a [standalone connection](https://therinspark.com/connections.html#connections-standalone?
-1. Standalone connection: Where do you find the cluster manager’s [master instance](https://therinspark.com/connections.html#connections-standalone)
+
+class: center, inverse
+
+# Chapter 9: Tuning
+
+
 ---
 
 
+---
 
+# Questions: Tuning
 
+1. test
 
 
 
