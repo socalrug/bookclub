@@ -1,0 +1,504 @@
+---
+title: "Mastering Spark with R"
+subtitle: 'Chapters 8-9'
+author: "Julien Brun"
+institute: "Orange County R Users Group"
+date: "2021-02-22"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      
+---
+<style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = "")
+```
+
+# Intro, Set up, Analysis
+
+* **Spark**: A unified analytics engine for large-scale data processing.
+* **Set up**:  `sc <- spark_connect(master = "local", version = "2.3")`
+* **Analysis**: `sparklyr` integrates with many R like `dplyr`, `magrittr`, `broom`, `DBI`, `tibble`, `rlang`, and many others
+
+<br>
+
+* However, you cannot use the standard R models. Spark has a large library of modeling commands `MLlib`. 
+
+---
+
+# Data Handling
+
+Beyond big data and big compute, you can also use Spark to improve data:
+.large[
+* Velocity
+* Variety
+* Veracity
+]
+
+.large[
+Data management shift from normalizing all data into centralized databases and/or data warehouses to embracing variety of data managed as data lake.
+]
+
+.large[
+**=> You  can use Spark to unify data processing from data lakes, databases, and data warehouses through a single interface that is scalable across all of these solutions** 
+]
+
+```{r, out.width="60%", echo=FALSE}
+knitr::include_graphics("data-data-lake-1.png")
+```
+---
+
+# Reading Data
+
+- **Folder as a dataset**: Instead of enumerating each file, simply pass the path containing all the files. Spark assumes that every file in that folder is part of the same dataset.
+Note: no data is transferred between machines when distributed files are read
+- **Predefine a Schema**: either a small sample of the data or an explicit definition of the columns type as a named vector
+
+Define the schema:
+```{r, include=TRUE}
+spec_explicit <- c(x = "character", y = "numeric")
+spec_explicit
+```
+
+
+Use it When reading the data in:
+```{r, eval=FALSE}
+spark_read_csv(sc, "data-csv/", columns = spec_with_r)
+```
+
+---
+
+# Data in-Memory or as "virtual table"
+
+When you read data in using Spark with R: 
+
+- Default: data is copied into Spark’s distributed memory
+
+- Spark can also just "map" the files without copying data into memory 
+
+_=> The advantage of this method is that there is almost no up-front time cost to “reading” the file; the mapping is very fast._
+
+_=> The downside is that running queries that actually extract data will take longer._
+
+This is controlled by the memory argument:
+
+```{r, eval = FALSE}
+mapped_csv <- spark_read_csv(sc, "data-csv/", memory = FALSE)
+```
+
+Selecting a subset of column and caching it in-memory:
+
+```{r, eval=FALSE}
+mapped_csv %>%
+  dplyr::select(y) %>%
+  dplyr::compute("test")
+```
+
+---
+
+# Writing Data
+
+All efforts should be made to have reading, processing, and writing of data  happening within the same Spark session and not via R.
+
+```{r, echo=FALSE}
+knitr::include_graphics("data-recommended-approach-1.png")
+```
+
+What to do if the target is not within the Spark cluster?
+
+- **Spark transfer**: Spark connects to the remote target location and copies the new data; Good if within same data center or cloud provider.
+- **External transfer**: Spark writes query results as files  and then in the target location, you would use a separate process to transfer the data into the target location.
+
+---
+
+# Copying Data
+
+`copy_to()` and `collect()` are good for data that fits into memory. Use the Hadoop command-line tool to manage such manipulation on large datasets. 
+
+For the latter, you can use the _callback_ parameter to collect data larger that available memory.
+
+**Generally, you should not need to worry about copying large datasets; instead, you can focus on reading and writing different file formats**
+
+
+---
+
+# Supported File Formats
+
+Out of the box supported formats: 
+
+```{r, echo=FALSE}
+knitr::include_graphics("file-formats.png")
+```
+
+---
+
+# CSV
+
+Handling poorly formatted csv files:
+
+- **Permissive**: Inserts NULL values for missing tokens
+- **Drop Malformed**: Drops lines that are malformed
+- **Fail Fast**: Aborts if it encounters any malformed line
+
+---
+
+# CSV - Example
+
+```{r, eval=FALSE}
+library(sparklyr)
+
+sc <- spark_connect(master = "local", version = "2.3")
+
+## Creates bad test file
+writeLines(c("bad", 1, 2, 3, "broken"), "bad.csv")
+
+spark_read_csv(
+  sc,
+  "bad3",
+  "bad.csv",
+  columns = list(foo = "integer"),
+  options = list(mode = "PERMISSIVE"))
+
+```
+
+---
+
+# JSON
+
+```{r, eval=FALSE}
+writeLines("{'a':1, 'b': {'f1': 2, 'f3': 3}}", "data.json")
+simple_json <- spark_read_json(sc, "data.json")
+simple_json
+```
+To extract f1 you would run the following transformation:
+```{r, eval=FALSE}
+simple_json %>% dplyr::transmute(z = get_json_object(to_json(b), 
+                                                     '$.f1'))
+```
+
+Unnesting:
+```{r, eval=FALSE}
+sparklyr.nested::sdf_unnest(simple_json, "b")
+
+spark_disconnect(sc)
+```
+
+---
+
+# Apache Parquet
+
+
+Parquet and ORC store data in columnar format, while AVRO is row-based. 
+
+All of them are binary file formats, which reduces storage space and improves performance, but make them harder to read.
+
+Spark makes their import pretty straight forward.
+
+
+
+---
+
+# Other formats
+
+There is more
+
+There are extension programs, called packages, that let you handle additional formats. 
+
+- You need to load those packages when creating the connection
+- `spark_read_source()` and `spark_write_source()` are the generic functions used to read and write those additional formats
+
+Example:
+
+```{r, eval=FALSE}
+sc <- spark_connect(master = "local", version = "2.3", config = list(
+  sparklyr.connect.packages = "com.databricks:spark-xml_2.11:0.5.0"))
+
+writeLines("<ROWS><ROW><text>Hello World</text></ROW>", "simple.xml")
+spark_read_source(sc, "simple_xml", "simple.xml", "xml")
+
+spark_disconnect(sc)
+```
+
+---
+
+# File Systems
+
+**Spark defaults to the file system on which it is currently running**.
+
+- YARN managed cluster: the default file system will be HDFS
+- Standalone: filesystem
+
+However, the file system protocol can be changed when reading or writing. You will need the `sparklyr.connect.packages` spark package to configure this: 
+ 
+ - filesystem: `_file://home/user/file.csv_`
+ - Databricks: `_dbfs://_`
+ - AWS: `_s3a://_`
+ - MS Azure: `_wasb://_`
+ - Google Cloud: `_gs://_`
+ 
+```{r, eval=FALSE}
+Sys.setenv(AWS_ACCESS_KEY_ID = my_key_id)
+Sys.setenv(AWS_SECRET_ACCESS_KEY = my_secret_key)
+
+sc <- spark_connect(master = "local", version = "2.3", config = list(
+  sparklyr.connect.packages = "org.apache.hadoop:hadoop-aws:2.7.7"))
+
+my_file <- spark_read_csv(sc, "my-file", path = "s3a://my-bucket/my-file.csv")
+```
+
+---
+
+# Storage Systems
+
+Data lake and Spark usually go hand-in-hand, with optional access to storage systems like databases and data warehouses. 
+
+Spark can push down computation to the database, a feature known as pushdown _predicates_, which improves performances.
+
+Options:
+
+- **Apache Hive**: data warehouse software natively well integrated in Spark
+- **Apache Cassandra**: NoSQL database
+- **JBDC**: interface for the programming language Java; when no packages exist for your specific connection
+
+---
+
+# Questions: Data Overview
+
+1. Beyond big data, what can Spark helps with regarding data handling?
+1. What does `Folder as a dataset` means?
+1. How can a `schema` be leveraged in Spark when reading data?
+1. List the file formats that spark can handle out of the box?
+1. What is the name of extension programs you can use to add support of other file formats?
+1. What is the general syntax to change the file format protocol when reading/writing files?
+
+---
+
+# Chapter 9: Tuning
+
+It is often necessary to have some knowledge of the operations Spark runs internally to fine-tune configuration settings that will make computations run efficiently.
+
+**Spark performs distributed computation by configuring, partitioning, executing, shuffling, caching, and serializing data, tasks, and resources across multiple machines:**
+
+1. Configuring requests the cluster manager for resources: total machines, memory, and so on.
+2. Partitioning splits the data among various machines. Partitions can be either implicit or explicit.
+3. Executing means running an arbitrary transformation over each partition.
+4. Shuffling redistributes data to the correct machine.
+5. Caching preserves data in memory across different computation cycles.
+6. Serializing transforms data to be sent over the network to other workers or back to the driver node.
+
+---
+
+# Example
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+library(sparklyr)
+library(dplyr)
+
+sc <- spark_connect(master = "local", version = "2.3")
+
+data <- copy_to(sc, 
+  data.frame(id = c(4, 9, 1, 8, 2, 3, 5, 7, 6)),
+  repartition = 3)
+
+data %>% arrange(id) %>% collect()
+```
+
+---
+
+# Example
+
+```{r, echo=FALSE}
+knitr::include_graphics("tuning-spark-overview-resized.png")
+```
+
+---
+
+# Graph & Timeline
+
+Spark describes all computation steps using a Directed Acyclic Graph (DAG).
+
+**All computations in Spark move computation forward without repeating previous steps.**
+
+=> Makes Spark very efficient
+
+To check the Graph:
+
+```{r, eval=FALSE}
+spark_web(sc)
+```
+
+Under `SQL` tab you can see the Graph
+
+Under the `Jobs` tab you can both expand the graph and the event timeline
+
+_Note: Mine looked slightly different than the book ones; standalone?_
+
+---
+
+# Configuring
+
+The most common resources to configure are:
+- Memory 
+- Number of cores
+
+Options:
+- **Memory in driver**: The amount of memory required in the driver node
+- **Memory per worker**: The amount of memory required in the worker nodes
+- **Cores per worker**: The number of CPUs required in the worker nodes
+- **Number of workers**: The number of workers required for this session
+
+**Note: It is recommended to request significantly more memory for the driver than the memory available over each worker node. In most cases, you will want to request one core per worker.**
+
+---
+
+# Configuring Increasing Memory
+
+In local mode there are no workers, but we can still configure memory and cores
+
+```{r, eval=FALSE}
+spark_disconnect(sc)
+
+# Initialize configuration with defaults
+config <- spark_config()
+
+# Memory
+config["sparklyr.shell.driver-memory"] <- "4g"
+
+# Cores
+config["sparklyr.connect.cores.local"] <- 4
+
+# Connect to local cluster with custom configuration
+sc <- spark_connect(master = "local", config = config)
+
+data <- copy_to(sc, 
+  data.frame(id = c(4, 9, 1, 8, 2, 3, 5, 7, 6)),
+  repartition = 3)
+
+data %>% arrange(id) %>% collect()
+```
+
+---
+
+# Configuring
+
+There is a long list of settings you can customize. Note specific settings need to be define at different steps of the workflow:
+
+- Connect settings
+- Submit settings
+- Runtime settings
+- Sparklyr settings
+
+---
+
+# Partitioning
+
+Partition: subset of the data available for computation over each compute instance
+
+2 types:
+
+- Implicit: the default; always on
+- Explicit: When you want to control the number of partitions used
+
+```{r, fig.cap="Using 2 partitions is almost as fast at 1."}
+knitr::include_graphics("tuning-partition-explicit.png")
+```
+
+Using 2 partitions is almost as fast at 1.
+
+---
+
+# Caching
+
+**Spark resilient distributed dataset (RDD)**: Distribute copies of data across the memory of many machines.
+
+Most of `sparklyr` operations that retrieve a Spark DataFrame cache the results in memory.
+
+You can explicitly control when an RDD is loaded or unloaded from memory using `tbl_cache()` and `tbl_uncache()`
+
+Reminder: You can check what is cached on the Spark web interface under the `Storage` tab!
+
+**Checkpoints**: useful when the computational graph becomes complex and expensive to run. Save data to files such as CSV of Parquet.
+
+---
+
+# Caching Memory
+
+As part of tuning execution, you can consider tweaking the amount of memory allocated for user, execution, and storage by creating a Spark connection with different values than the defaults provided in Spark.
+
+Memory is split into 4 categories:
+- Reserved memory: memory Spark needs to function and therefore is overhead that is required and should not be configured. This value defaults to 300 MB
+- **User memory**: memory used to execute custom code. `sparklyr` makes use of this memory only indirectly when executing dplyr expressions or modeling a dataset.
+- **Execution memory**: memory to execute code by Spark, mostly to process the results from the partition and perform shuffling.
+- **Storage memory**: used to cache RDDs—for instance, when using compute() in sparklyr
+
+_Note: Spark will borrow execution memory from storage and vice versa if needed and if possible; therefore, in practice, there should be little need to tune the memory settings._
+
+---
+
+# Shuffling
+
+**Shuffling is the operation that redistributes data across machines; it is usually expensive and therefore something you should try to minimize.** You can use the event timeline to determine if shuffling is significant or not in your analysis.
+
+As example, when joining DataFrames you can use `sdf_broadcast()` to mark a DataFrame as small enough for use in broadcast joins
+
+---
+
+# Serialization
+
+**Serialization is the process of translating data and tasks into a format that can be transmitted between machines and reconstructed on the receiving end.**
+
+It is not that common to need to adjust serialization when tuning Spark.
+
+---
+
+# Configuration Files
+
+Once you have find your optimization parameters, you can store them in a `config.yml` file to be stored in your current working directory.
+
+config.yml:
+
+```
+default:
+  sparklyr.shell.driver-memory: 2G
+```
+
+Then to connect, you can simply do: 
+
+```{r, eval=FALSE}
+sc <- spark_connect(master = "local")
+```
+
+Here for more: https://github.com/rstudio/config
+
+---
+
+# Questions: Tuning
+
+1. When tuning a Spark application, what are the tow most common resources to configure?
+1. How is memory categorized in Spark? 
+1. What are the two types of partitions?
+1. What are the two type of caching?
+1. How to identify how much is spent in shuffling?
+
+
+
+
+
+
