@@ -1,0 +1,65 @@
+# Books for the OCRUG Book Club
+
+## Book in Each Club
+
+### Club 1
+* Title: R for Data Science
+* Online: https://r4ds.had.co.nz
+* Dead Tree: https://www.amazon.com/dp/1491910399/
+
+### Club 2
+* Title: Feature Engineering and Selection
+* Online: http://www.feat.engineering/
+* Dead Tree: https://www.amazon.com/gp/product/1138079227/
+
+### Club 3
+* Title: Applied Predictive Modeling
+* Online: http://appliedpredictivemodeling.com/
+* Dead Tree: https://www.amazon.com/dp/B00K15TZU0/
+
+### Club 4
+* Title: Advanced R
+* Online: https://adv-r.hadley.nz/
+* Dead Tree: https://www.amazon.com/gp/product/0815384572
+
+### Club 5
+* Title: R for Data Science
+* Online: https://r4ds.had.co.nz
+* Dead Tree: https://www.amazon.com/dp/1491910399/
+
+### Club 6
+* Title: Mastering Spark with R
+* Online: https://therinspark.com/
+* Dead Tree: https://www.amazon.com/dp/149204637X/
+
+
+## Proposed Books
+* [Tidy Modeling with R](https://www.tmwr.org/index.html)
+  * Book is still being written but is mostly complete (2021-02)i
+  * No exercises
+* [Text Mining with R](https://www.tidytextmining.com/)
+  * Approachable
+  * No exercises
+* [An Introduction to Spatial Data Analysis and Visualisation in R](https://spatialanalysisonline.com/An%20Introduction%20to%20Spatial%20Data%20Analysis%20in%20R.pdf)
+  * Very narrow subject area
+  * A lot of R code
+  * No exercises
+* [Geocomputation with R](https://geocompr.robinlovelace.net/)
+  * Very narrow subject area
+  * A lot of R code
+  * Has exercises
+* Forecasting: Principles and Practice](https://otexts.com/fpp2/)
+  * Upper level stats textbook. 
+  * Limited R examples but it show you how to do forecasting in R
+  * Standard level of math for a forcasting textbook
+* [Bayes Rules! An Introduction to Bayesian Modeling with R](https://www.bayesrulesbook.com/)
+  * People would need a solid background in probability
+  * Lots of R code
+  * Has exercises
+* [An Introduction to Bayesian Thinking](https://statswithr.github.io/book/)
+  * A fairly gentle introduction to Bayes. Would only require a bit of stats background
+  * Only the intro chapter has exercises
+* [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html)
+  * Covers a lot of different plots.
+  * The plots look like they come from R but there is no R code.
+
