@@ -1,0 +1,55 @@
+---
+title: "chapter-8-9-exercise"
+author: "Julien Brun"
+date: "2/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Yelp Review Data
+
+Exercise:
+- Download the Yelp business data as json: https://www.kaggle.com/yelp-dataset/yelp-dataset?select=yelp_academic_dataset_review.json 
+- Load the data into Spark
+- Check if the data fits in memory on your Standalone instance
+- If not, modify the connection configuration to try to make it fit
+- Filter the Data for the Restaurants in city of Santa Barbara
+- join with the review data
+- Do some Exploratory Data Analysis to find your favorite restaurant for next time you come visit :)
+
+
+Let's start by downloading the business data: `yelp_academic_dataset_business.zip`
+
+## Create the connection
+```{r}
+library(tidyverse)
+library(sparklyr)
+
+
+# Connect
+
+```
+
+## Load the data
+```{r}
+# Load the data
+
+```
+
+## Filter Santa Barbara businesses
+
+```{r}
+
+```
+
+## Filter Restaurant businesses
+
+## Create an IDs list to subset the review
+
+
+## Load the review json
+
+## Subset it
