@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Mastering Spark with R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Aaron Hardisty" />
+    <meta name="date" content="2021-02-15" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Mastering Spark with R
+## Chapters 10-11
+### Krytal Maughan
+### Orange County R Users Group
+### 2021-03-01
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+# Review Chapters 8, 9 (Data and Tuning)
+
+* **Chapter 8**: Reading and Writing Data into Spark (without replicating large dataset)
+* **Chapter 9**: Config settings for Spark Operations (configuring memory with cores; implicit and explicit partitions, loading and unloading RDD from memory, caching memory)
+
+```r
+data <- copy_to(sc, 
+  data.frame(id = c(4, 9, 1, 8, 2, 3, 5, 7, 6)),
+  repartition = 3)
+
+data %>% arrange(id) %>% collect()
+```
+
+&lt;br&gt;
+
+* An example of partitioning and sorting unordered integers. 
+
+---
+
+# Chapter 10 (Extension Recap)
+
+
+.large[
+* **A a Spark extension is just an R package that happens to be aware of Spark**
+* **(i)**  
+  * This extension allows you to support process graphs in Spark.
+* **(ii)**  
+  * This extension allows you to write TensorFlow records in Spark.
+* **(iii)**  
+  * This extension allows you to use H2O andSpark from R.
+* **(iv)**  
+  * This extension allows you to load and query large-scale geographic datasets.
+* **(v)**  
+  * This extension allows you to use Variant Spark, a scalable toolkit for genome-wide association studies (GWAS).
+* **(vi)**  
+  * This extension allows you to use the XGBoost modeling library. XGBoost is a scalable, portable, and distributed library for gradient boosting.
+
+
+]
+
+---
+
+# Chapter 10 (Extension Recap)
+
+
+.large[
+* **(i)**  
+  * `graphframes`
+* **(ii)**  
+  * `sparktf`
+* **(iii)**  
+  * `rsparkling`
+* **(iv)**  
+  * `geospark`
+* **(v)**  
+  * `variantspark`
+* **(vi)**  
+  * `xgboost`
+* **Always disconnect and then reconnect if you have installed an extension**
+]
+
+---
+
+# H2O
+
+.large[
+
+* **WHAT IS H2O**: parallelized, distributed Machine Learning platform that makes use of multithreaded systems. Made with parallelization in mind.
+
+* **IN THE BOX**: comes with GML, Random Forest, GBM, PCA, etc. Written in Java.
+* **NOTE**: You must use compatible versions of Spark, Sparkling Water and H20.
+* **SELLING POINTS**: Auto ML (productivity tool for Data Scientists)
+* **CONVERT**: You will need to make your Spark Dataframe into an H20 dataframe when using H20.
+`X_h2o <- as_h2o_frame(sc, X)`
+* **CORES**: In the [past](https://www.r-bloggers.com/2018/12/an-introduction-to-h2o-using-r/) `h2o.init(nthreads = -1)` meant that you could set it to use all available cores, because it would default to 2 cores, but that isn't the case anymore so you can use `h2o.init()`
+]
+H2O with Spark uses four components: 
+  * **H20**
+  * **Sparkling Water**
+  * **rsparkling**
+  * **Spark**
+
+---
+# H2O
+
+![](extensions-h2o-diagram-1.png){width=50%}
+---
+# H2O
+
+.large[
+
+]
+![](SparkvsSparkling.png)
+[Full Video Link](https://www.youtube.com/watch?v=C3Qimpw8Tsg) 
+---
+
+# H2O
+
+
+* **Installing H2O**:
+```r
+install.packages("h2o", type = "source",
+  repos = "http://h2o-release.s3.amazonaws.com/h2o/rel-yates/5/R")
+```
+As a platform, comes with additional metrics not necessarily available in Spark `MLlib`: 
+
+```r
+model
+...
+MSE:  6.017684
+RMSE:  2.453097
+MAE:  1.940985
+RMSLE:  0.1114801
+Mean Residual Deviance :  6.017684
+R^2 :  0.8289895
+Null Deviance :1126.047
+Null D.o.F. :31
+Residual Deviance :192.5659
+Residual D.o.F. :29
+AIC :156.2425
+```
+---
+# Sparkling Water
+
+.large[
+* **Sparkling Water**: pipeline integration of H20 with Spark or `Spark + H20`
+]
+
+  * Sparkling water is part of the H20 ecosystem. It allows you to run `MLlib and H20` side-by-side. 
+    It provides H20 functionality inside of the Spark cluster.
+  * Strength is Spark workflows that require advanced Machine Learning algorithms
+  * Is meant to supplement functionality missing in Spark (if you already have infrastructure in Spark and don't want to start from scratch)
+  * Typical process is data munging in Spark, train model using H20 and run predictions in Spark or H20.
+  * Also used for stream processing / offline model training
+  * You can use Spark to configure Sparkling Water via the [Configuration Properties](http://docs.h2o.ai/sparkling-water/2.3/latest-stable/doc/configuration/configuration_properties.html#sw-config-properties)
+
+```r
+h2o.predict(automl@leader, predictions)
+
+   predict
+1 30.74639
+
+[1 row x 1 column] 
+```
+
+---
+# rsparkling
+
+
+* `sparklyr` is the wrapper for `r` functionality in Spark.
+* `rsparkling` is the R interface to Sparkling Water Spark package (created by H20). It is a `sparklyr` extension.
+* Its main purpose is to provide a connector between Sparklyr and H20's Machine Learning Algorithms.
+* The package `sparklyr` for Spark job deployment, and initialization of Sparkling Water.
+
+You need:
+* `sparklyr` and `H20` before installing `RSparkling`.
+
+```r
+# Download, install, and initialize the RSparkling
+install.packages("rsparkling", type = "source", 
+repos = 
+"http://h2o-release.s3.amazonaws.com/sparkling-water/spark-2.3/3.32.0.4-1-2.3/R")
+```
+---
+# H20 (Auto ML)
+* Can perform automatic training and tuning and is meant to be a productivity tool (not a replacement) for data scientists, that allows you to evaluate models with an accessible entry bar.
+* It allows you to see a leaderboard of ranked models with metrics and to predict using the leader model.
+
+```r
+# import Auto ML
+import h2o
+from h2o.automl import H2OAutoML
+# Run AutoML for 20 base models (limited to 1 hour max runtime by default)
+aml <- h2o.automl(x = x, y = y,
+                  training_frame = train,
+                  max_models = 20,
+                  seed = 1)
+
+# View the AutoML Leaderboard
+lb <- aml@leaderboard
+print(lb, n = nrow(lb))  # Print all rows instead of default (6 rows)
+# predict on leader model
+h2o.predict(automl@leader, predictions)
+```
+---
+# H20 (H20 Flow)
+* H20 Flow is H20's open source interface for H20
+* It is their Jupyter notebook or Colab for their ecosystem, allowing you to share, annotate and execute cells.
+* It is web-based and is meant to be easy to get up and running)
+
+![](extensions-h2o-flow-resized.png)
+---
+# Graphs
+
+
+* Graphs are computationally expensive, often needing distribution across a cluster of machines.
+* Spark supports processing graphs through the `graphframes` extension.
+* `graphframes` uses the `GraphX` Spark component, which also contains a library of graph algorithms.
+
+![](extensions-eulers-paths-resized.png)
+
+---
+# Graphs in Spark
+
+* Graphs are represented as a DataFrame of edges and vertices in Spark.  
+
+```r
+library(graphframes)
+library(sparklyr)
+library(dplyr)
+
+sc <- spark_connect(master = "local", version = "2.3")
+highschool_tbl <- copy_to(sc, ggraph::highschool, "highschool") %>%
+  filter(year == 1957) %>%
+  transmute(from = as.character(as.integer(from)),
+            to = as.character(as.integer(to)))
+
+from_tbl <- highschool_tbl %>% distinct(from) %>% transmute(id = from)
+to_tbl <- highschool_tbl %>% distinct(to) %>% transmute(id = to)
+
+vertices_tbl <- distinct(sdf_bind_rows(from_tbl, to_tbl))
+edges_tbl <- highschool_tbl %>% transmute(src = from, dst = to)
+```
+
+---
+# Graphs in Spark
+
+* We have Vertices and Edges from which we can create a GraphFrame  
+```r
+graph <- gf_graphframe(vertices_tbl, edges_tbl)
+```
+
+* We can now do analysis over the graphframe
+* how many friends on average does each boy have?
+
+```r
+gf_degrees(graph) %>% summarise(friends = mean(degree))
+```
+* how many degrees of separation (in terms of shortest distance) exist between the boy 
+  identified as 33?
+```r
+gf_shortest_paths(graph, 33) %>%
+  filter(size(distances) > 0) %>%
+  mutate(distance = explode(map_values(distances))) %>%
+  select(id, distance)
+```
+
+---
+# Graphs in Spark : GGraph
+
+* We use `PageRank`.
+```r
+gf_graphframe(vertices_tbl, edges_tbl) %>%
+  gf_pagerank(reset_prob = 0.15, max_iter = 10L)
+```
+
+* Other graph algorithms are BFS, Connected components, Label Propagation Algorithm,
+  Shortest Path, Triangle count. See this [link](https://graphframes.github.io/graphframes/docs/_site/user-guide.html) for more
+
+* and we show the highest scores
+
+```r
+highschool_tbl %>%
+  igraph::graph_from_data_frame(directed = FALSE) %>%
+  ggraph(layout = 'kk') + 
+    geom_edge_link(alpha = 0.2,
+                   arrow = arrow(length = unit(2, 'mm')),
+                   end_cap = circle(2, 'mm'),
+                   start_cap = circle(2, 'mm')) + 
+    geom_node_point(size = 2, alpha = 0.4)
+```
+---
+# XGBoost
+
+* Gradient Boosting framework created by Tianqi Chen.
+* Uses gradient descent and boosting (regression trees) 
+
+* `sparkxgb` : an extension used to train XGBoost models in Spark
+```r
+install.packages("sparkxgb")
+```
+* To build an XGBoost model in Spark, use `xgboost_classifier()`
+
+```r
+xgb_model <- xgboost_classifier(attrition,
+                                Attrition ~ .,
+                                num_class = 2,
+                                num_round = 50,
+                                max_depth = 4)
+
+xgb_model %>%
+  ml_predict(attrition) %>%
+  select(Attrition, predicted_label, starts_with("probability_")) %>%
+  glimpse()
+```
+---
+# Deep Learning
+
+* We need `sparktf` and `tfdatasets`
+
+* Multi-layer perceptrons could classify datasets that are not linearly separable
+* In Spark, we can use `ml_multilayer_perceptron_classifier()` to classify and predict over large datasets.
+
+```r
+library(sparktf)
+library(sparklyr)
+
+sc <- spark_connect(master = "local", version = "2.3")
+
+attrition <- copy_to(sc, rsample::attrition)
+
+nn_model <- ml_multilayer_perceptron_classifier(
+  attrition,
+  Attrition ~ Age + DailyRate + DistanceFromHome + MonthlyIncome,
+  layers = c(4, 3, 2),
+  solver = "gd")
+
+nn_model %>%
+  ml_predict(attrition) %>%
+  select(Attrition, predicted_label, starts_with("probability_")) %>%
+  glimpse()
+```
+---
+# Deep Learning
+
+* Spark can be used to retrieve and preprocess large datasets
+* The use of Deep Learning models solve the vanishing gradient problem by the use of activation 
+  functions, dropout, data augmentation and GPUs.
+* To preprocess large datasets in Spark
+* We can use `Horovod` with Spark from R using the `reticulate` package (which embeds a set of tools for interoperability between Python and R). [Horovod](https://github.com/horovod/horovod) is used for distributed deep learning.
+```r
+copy_to(sc, iris) %>%
+  ft_string_indexer_model(
+    "Species", "label",
+    labels = c("setosa", "versicolor", "virginica")
+  ) %>%
+  spark_write_tfrecord(path = "tfrecord")
+```
+
+```
+# Horovod
+import tensorflow as tf
+import horovod.tensorflow as hvd
+# Initialize Horovod
+hvd.init()
+# Build model...
+loss = ...
+opt = tf.train.AdagradOptimizer(0.01 * hvd.size())
+```
+---
+# Deep Learning in R (More)
+
+* Documentation for Deep Learning Using H20 can be found [here](https://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/deep-learning.html)
+* Erin LeDell also has a Deep Learning Tutorial Written in R [here](https://htmlpreview.github.io/?https://github.com/ledell/sldm4-h2o/blob/master/sldm4-deeplearning-h2o.html) that also uses Autoencoders and draws from the book "Statistical Learning with Sparsity: The Lasso and Generalizations" by [Hastie](https://trevorhastie.github.io/index.html), Tibshirani and Wainwright.
+* AutoML is a used in H20 to automate the machine learning workflow. H20 has a Web GUI for AutoML and it is meant to be a productivity or time-saving tool to automate parts of the ML workflow. 
+
+
+---
+# Genomics
+
+* `variantspark`: Framework based on Spark and Scala to analyze genome datasets.
+* `vcf` or Variant Call Format files are a format of text file used in bioinformatics to store gene sequence variations.
+* meta-information is included after the `##` string, often as `key=value` pairs.
+* header line names 8 fixed, mandatory columns (CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO)
+* data lines 
+* More information on how to read vcf files here at [IGSR](https://www.internationalgenome.org/wiki/Analysis/Variant%20Call%20Format/vcf-variant-call-format-version-40/).
+
+```
+##fileformat=VCFv4.0
+##fileDate=20090805t"))
+##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM POS     ID        REF ALT    QUAL FILTER INFO        FORMAT      NA00001
+20     14370   rs6054257 G      A       29   PASS   NS=3;DP=14;AF=0.5;DB;H21
+```
+
+
+---
+# Genomics
+
+* `variantspark`: Framework based on Spark and Scala to analyze genome datasets.
+
+```r
+# load variantspark and sparklyr
+library(variantspark)
+library(sparklyr)
+
+vsc_data <- system.file("extdata/", package = "variantspark")
+
+# load vcf file
+hipster_vcf <- vs_read_vcf(vsc, file.path(vsc_data, "hipster.vcf.bz2"))
+hipster_labels <- vs_read_csv(vsc, file.path(vsc_data, "hipster_labels.txt"))
+labels <- vs_read_labels(vsc, file.path(vsc_data, "hipster_labels.txt"))
+# importance using random forst to assign importance score to each tested variant
+# variant with higher score implies more strongly associated with phenotype of interest
+importance_tbl <- vs_importance_analysis(vsc, hipster_vcf, 
+                                         labels, n_trees = 100) %>%
+  importance_tbl()
+
+importance_tbl
+```
+---
+# Spatial Computing
+
+* Use `geospark` to show how geospatial data can be queried.
+* Can use `st_contains` to convert polygons and points into a geometry object.
+* Can present final result as a `leaflet` (format for making an interactive map used by GIS specialists).
+
+```r
+pak::pkg_install("harryprince/geospark")
+# load sparklyr and geospark
+library(sparklyr)
+library(geospark)
+
+# connect to Spark
+sc <- spark_connect(master = "local")
+register_gis(sc)
+# read in polygons and points
+polygons <- read.table(system.file(package="geospark","examples/polygons.txt"), sep="|", col.names=c("area","geom"))
+points <- read.table(system.file(package="geospark","examples/points.txt"), sep="|", col.names=c("city","state","geom"))
+
+polygons_wkt <- copy_to(sc, polygons)
+points_wkt <- copy_to(sc, points)
+
+# visualize data
+M1 = polygons %>%
+sf::st_as_sf(wkt="geom") %>% mapview::mapview()
+```
+---
+# Distributed R (Chapter 11)
+* Custom mapping `f(x)` mapping function over partitions using Spark
+* (photo showing map operation over 10)
+![](distributed-times-ten-1.png)
+
+---
+# Distributed R (Chapter 11)
+* Define a custom function by using `spark_apply()`
+
+```r
+sdf_len(sc, 3) %>% spark_apply(~ 10 * .x)
+```
+![](distributed-spark-apply-input-output-1.png)
+
+---
+# Distributed R
+* `~10 * .x` is executed along all worker nodes.
+* `~` is the equivalent of an anonymous function ie `function(.x) 10 * .x`
+* also called a lambda function
+
+```r
+sdf_len(sc, 3) %>% spark_apply(~ 10 * .x)
+```
+
+![](distributed-spark-apply-input-output-1.png)
+
+```r
+sentences <- copy_to(sc, data_frame(text = c("I like apples", "I like bananas")))
+
+sentences %>%
+  spark_apply(~tidytext::unnest_tokens(.x, word, text))
+```
+---
+# Distributed R (unnest tokens)
+
+```r
+sentences <- copy_to(sc, data_frame(text = c("I like apples", "I like bananas")))
+
+sentences %>%
+  spark_apply(~tidytext::unnest_tokens(.x, word, text))
+```
+
+```r
+# Source: spark<?> [?? x 1]
+  word   
+ <chr>  
+1 i      
+2 like   
+3 apples 
+4 i      
+5 like   
+6 bananas
+```
+---
+# Distributed R (reduce operation)
+
+* reduce operation with `dplyr` 
+
+```r
+sentences %>%
+  spark_apply(~tidytext::unnest_tokens(., word, text)) %>%
+  group_by(word) %>%
+  summarise(count = count())
+```
+
+```r
+# Source: spark<?> [?? x 2]
+  word    count
+ <chr>   <dbl>
+1 i           2
+2 apples      1
+3 like        2
+4 bananas     1
+```
+---
+# Use Cases for spark_apply()
+
+* import
+* model
+* transform
+* compute 
+
+
+* Example
+* I want to distribute a large-scale computation. 
+* I want to use R to interoperate with R, by calling it through a web API.
+* I want to use partitioned modelling
+* I want to use a file format not natively supported in Spark or its extensions
+---
+# Use Case : Parsing Log Files
+
+* Parsing log files at scale can be done by using `spark_apply()`
+* `webreadr` has support for loading and parsing logs in Amazon S3, Squid, and Common log format.
+* Using `spark_apply()`, the results appear similar, but they are parsed in parallel
+  across all worker nodes in the cluster.
+
+```r
+aws_log <- system.file("extdata/log.aws", package = "webreadr")
+webreadr::read_aws(aws_log)
+```
+
+* we can scale this operation by using `spark_apply()`
+```r
+spark_read_text(sc, "logs", aws_log, overwrite = TRUE, whole = TRUE) %>%
+  spark_apply(~webreadr::read_aws(.x$contents))
+```
+
+```r
+# Source: spark<?> [?? x 18]
+  date                edge_location bytes_sent ip_address http_method host  path 
+  <dttm>              <chr>              <int> <chr>      <chr>       <chr> <chr>
+1 2014-05-23 01:13:11 FRA2                 182 192.0.2.10 GET         d111… /vie…
+2 2014-05-23 01:13:12 LAX1             2390282 192.0.2.2… GET         d111… /sou…
+# ... with 11 more variables: status_code <int>, referer <chr>, user_agent <chr>,
+#   query <chr>, cookie <chr>, result_type <chr>, request_id <chr>,
+#   host_header <chr>, protocol <chr>, bytes_received <chr>, time_elapsed <dbl>
+```
+---
+# Use Case: Partitioned Modeling
+
+* We can partition over the same dataset and perform modelling or perform modelling over different partitionable datasets
+
+
+* We run a regression model over each species
+
+```r
+iris %>%
+  spark_apply(
+    function(e) summary(lm(Petal_Length ~ Petal_Width, e))$r.squared,
+    names = "r.squared",
+    group_by = "Species")
+```
+* and we can compare which species fits better to the regression model ie versicolor
+```r
+# Source: spark<?> [?? x 2]
+  Species    r.squared
+  <chr>          <dbl>
+1 versicolor     0.619
+2 virginica      0.104
+3 setosa         0.110
+```
+---
+# Use Case: Grid Search
+
+* We try to optimize the combination of parameters to search for the best, by testing all the combinations.
+* A defiency of gridsearch is that the number of function evaluations can grow exponentially.
+
+```r
+grid <- list(minsplit = c(2, 5, 10), maxdepth = c(1, 3, 8)) %>%
+  purrr:::cross_df() %>%
+  copy_to(sc, ., repartition = 9)
+grid
+```
+
+```r
+# Source: spark<?> [?? x 2]
+  minsplit maxdepth
+     <dbl>    <dbl>
+1        2        1
+2        5        1
+3       10        1
+4        2        3
+5        5        3
+6       10        3
+7        2        8
+8        5        8
+9       10        8
+```
+---
+
+# Use Case: Web APIs
+
+* You can make use of web APIs using `spark_apply()` by sending requests to external services using R code.
+* This is helpful because for larger datasets, you need to access APIs from Spark.
+* Still need to keep in mind loads and cost when using external APIs.
+
+```r
+sc <- spark_connect(
+  master = "local",
+  config = list(sparklyr.shell.files = "cloudml.json"))
+
+images <- copy_to(sc, data.frame(
+  image = "http://pbs.twimg.com/media/DwzcM88XgAINkg-.jpg"
+))
+
+spark_apply(images, function(df) {
+  googleAuthR::gar_auth_service(
+    scope = "https://www.googleapis.com/auth/cloud-platform",
+    json_file = "cloudml.json")
+  
+  RoogleVision::getGoogleVisionResponse(
+    df$image,
+    download = FALSE)
+})
+```
+---
+# Use Case: Simulations (Rendering)
+* `rayrender` package is used to show how you can parellelize computation when rendering.
+
+```r
+system2("hadoop", args = c("fs", "-mkdir", "/rendering"))
+
+sdf_len(sc, 628, repartition = 628) %>%
+  spark_apply(function(idx, scene) {
+    render <- sprintf("%04d.png", idx$id)
+    rayrender::render_scene(scene, width = 1920, height = 1080,
+                            lookfrom = c(12 * sin(idx$id/100), 
+                                         5, 12 * cos(idx$id/100)),
+                            filename = render)
+      
+    system2("hadoop", args = c("fs", "-put", render, "/user/hadoop/rendering/"))
+  }, context = scene, columns = list()) %>% collect()
+```
+
+---
+# Partitions 
+* Spark assumes multiple machines
+*  we see 2 partitions so 5 row per partition
+
+```r
+sdf_len(sc, 10) %>%
+  spark_apply(~nrow(.x))
+```
+
+```r
+# Source: spark<?> [?? x 1]
+  result
+   <int>
+1      5
+2      5
+```
+
+`sdf_len(sc, 10) %>% sdf_num_partitions()`
+
+---
+# Partitions 
+* We need to `repartition` to see total number of rows
+
+```r
+sdf_len(sc, 10) %>%
+  spark_apply(~nrow(.x)) %>%
+  sdf_repartition(1) %>%
+  spark_apply(~sum(.x))
+```
+
+```r
+# Source: spark<?> [?? x 1]
+  result
+  <int>
+1     10
+```
+
+---
+# Partitions (Grouping) 
+* We can group based on some filter
+* ie less than 4 in one partition (1, 2, 3) and rest
+
+```r
+sdf_len(sc, 10) %>%
+  transmute(groups = id < 4) %>%
+  spark_apply(~nrow(.x), group_by = "groups")
+```
+
+```r
+  Source: spark<?> [?? x 2]
+  groups result
+  <lgl>   <int>
+1 TRUE        3
+2 FALSE       7
+```
+
+---
+# Partitions (Specifying Column Types) 
+* We can specify columns through `columns` parameters
+* How is (2) more efficient than (1)?
+
+```r
+(1)
+sdf_len(sc, 1) %>%
+  spark_apply(~ data.frame(numbers = 1, names = "abc"))
+```
+
+```r
+(2)
+sdf_len(sc, 1) %>%
+  spark_apply(
+    ~ data.frame(numbers = 1, names = "abc"),
+    columns = list(numbers = "double", names = "character"))
+```
+
+```r
+(output)
+# Source: spark<?> [?? x 2]
+  numbers names
+   <dbl> <chr>
+1       1 abc 
+```
+---
+# Partitions (Context)
+* You can use `spark_apply()` to configure the context parameter
+
+```r
+sdf_len(sc, 4) %>%
+  spark_apply(
+    ~.y$m * .x + .y$b,
+    context = list(b = 2, m = 10)
+  )
+```
+
+```r
+(output)
+ Source: spark<?> [?? x 1]
+     id
+  <dbl>
+1    12
+2    22
+3    32
+4    42
+```
+---
+# Functions
+* Facilitate multiline transformations : `function(data, content)`
+* Functions are passed to `spark_apply()` and serialized using `serialize`. 
+* `serialize` won't serialize objects being referenced outside of its environment.
+* fix is to add the functions your closure needs into the `context` and then assign the 
+  functions into the global environment.
+
+```r
+(error)
+external_value <- 1
+spark_apply(iris, function(e) e + external_value)
+
+(will work, outputs result 42)
+func_a <- function() 40
+func_b <- function() func_a() + 1
+func_c <- function() func_b() + 1
+
+sdf_len(sc, 1) %>% spark_apply(function(df, context) {
+  for (name in names(context)) assign(name, context[[name]], envir = .GlobalEnv)
+  func_c()
+}, context = list(
+  func_a = func_a,
+  func_b = func_b,
+  func_c = func_c
+))
+```
+---
+# Packages
+* The first time you call `spark_apply()`, all contents in your `.libPaths()` will be copied to each Spark worker node
+* Packages persist as long as the connection stays open
+* For additional packages to be installed, you need to `spark_disconnect()`, modify packages and reconnect
+* R packages are not copied in local mode
+---
+# Cluster Requirements
+* The first time you call `spark_apply()`, all contents in your `.libPaths()` will be copied to each Spark worker node
+* Packages persist as long as the connection stays open
+* For additional packages to be installed, you need to `spark_disconnect()`, modify packages and reconnect
+* R packages are not copied in local mode
+
+---
+# Troubleshooting
+
+* Worker Logs : `spark_log(sc)` and filter using `spark_log(sc, filter = "sparklyr: RScript")` for specific error logs
+* To troubleshoot an error, you can use `sdf_len(sc, 1) %>% spark_apply(~stop("force an error"))` and force a stop or customize errors, so that you can troubleshoot and read logs more easily (so you can specify what the message error should throw to figure out what is wrong)
+* Timeouts
+* Inspecting Partitions
+* Debugging Workers
+
+---
+# Questions: Recap Extensions (Shuffled)
+
+1. How do I check what version of H20 I have?
+
+1. What is the web interface for H20 called and how do I access it?
+
+1. name one algorithm provided in `graphframes`
+
+1. I'm trying to install `sparkxgb` on my Windows machine but I can't get it to work. What am I doing wrong?
+
+1. What kind of connection do I retrieve to `variantspark`?
+
+1. How do I convert from a Spark dataframe to an H20 dataframe?
+
+1. My connection to Apache IVY fails while using my extension. How do I clear my IVY cache?
+
+1. When installing Spark, Sparkling Water and H20, does it matter which versions I install?
+
+---
+# Questions: Recap Extensions (Answers)
+
+1. `packageVersion("h2o")`
+
+1. H20 Flow by using `h2o_flow(sc)`
+
+1. breadth-first search, connected components, label propagation, strongly connected components,triangle count
+
+1. Windows is currently unsupported.
+
+1. `vsc` connection
+
+1. By using the as_h20_frame function : `X_h2o <- as_h2o_frame(sc, X)`
+
+1. `unlink("~/.ivy2", recursive = TRUE)`
+
+1. They have to be compatible.
+
+---
+# Questions: Distributed R (Shuffled)
+
+1. What happens if I try to group data by a partition and one of the groups is too large?
+
+1. Can I serialize objects being referred outside its environment?
+
+1. You are pretty sure you installed R but you got `Cannot run program, no such file or directory` when you run `spark_apply()`. How would you trouble-shoot this?
+
+1. What are some practical use cases for `spark_apply()` (4)?
+
+---
+# Questions: Distributed R (Answers)
+
+1. An exception is thrown
+
+1. No
+
+1. You may not have installed R on every node (R runtime expects this)
+
+1. import, model, transform, compute
+---
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

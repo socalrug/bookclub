@@ -1,0 +1,126 @@
+---
+title: "Chap_10-11_exercise"
+author: "Krystal Maughan"
+date: "3/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Step 1. Preparation
+
+## 1.1 Load libraries
+```{r include=FALSE}
+library(rsparkling)
+library(sparklyr)
+library(h2o)
+```
+
+```r
+# get information about the r cluster
+> h2o.clusterInfo()
+R is connected to the H2O cluster: 
+    H2O cluster uptime:         24 minutes 55 seconds 
+    H2O cluster timezone:       America/New_York 
+    H2O data parsing timezone:  UTC 
+    H2O cluster version:        3.24.0.5 
+    H2O cluster version age:    1 year, 8 months and 10 days !!! 
+    H2O cluster name:           sparkling-water-krystalmaughan_local-*************
+    H2O cluster total nodes:    1 
+    H2O cluster total memory:   1.28 GB 
+    H2O cluster total cores:    8 
+    H2O cluster allowed cores:  8 
+    H2O cluster healthy:        TRUE 
+    H2O Connection ip:          192.168.*.* 
+    H2O Connection port:        54321 
+    H2O Connection proxy:       NA 
+    H2O Internal Security:      FALSE 
+    H2O API Extensions:         XGBoost, Algos, Amazon S3, AutoML, Core V3, Core V4 
+    R Version:                  R version 4.0.3 (2020-10-10) 
+
+
+# import insurance dataset
+> insurance <- h2o.importFile("https://s3.amazonaws.com/h2o-public-test-data/smalldata/glm_test/insurance.csv")
+  |======================================================================| 100%
+> head(insurance)
+  District  Group   Age Holders Claims
+1        1    <1l   <25     197     38
+2        1    <1l 25-29     264     35
+3        1    <1l 30-35     246     20
+4        1    <1l   >35    1680    156
+5        1 1-1.5l   <25     284     63
+6        1 1-1.5l 25-29     536     84
+
+# look at types 
+> as_tibble(insurance)
+# A tibble: 64 x 5
+   District Group  Age   Holders Claims
+      <int> <fct>  <fct>   <int>  <int>
+ 1        1 <1l    <25       197     38
+ 2        1 <1l    25-29     264     35
+ 3        1 <1l    30-35     246     20
+ 4        1 <1l    >35      1680    156
+ 5        1 1-1.5l <25       284     63
+ 6        1 1-1.5l 25-29     536     84
+ 7        1 1-1.5l 30-35     696     89
+ 8        1 1-1.5l >35      3582    400
+ 9        1 1.5-2l <25       133     19
+10        1 1.5-2l 25-29     286     52
+
+# You can use h20.describe() to look at the data
+> h2o.describe(insurance)
+     Label Type Missing Zeros PosInf NegInf Min Max     Mean   Sigma
+1 District enum       0    16      0      0   0   3       NA      NA
+2    Group enum       0    16      0      0   0   3       NA      NA
+3      Age enum       0    16      0      0   0   3       NA      NA
+4  Holders enum       0     1      0      0   0  62       NA      NA
+5   Claims  int       0     1      0      0   0 400 49.23438 71.1624
+  Cardinality
+1           4
+2           4
+3           4
+4          63
+5          NA
+
+# display a summary of the data
+> summary(insurance)
+ District       Group      Age       Holders           Claims          
+ Min.   :1.00   1-1.5l:16  25-29:16  Min.   :   3.00   Min.   :  0.00  
+ 1st Qu.:1.75   1.5-2l:16  30-35:16  1st Qu.:  45.06   1st Qu.:  9.50  
+ Median :2.50   <1l   :16  <25  :16  Median : 133.67   Median : 22.00  
+ Mean   :2.50   >2l   :16  >35  :16  Mean   : 364.98   Mean   : 49.23  
+ 3rd Qu.:3.25                        3rd Qu.: 326.99   3rd Qu.: 55.50  
+ Max.   :4.00 
+
+# plot histogram of claims
+> h2o.hist(insurance$Claims)
+
+ # h20 prcomp() allows you to map a set of variables onto a subspace using linear transformations
+ > insurance.pca <- h2o.prcomp(training_frame = insurance, transform = "STANDARDIZE",k = 3)
+
+ > insurance.pca
+ Model Details:
+==============
+
+H2ODimReductionModel: pca
+Model ID:  PCA_model_R_1614577099789_2 
+Importance of components: 
+                            pc1      pc2      pc3
+Standard deviation     1.507239 0.923895 0.666308
+Proportion of Variance 0.502181 0.188686 0.098140
+Cumulative Proportion  0.502181 0.690867 0.789007
+
+
+H2ODimReductionMetrics: pca
+
+No model metrics available for PCA
+
+# look at logs
+> spark_log(sc)
+
+# model trained settings and documentation using AutoML
+# https://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/deep-learning.html
+# boston value home: this is another good tutorial: https://docs.h2o.ai/h2o/latest-stable/h2o-docs/training-models.html
+```
