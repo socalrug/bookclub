@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Text Mining with R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2021-03-22" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Text Mining with R
+### John Peach
+### Orange County R Users Group
+### 2021-03-22
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+# Logistics
+
+
+## **When**: 
+
+March 22nd 6:30 PM ~ 8:00 PM
+
+Every week for about 6 weeks
+
+## **Where**: 
+
+[Zoom](https://oracle.zoom.us/j/97965194907?pwd=MmVyVk9vK24rUjI5eWt1eDJqY0FvQT09)
+
+Meeting ID: 979 6519 4907
+
+Passcode: 11235813
+
+## **Schedule**: 
+
+1. 6:30pm ~ 7:00 PM networking and setup
+2. 7:00pm ~ 8:00 PM Chapter 1 ~ 2 discussion 
+
+---
+
+# Slack Channel
+
+A slack channel has been set up for the book club. This will be used for general announcements but it is also a great source for you to ask questions to other participants.
+
+Slack Group [Sign-up](https://tinyurl.com/socalrug-slack-signup)
+    
+[Slack Group](https://tinyurl.com/socalrug-slack)
+
+Slack channel: #oc_rug-bookclub.
+
+---
+
+# Resources
+
+1. [online free book](https://www.tidytextmining.com/)
+1. [Book on Amazon](https://www.amazon.com/gp/product/1491981652/)
+
+&lt;img src='cover.png' alt="Cover" height="450px"&gt;
+
+---
+
+# Sessions
+
+.pull-left[
+Session 1: (John Peach)
+* C1: The Tidy Text Format
+* C2: Sentiment Analysis with Tidy Data
+* Exercise
+
+Session 2: (Judith Borghouts)
+* C3: Analyzing Word and Document Frequency: tf-idf
+* C4: Relationships Between Words: N-grams and Correlations
+* Exercise
+
+Session 3: (Lily Cheng)
+* C5: Converting to and from Nontidy Formats
+* C6: Topic Modeling
+]
+
+.pull-right[
+Session 4: (Krystal Maughan)
+* C7: Case Study: Comparing Twitter Archives
+* Exercise
+
+Session 5: (Jake)
+* C8: Case Study: Mining NASA Metadata
+* Exercise
+
+Session 6: (Open)
+* C9: Case Study: Analyzing Usenet Text
+* Exercise
+]
+
+---
+
+# Leader Expectations
+
+1. Everyone should lead a session if possible.
+1. Present a summary of the material.
+  1. Assume that everyone has read it.
+  1. Present what was interesting or not obvious.
+  1. Not expected to be an expert in the material.
+  1. No longer than 15 min.
+1. Leader creates exercise for the group to do.
+  1. Bulk of the work should be on hands-on excises.
+  1. Leader prepares the solutions in advance.
+  1. Check all work into GitHub.
+  
+---
+
+# Introductions
+
+* Name
+* Background (education, work)
+* Why you are in the book club
+* Any background in NLP?
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
