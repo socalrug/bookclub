@@ -94,11 +94,11 @@ Session 4: (Krystal Maughan)
 * C7: Case Study: Comparing Twitter Archives
 * Exercise
 
-Session 5: (Jake)
+Session 5: (Jake Riley)
 * C8: Case Study: Mining NASA Metadata
 * Exercise
 
-Session 6: (Open)
+Session 6: (Chris Schmader)
 * C9: Case Study: Analyzing Usenet Text
 * Exercise
 ]
