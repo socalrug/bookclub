@@ -1,0 +1,169 @@
+---
+title: "Chapter 3"
+author: "John Peach"
+date: "3/23/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      cache = TRUE)
+library(dplyr)
+library(janeaustenr)
+library(tidytext)
+```
+
+```{r}
+book_words <- austen_books() %>% 
+  unnest_tokens(word, text) %>% 
+  count(book, word, sort = TRUE) %>% 
+  ungroup()
+
+total_words <- book_words %>% 
+  group_by(book) %>% 
+  summarise(total = sum(n))
+
+book_words <- left_join(book_words, total_words)
+book_words
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(book_words, aes(n/total, fill = book)) +
+  geom_histogram(show.legend = FALSE) +
+  xlim(NA, 0.0009) +
+  facet_wrap(~book, ncol = 2, scales = 'free_y')
+```
+
+```{r}
+freq_by_rank <- book_words %>% 
+  group_by(book) %>% 
+  mutate(rank = row_number(), `term frequency` = n/total)
+
+freq_by_rank
+
+```
+```{r}
+freq_by_rank %>% 
+  ggplot(aes(rank, `term frequency`, color = book)) +
+    geom_line(size = 1.1, alpha = 0.8, show.legend = FALSE) +
+    scale_x_log10() +
+    scale_y_log10()
+```
+
+```{r}
+rank_subset <- freq_by_rank %>% 
+  dplyr::filter(rank < 500, rank > 10)
+
+lm(log10(`term frequency`) ~ log10(rank), data = rank_subset)
+```
+```{r}
+freq_by_rank %>% 
+  ggplot(aes(rank, `term frequency`, color = book)) +
+    geom_abline(intercept = -0.62, slope = -1.1, color = 'gray50', linetype = 2) +
+    geom_line(size = 1.1, alpha = 0.8, show.legend = FALSE) +
+    scale_x_log10() +
+    scale_y_log10()
+```
+```{r}
+book_words <- book_words %>% 
+  bind_tf_idf(word, book, n)
+
+book_words
+```
+```{r}
+book_words %>% 
+  select(-total) %>% 
+  arrange(desc(tf_idf))
+```
+```{r}
+book_words %>% 
+  arrange(desc(tf_idf)) %>% 
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(book) %>% 
+  top_n(15) %>% 
+  ungroup %>% 
+  ggplot(aes(word, tf_idf, fill = book)) +
+    geom_col(show.legend = FALSE) +
+    labs(x = NULL, y = 'TF*IDF') +
+    facet_wrap(~book, ncol = 2, scales = 'free') +
+    coord_flip()
+```
+
+```{r}
+library(gutenbergr)
+physics <- gutenberg_download(c(37729, 14725, 13476, 5001), 
+                              meta_fields = 'author',
+                              mirror ='http://eremita.di.uminho.pt/gutenberg/')
+```
+
+```{r}
+physics_word <- physics %>% 
+  unnest_tokens(word, text) %>% 
+  count(author, word, sort = TRUE) %>% 
+  ungroup()
+
+physics_word
+```
+```{r}
+plot_physics <- physics_word %>% 
+  bind_tf_idf(word, author, n) %>% 
+  arrange(desc(tf_idf)) %>% 
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  mutate(author = factor(author, levels = c('Galilei, Galileo',
+                                            'Huygens, Christiaan',
+                                            'Tesla, Nikola', 
+                                            'Einstein, Albert')))
+
+plot_physics %>% 
+  group_by(author) %>% 
+  top_n(15, tf_idf) %>% 
+  ungroup() %>% 
+  mutate(word = reorder(word, tf_idf)) %>% 
+  ggplot(aes(word, tf_idf, fill = author)) +
+    geom_col(show.legend = FALSE) +
+    labs(x = NULL, y = 'TF*IDF') +
+    facet_wrap(~author, ncol = 2, scales = 'free') +
+    coord_flip()
+```
+```{r}
+library(stringr)
+
+physics %>% 
+  dplyr::filter(str_detect(text, "eq\\.")) %>% 
+  select(text)
+```
+```{r}
+physics %>% 
+  dplyr::filter(str_detect(text, "K1")) %>% 
+  select(text)
+```
+```{r}
+physics %>% 
+  dplyr::filter(str_detect(text, "AK")) %>% 
+  select(text)
+```
+```{r}
+mystopwords <- data_frame(word = c('eq', 'co', 'rc', 'ac', 'ak', 'bn',
+                                   'fig', 'file', 'cg', 'cb', 'cm'))
+physics_word <- anti_join(physics_word, mystopwords, by = 'word')
+plot_physics <- physics_word %>% 
+  bind_tf_idf(word, author, n) %>% 
+  arrange(desc(tf_idf)) %>% 
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(author) %>% 
+  top_n(15, tf_idf) %>% 
+  ungroup %>% 
+  mutate(author = factor(author, levels = c('Galilei, Galileo',
+                                            'Huygens, Christiaan',
+                                            'Tesla, Nikola', 
+                                            'Einstein, Albert')))
+
+ggplot(plot_physics, aes(word, tf_idf, fill = author)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "TF*IDF") +
+  facet_wrap(~author, ncol = 2, scales = 'free') +
+  coord_flip()
+```
+
