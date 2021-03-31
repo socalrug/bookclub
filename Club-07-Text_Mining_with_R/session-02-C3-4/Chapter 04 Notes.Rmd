@@ -1,0 +1,254 @@
+---
+title: "Chapter 4"
+author: "John Peach"
+date: "3/28/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      cache = TRUE)
+library(dplyr)
+library(janeaustenr)
+library(tidytext)
+```
+
+```{r}
+austen_bigrams <- austen_books() %>% 
+  unnest_tokens(bigram, text, token = 'ngrams', n = 2)
+
+austen_bigrams
+```
+```{r}
+austen_bigrams %>% 
+  count(bigram, sort = TRUE)
+```
+```{r}
+library(tidyr)
+
+bigrams_seperated <- austen_bigrams %>% 
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+bigrams_filtered <- bigrams_seperated %>% 
+  dplyr::filter(!word1 %in% stop_words$word) %>% 
+  dplyr::filter(!word2 %in% stop_words$word)
+
+# new bigram counts:
+bigram_counts <- bigrams_filtered %>% 
+  count(word1, word2, sort = TRUE)
+
+bigram_counts
+```
+```{r}
+bigrams_united <- bigrams_filtered %>% 
+  unite(bigram, word1, word2, sep = ' ')
+
+bigrams_united
+```
+
+```{r}
+austen_books() %>% 
+  unnest_tokens(trigram, text, token = 'ngrams', n = 3) %>% 
+  separate(trigram, c("word1", "word2", "word3"), sep = " ") %>% 
+  dplyr::filter(!word1 %in% stop_words$word,
+                !word2 %in% stop_words$word,
+                !word3 %in% stop_words$word) %>% 
+  count(word1, word2, word3, sort = TRUE)
+```
+```{r}
+bigrams_filtered %>% 
+  dplyr::filter(word2 == 'street') %>% 
+  count(book, word1, sort = TRUE)
+```
+```{r}
+bigram_tf_idf <- bigrams_united %>% 
+  count(book, bigram) %>% 
+  bind_tf_idf(bigram, book, n) %>% 
+  arrange(desc(tf_idf))
+
+bigram_tf_idf
+```
+```{r}
+bigrams_seperated %>% 
+  dplyr::filter(word1 == 'not') %>% 
+  count(word1, word2, sort = TRUE)
+```
+```{r}
+AFINN <- get_sentiments('afinn')
+AFINN
+```
+```{r}
+not_words <- bigrams_seperated %>% 
+  dplyr::filter(word1 == 'not') %>% 
+  inner_join(AFINN, by = c(word2 = 'word')) %>% 
+  count(word2, value, sort = TRUE) %>% 
+  ungroup() %>% 
+  rename(score = value)
+
+not_words
+```
+```{r}
+not_words %>% 
+  mutate(contribution = n * score) %>% 
+  arrange(desc(abs(contribution))) %>% 
+  head(20) %>% 
+  mutate(word2 = reorder(word2, contribution)) %>% 
+  ggplot(aes(word2, n * score, fill = n * score > 0)) +
+    geom_col(show.legend = FALSE) +
+    xlab("Words preceded by \"not\"") +
+    ylab("Sentiment score * number of occurrences") +
+    coord_flip()
+```
+
+```{r}
+negation_words <- c("not", "no", "never", "without")
+
+negation_words <- bigrams_seperated %>% 
+  dplyr::filter(word1 %in% negation_words) %>% 
+  inner_join(AFINN, by = c(word2 = 'word')) %>% 
+  count(word1, word2, value, sort = TRUE) %>% 
+  ungroup()
+```
+
+```{r}
+library(igraph)
+bigram_counts
+```
+
+```{r}
+bigram_graph <- bigram_counts %>% 
+  dplyr::filter(n > 20) %>% 
+  graph_from_data_frame()
+
+bigram_graph
+```
+```{r}
+library(ggraph)
+set.seed(2017)
+
+ggraph(bigram_graph, layout = 'fr') +
+  geom_edge_link() +
+  geom_node_point() +
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1)
+```
+```{r}
+set.seed(2016)
+a <- grid::arrow(type = 'closed', length = unit(0.15, 'inches'))
+
+ggraph(bigram_graph, layout = 'fr') +
+  geom_edge_link(aes(edge_alpha = n), show.legend = FALSE,
+                 arrow = a, end_cap = circle(0.07, 'inches')) +
+  geom_node_point(color = 'lightblue', size = 5) +
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+  theme_void()
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(ggplot2)
+library(igraph)
+library(ggraph)
+
+count_bigrams <- function(dataset) {
+  dataset %>% 
+    unnest_tokens(bigram, text, token = 'ngrams', n = 2) %>% 
+    separate(bigram, c('word1', 'word2'), sep = ' ') %>% 
+    dplyr::filter(!word1 %in% stop_words$word,
+                  !word2 %in% stop_words$word) %>% 
+    count(word1, word2, sort = TRUE)
+}
+
+visualize_bigrams <- function(bigrams){
+  set.seed(2016)
+  a <- grid::arrow(type = 'closed', length = unit(0.15, 'inches'))
+  
+  bigrams %>% 
+    graph_from_data_frame() %>% 
+    ggraph(layout = 'fr') +
+    geom_edge_link(aes(edge_alpha = n), show.legend = FALSE, arrow = a) +
+    geom_node_point(color = 'lightblue', size = 5) +
+    geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+    theme_void()
+}
+```
+
+```{r}
+library(gutenbergr)
+kjv <- gutenberg_download(10, mirror = 'http://eremita.di.uminho.pt/gutenberg/')
+
+library(stringr)
+
+kjv_bigrams <- kjv %>% 
+  count_bigrams()
+
+kjv_bigrams %>% 
+  dplyr::filter(n > 40,
+                !str_detect(word1, '\\d'),
+                !str_detect(word2, '\\d')) %>% 
+  visualize_bigrams()
+```
+
+
+```{r}
+austen_section_words <- austen_books() %>% 
+  dplyr::filter(book == 'Pride & Prejudice') %>% 
+  mutate(section = row_number() %/% 10) %>% 
+  dplyr::filter(section > 0) %>% 
+  unnest_tokens(word, text) %>% 
+  dplyr::filter(!word %in% stop_words$word)
+```
+
+```{r}
+library(widyr)
+```
+
+```{r}
+word_pair <- austen_section_words %>% 
+  pairwise_count(word, section, sort = TRUE)
+
+word_pair
+```
+```{r}
+word_pair %>% 
+  dplyr::filter(item1 == 'darcy')
+```
+```{r}
+word_cors <- austen_section_words %>% 
+  group_by(word) %>% 
+  dplyr::filter(n() >= 20) %>% 
+  pairwise_cor(word, section, sort = TRUE)
+
+word_cors
+```
+```{r}
+word_cors %>% 
+  dplyr::filter(item1 == 'pounds')
+```
+```{r}
+word_cors %>% 
+  dplyr::filter(item1 %in% c('elizabeth', 'pounds', 'married', 'pride')) %>% 
+  group_by(item1) %>% 
+  top_n(6) %>% 
+  ungroup() %>% 
+  mutate(item2 = reorder(item2, correlation)) %>% 
+  ggplot(aes(item2, correlation)) +
+    geom_bar(stat = 'identity') +
+    facet_wrap(~ item1, scales = 'free') +
+    coord_flip()
+```
+
+```{r}
+set.seed(2016)
+
+word_cors %>% 
+  dplyr::filter(correlation > 0.15) %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = 'fr') +
+    geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
+    geom_node_point(color = 'lightblue', size = 5) +
+    geom_node_text(aes(label = name), repel = TRUE) +
+    theme_void()
+```
+
