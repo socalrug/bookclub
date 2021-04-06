@@ -1,0 +1,391 @@
+21/02/15 19:35:08 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+21/02/15 19:35:11 INFO SparkContext: Running Spark version 2.3.3
+21/02/15 19:35:11 INFO SparkContext: Submitted application: sparklyr
+21/02/15 19:35:11 INFO SecurityManager: Changing view acls to: lilycheng
+21/02/15 19:35:11 INFO SecurityManager: Changing modify acls to: lilycheng
+21/02/15 19:35:11 INFO SecurityManager: Changing view acls groups to: 
+21/02/15 19:35:11 INFO SecurityManager: Changing modify acls groups to: 
+21/02/15 19:35:11 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(lilycheng); groups with view permissions: Set(); users  with modify permissions: Set(lilycheng); groups with modify permissions: Set()
+21/02/15 19:35:11 INFO Utils: Successfully started service 'sparkDriver' on port 54092.
+21/02/15 19:35:11 INFO SparkEnv: Registering MapOutputTracker
+21/02/15 19:35:12 INFO SparkEnv: Registering BlockManagerMaster
+21/02/15 19:35:12 INFO BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+21/02/15 19:35:12 INFO BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+21/02/15 19:35:12 INFO DiskBlockManager: Created local directory at /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/blockmgr-c97d82c7-01e7-48d2-81f9-d01ba11c32ee
+21/02/15 19:35:12 INFO MemoryStore: MemoryStore started with capacity 912.3 MB
+21/02/15 19:35:12 INFO SparkEnv: Registering OutputCommitCoordinator
+21/02/15 19:35:12 INFO Utils: Successfully started service 'SparkUI' on port 4040.
+21/02/15 19:35:12 INFO SparkUI: Bound SparkUI to 127.0.0.1, and started at http://localhost:4040
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Library/Frameworks/R.framework/Versions/3.6/Resources/library/mleap/java/mleap-2.3-2.11.jar at spark://localhost:54092/jars/mleap-2.3-2.11.jar with timestamp 1613446512710
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.mleap_mleap-spark_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.mleap_mleap-spark_2.11-0.13.0.jar with timestamp 1613446512713
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.mleap_mleap-spark-base_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.mleap_mleap-spark-base_2.11-0.13.0.jar with timestamp 1613446512713
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.mleap_mleap-runtime_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.mleap_mleap-runtime_2.11-0.13.0.jar with timestamp 1613446512714
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.bundle_bundle-hdfs_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.bundle_bundle-hdfs_2.11-0.13.0.jar with timestamp 1613446512714
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.mleap_mleap-core_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.mleap_mleap-core_2.11-0.13.0.jar with timestamp 1613446512714
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.bundle_bundle-ml_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.bundle_bundle-ml_2.11-0.13.0.jar with timestamp 1613446512715
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/org.scala-lang_scala-reflect-2.11.8.jar at spark://localhost:54092/jars/org.scala-lang_scala-reflect-2.11.8.jar with timestamp 1613446512715
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.mleap_mleap-base_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.mleap_mleap-base_2.11-0.13.0.jar with timestamp 1613446512715
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/ml.combust.mleap_mleap-tensor_2.11-0.13.0.jar at spark://localhost:54092/jars/ml.combust.mleap_mleap-tensor_2.11-0.13.0.jar with timestamp 1613446512716
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.github.rwl_jtransforms-2.4.0.jar at spark://localhost:54092/jars/com.github.rwl_jtransforms-2.4.0.jar with timestamp 1613446512716
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/io.spray_spray-json_2.11-1.3.2.jar at spark://localhost:54092/jars/io.spray_spray-json_2.11-1.3.2.jar with timestamp 1613446512717
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.google.protobuf_protobuf-java-3.5.1.jar at spark://localhost:54092/jars/com.google.protobuf_protobuf-java-3.5.1.jar with timestamp 1613446512717
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.thesamet.scalapb_scalapb-runtime_2.11-0.7.1.jar at spark://localhost:54092/jars/com.thesamet.scalapb_scalapb-runtime_2.11-0.7.1.jar with timestamp 1613446512717
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.jsuereth_scala-arm_2.11-2.0.jar at spark://localhost:54092/jars/com.jsuereth_scala-arm_2.11-2.0.jar with timestamp 1613446512717
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.typesafe_config-1.3.0.jar at spark://localhost:54092/jars/com.typesafe_config-1.3.0.jar with timestamp 1613446512718
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.thesamet.scalapb_lenses_2.11-0.7.0-test2.jar at spark://localhost:54092/jars/com.thesamet.scalapb_lenses_2.11-0.7.0-test2.jar with timestamp 1613446512718
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.lihaoyi_fastparse_2.11-1.0.0.jar at spark://localhost:54092/jars/com.lihaoyi_fastparse_2.11-1.0.0.jar with timestamp 1613446512719
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.lihaoyi_fastparse-utils_2.11-1.0.0.jar at spark://localhost:54092/jars/com.lihaoyi_fastparse-utils_2.11-1.0.0.jar with timestamp 1613446512720
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:///Users/lilycheng/.ivy2/jars/com.lihaoyi_sourcecode_2.11-0.1.4.jar at spark://localhost:54092/jars/com.lihaoyi_sourcecode_2.11-0.1.4.jar with timestamp 1613446512721
+21/02/15 19:35:12 INFO SparkContext: Added JAR file:/Library/Frameworks/R.framework/Versions/3.6/Resources/library/sparklyr/java/sparklyr-2.3-2.11.jar at spark://localhost:54092/jars/sparklyr-2.3-2.11.jar with timestamp 1613446512722
+21/02/15 19:35:12 INFO Executor: Starting executor ID driver on host localhost
+21/02/15 19:35:12 INFO Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 54093.
+21/02/15 19:35:12 INFO NettyBlockTransferService: Server created on localhost:54093
+21/02/15 19:35:12 INFO BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+21/02/15 19:35:13 INFO BlockManagerMaster: Registering BlockManager BlockManagerId(driver, localhost, 54093, None)
+21/02/15 19:35:13 INFO BlockManagerMasterEndpoint: Registering block manager localhost:54093 with 912.3 MB RAM, BlockManagerId(driver, localhost, 54093, None)
+21/02/15 19:35:13 INFO BlockManagerMaster: Registered BlockManager BlockManagerId(driver, localhost, 54093, None)
+21/02/15 19:35:13 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, localhost, 54093, None)
+21/02/15 19:35:13 INFO SharedState: loading hive config file: file:/Users/lilycheng/spark/spark-2.3.3-bin-hadoop2.7/conf/hive-site.xml
+21/02/15 19:35:13 INFO SharedState: Setting hive.metastore.warehouse.dir ('null') to the value of spark.sql.warehouse.dir ('file:/Users/lilycheng/Desktop/BookClub/bookclub/spark-warehouse').
+21/02/15 19:35:13 INFO SharedState: Warehouse path is 'file:/Users/lilycheng/Desktop/BookClub/bookclub/spark-warehouse'.
+21/02/15 19:35:15 INFO StateStoreCoordinatorRef: Registered StateStoreCoordinator endpoint
+21/02/15 19:35:19 INFO HiveUtils: Initializing HiveMetastoreConnection version 1.2.1 using Spark classes.
+21/02/15 19:35:21 INFO HiveMetaStore: 0: Opening raw store with implemenation class:org.apache.hadoop.hive.metastore.ObjectStore
+21/02/15 19:35:21 INFO ObjectStore: ObjectStore, initialize called
+21/02/15 19:35:22 INFO Persistence: Property hive.metastore.integral.jdo.pushdown unknown - will be ignored
+21/02/15 19:35:22 INFO Persistence: Property datanucleus.cache.level2 unknown - will be ignored
+21/02/15 19:35:24 INFO ObjectStore: Setting MetaStore object pin classes with hive.metastore.cache.pinobjtypes="Table,StorageDescriptor,SerDeInfo,Partition,Database,Type,FieldSchema,Order"
+21/02/15 19:35:26 INFO Datastore: The class "org.apache.hadoop.hive.metastore.model.MFieldSchema" is tagged as "embedded-only" so does not have its own datastore table.
+21/02/15 19:35:26 INFO Datastore: The class "org.apache.hadoop.hive.metastore.model.MOrder" is tagged as "embedded-only" so does not have its own datastore table.
+21/02/15 19:35:28 INFO Datastore: The class "org.apache.hadoop.hive.metastore.model.MFieldSchema" is tagged as "embedded-only" so does not have its own datastore table.
+21/02/15 19:35:28 INFO Datastore: The class "org.apache.hadoop.hive.metastore.model.MOrder" is tagged as "embedded-only" so does not have its own datastore table.
+21/02/15 19:35:28 INFO MetaStoreDirectSql: Using direct SQL, underlying DB is DERBY
+21/02/15 19:35:28 INFO ObjectStore: Initialized ObjectStore
+21/02/15 19:35:29 WARN ObjectStore: Version information not found in metastore. hive.metastore.schema.verification is not enabled so recording the schema version 1.2.0
+21/02/15 19:35:29 WARN ObjectStore: Failed to get database default, returning NoSuchObjectException
+21/02/15 19:35:29 INFO HiveMetaStore: Added admin role in metastore
+21/02/15 19:35:29 INFO HiveMetaStore: Added public role in metastore
+21/02/15 19:35:29 INFO HiveMetaStore: No user is added in admin role, since config is empty
+21/02/15 19:35:29 INFO HiveMetaStore: 0: get_all_databases
+21/02/15 19:35:29 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_all_databases	
+21/02/15 19:35:29 INFO HiveMetaStore: 0: get_functions: db=default pat=*
+21/02/15 19:35:29 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_functions: db=default pat=*	
+21/02/15 19:35:29 INFO Datastore: The class "org.apache.hadoop.hive.metastore.model.MResourceUri" is tagged as "embedded-only" so does not have its own datastore table.
+21/02/15 19:35:30 INFO SessionState: Created HDFS directory: /tmp/hive/lilycheng
+21/02/15 19:35:30 INFO SessionState: Created local directory: /var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/lilycheng
+21/02/15 19:35:30 INFO SessionState: Created local directory: /var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/a1096ad1-482f-4183-a015-03e034f64512_resources
+21/02/15 19:35:30 INFO SessionState: Created HDFS directory: /tmp/hive/lilycheng/a1096ad1-482f-4183-a015-03e034f64512
+21/02/15 19:35:30 INFO SessionState: Created local directory: /var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/lilycheng/a1096ad1-482f-4183-a015-03e034f64512
+21/02/15 19:35:30 INFO SessionState: Created HDFS directory: /tmp/hive/lilycheng/a1096ad1-482f-4183-a015-03e034f64512/_tmp_space.db
+21/02/15 19:35:30 INFO HiveClientImpl: Warehouse location for Hive client (version 1.2.2) is file:/Users/lilycheng/Desktop/BookClub/bookclub/spark-warehouse
+21/02/15 19:35:30 INFO HiveMetaStore: 0: get_database: default
+21/02/15 19:35:30 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_database: default	
+21/02/15 19:35:30 INFO HiveMetaStore: 0: get_database: global_temp
+21/02/15 19:35:30 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_database: global_temp	
+21/02/15 19:35:30 WARN ObjectStore: Failed to get database global_temp, returning NoSuchObjectException
+21/02/15 19:35:30 INFO HiveMetaStore: 0: get_database: default
+21/02/15 19:35:30 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_database: default	
+21/02/15 19:35:30 INFO HiveMetaStore: 0: get_database: default
+21/02/15 19:35:30 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_database: default	
+21/02/15 19:35:30 INFO HiveMetaStore: 0: get_tables: db=default pat=*
+21/02/15 19:35:30 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_tables: db=default pat=*	
+21/02/15 19:35:31 INFO CodeGenerator: Code generated in 275.117348 ms
+21/02/15 19:35:32 INFO CodeGenerator: Code generated in 29.038934 ms
+21/02/15 19:35:32 INFO CodeGenerator: Code generated in 38.015294 ms
+21/02/15 19:35:32 INFO SparkContext: Starting job: count at utils.scala:116
+21/02/15 19:35:32 INFO ContextCleaner: Cleaned accumulator 1
+21/02/15 19:35:32 INFO DAGScheduler: Registering RDD 3 (count at utils.scala:116)
+21/02/15 19:35:32 INFO DAGScheduler: Got job 0 (count at utils.scala:116) with 1 output partitions
+21/02/15 19:35:32 INFO DAGScheduler: Final stage: ResultStage 1 (count at utils.scala:116)
+21/02/15 19:35:32 INFO DAGScheduler: Parents of final stage: List(ShuffleMapStage 0)
+21/02/15 19:35:32 INFO DAGScheduler: Missing parents: List(ShuffleMapStage 0)
+21/02/15 19:35:32 INFO DAGScheduler: Submitting ShuffleMapStage 0 (MapPartitionsRDD[3] at count at utils.scala:116), which has no missing parents
+21/02/15 19:35:32 INFO MemoryStore: Block broadcast_0 stored as values in memory (estimated size 8.3 KB, free 912.3 MB)
+21/02/15 19:35:33 INFO MemoryStore: Block broadcast_0_piece0 stored as bytes in memory (estimated size 4.3 KB, free 912.3 MB)
+21/02/15 19:35:33 INFO BlockManagerInfo: Added broadcast_0_piece0 in memory on localhost:54093 (size: 4.3 KB, free: 912.3 MB)
+21/02/15 19:35:33 INFO SparkContext: Created broadcast 0 from broadcast at DAGScheduler.scala:1039
+21/02/15 19:35:33 INFO DAGScheduler: Submitting 1 missing tasks from ShuffleMapStage 0 (MapPartitionsRDD[3] at count at utils.scala:116) (first 15 tasks are for partitions Vector(0))
+21/02/15 19:35:33 INFO TaskSchedulerImpl: Adding task set 0.0 with 1 tasks
+21/02/15 19:35:33 INFO TaskSetManager: Starting task 0.0 in stage 0.0 (TID 0, localhost, executor driver, partition 0, PROCESS_LOCAL, 7869 bytes)
+21/02/15 19:35:33 INFO Executor: Running task 0.0 in stage 0.0 (TID 0)
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/com.thesamet.scalapb_lenses_2.11-0.7.0-test2.jar with timestamp 1613446512718
+21/02/15 19:35:33 INFO TransportClientFactory: Successfully created connection to localhost/127.0.0.1:54092 after 40 ms (0 ms spent in bootstraps)
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/com.thesamet.scalapb_lenses_2.11-0.7.0-test2.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp343887013081347230.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.thesamet.scalapb_lenses_2.11-0.7.0-test2.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/com.google.protobuf_protobuf-java-3.5.1.jar with timestamp 1613446512717
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/com.google.protobuf_protobuf-java-3.5.1.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp3357786734720363208.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.google.protobuf_protobuf-java-3.5.1.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.bundle_bundle-hdfs_2.11-0.13.0.jar with timestamp 1613446512714
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.bundle_bundle-hdfs_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp3935830751252878292.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.bundle_bundle-hdfs_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.bundle_bundle-ml_2.11-0.13.0.jar with timestamp 1613446512715
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.bundle_bundle-ml_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp6617513121468174346.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.bundle_bundle-ml_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-core_2.11-0.13.0.jar with timestamp 1613446512714
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-core_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp432207360465902433.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.mleap_mleap-core_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/sparklyr-2.3-2.11.jar with timestamp 1613446512722
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/sparklyr-2.3-2.11.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp3853316453180226957.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/sparklyr-2.3-2.11.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-base_2.11-0.13.0.jar with timestamp 1613446512715
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-base_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp867898108634534050.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.mleap_mleap-base_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-tensor_2.11-0.13.0.jar with timestamp 1613446512716
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-tensor_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp2242689967166515681.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.mleap_mleap-tensor_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/com.lihaoyi_fastparse-utils_2.11-1.0.0.jar with timestamp 1613446512720
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/com.lihaoyi_fastparse-utils_2.11-1.0.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp5415254716371779711.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.lihaoyi_fastparse-utils_2.11-1.0.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-runtime_2.11-0.13.0.jar with timestamp 1613446512714
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-runtime_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp6967887425622087424.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.mleap_mleap-runtime_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/com.typesafe_config-1.3.0.jar with timestamp 1613446512718
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/com.typesafe_config-1.3.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp6849828220218734905.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.typesafe_config-1.3.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-spark_2.11-0.13.0.jar with timestamp 1613446512713
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-spark_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp2212150307244287553.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.mleap_mleap-spark_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-spark-base_2.11-0.13.0.jar with timestamp 1613446512713
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/ml.combust.mleap_mleap-spark-base_2.11-0.13.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp4667695384882628354.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/ml.combust.mleap_mleap-spark-base_2.11-0.13.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/org.scala-lang_scala-reflect-2.11.8.jar with timestamp 1613446512715
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/org.scala-lang_scala-reflect-2.11.8.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp3791043693228665559.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/org.scala-lang_scala-reflect-2.11.8.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/com.jsuereth_scala-arm_2.11-2.0.jar with timestamp 1613446512717
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/com.jsuereth_scala-arm_2.11-2.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp7677609862112164483.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.jsuereth_scala-arm_2.11-2.0.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/com.thesamet.scalapb_scalapb-runtime_2.11-0.7.1.jar with timestamp 1613446512717
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/com.thesamet.scalapb_scalapb-runtime_2.11-0.7.1.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp2073910341521883131.tmp
+21/02/15 19:35:33 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.thesamet.scalapb_scalapb-runtime_2.11-0.7.1.jar to class loader
+21/02/15 19:35:33 INFO Executor: Fetching spark://localhost:54092/jars/mleap-2.3-2.11.jar with timestamp 1613446512710
+21/02/15 19:35:33 INFO Utils: Fetching spark://localhost:54092/jars/mleap-2.3-2.11.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp3240966298915377940.tmp
+21/02/15 19:35:34 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/mleap-2.3-2.11.jar to class loader
+21/02/15 19:35:34 INFO Executor: Fetching spark://localhost:54092/jars/io.spray_spray-json_2.11-1.3.2.jar with timestamp 1613446512717
+21/02/15 19:35:34 INFO Utils: Fetching spark://localhost:54092/jars/io.spray_spray-json_2.11-1.3.2.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp2413820144105941639.tmp
+21/02/15 19:35:34 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/io.spray_spray-json_2.11-1.3.2.jar to class loader
+21/02/15 19:35:34 INFO Executor: Fetching spark://localhost:54092/jars/com.github.rwl_jtransforms-2.4.0.jar with timestamp 1613446512716
+21/02/15 19:35:34 INFO Utils: Fetching spark://localhost:54092/jars/com.github.rwl_jtransforms-2.4.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp3272585824854389771.tmp
+21/02/15 19:35:34 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.github.rwl_jtransforms-2.4.0.jar to class loader
+21/02/15 19:35:34 INFO Executor: Fetching spark://localhost:54092/jars/com.lihaoyi_sourcecode_2.11-0.1.4.jar with timestamp 1613446512721
+21/02/15 19:35:34 INFO Utils: Fetching spark://localhost:54092/jars/com.lihaoyi_sourcecode_2.11-0.1.4.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp6882903230325254233.tmp
+21/02/15 19:35:34 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.lihaoyi_sourcecode_2.11-0.1.4.jar to class loader
+21/02/15 19:35:34 INFO Executor: Fetching spark://localhost:54092/jars/com.lihaoyi_fastparse_2.11-1.0.0.jar with timestamp 1613446512719
+21/02/15 19:35:34 INFO Utils: Fetching spark://localhost:54092/jars/com.lihaoyi_fastparse_2.11-1.0.0.jar to /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/fetchFileTemp2851609190119860046.tmp
+21/02/15 19:35:34 INFO Executor: Adding file:/private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710/userFiles-164d1e44-bc2d-482a-a367-8a6693a006f6/com.lihaoyi_fastparse_2.11-1.0.0.jar to class loader
+21/02/15 19:35:34 INFO Executor: Finished task 0.0 in stage 0.0 (TID 0). 1542 bytes result sent to driver
+21/02/15 19:35:34 INFO TaskSetManager: Finished task 0.0 in stage 0.0 (TID 0) in 992 ms on localhost (executor driver) (1/1)
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Removed TaskSet 0.0, whose tasks have all completed, from pool 
+21/02/15 19:35:34 INFO DAGScheduler: ShuffleMapStage 0 (count at utils.scala:116) finished in 1.514 s
+21/02/15 19:35:34 INFO DAGScheduler: looking for newly runnable stages
+21/02/15 19:35:34 INFO DAGScheduler: running: Set()
+21/02/15 19:35:34 INFO DAGScheduler: waiting: Set(ResultStage 1)
+21/02/15 19:35:34 INFO DAGScheduler: failed: Set()
+21/02/15 19:35:34 INFO DAGScheduler: Submitting ResultStage 1 (MapPartitionsRDD[6] at count at utils.scala:116), which has no missing parents
+21/02/15 19:35:34 INFO MemoryStore: Block broadcast_1 stored as values in memory (estimated size 7.5 KB, free 912.3 MB)
+21/02/15 19:35:34 INFO MemoryStore: Block broadcast_1_piece0 stored as bytes in memory (estimated size 3.9 KB, free 912.3 MB)
+21/02/15 19:35:34 INFO BlockManagerInfo: Added broadcast_1_piece0 in memory on localhost:54093 (size: 3.9 KB, free: 912.3 MB)
+21/02/15 19:35:34 INFO SparkContext: Created broadcast 1 from broadcast at DAGScheduler.scala:1039
+21/02/15 19:35:34 INFO DAGScheduler: Submitting 1 missing tasks from ResultStage 1 (MapPartitionsRDD[6] at count at utils.scala:116) (first 15 tasks are for partitions Vector(0))
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Adding task set 1.0 with 1 tasks
+21/02/15 19:35:34 INFO TaskSetManager: Starting task 0.0 in stage 1.0 (TID 1, localhost, executor driver, partition 0, NODE_LOCAL, 7754 bytes)
+21/02/15 19:35:34 INFO Executor: Running task 0.0 in stage 1.0 (TID 1)
+21/02/15 19:35:34 INFO ShuffleBlockFetcherIterator: Getting 1 non-empty blocks out of 1 blocks
+21/02/15 19:35:34 INFO ShuffleBlockFetcherIterator: Started 0 remote fetches in 15 ms
+21/02/15 19:35:34 INFO Executor: Finished task 0.0 in stage 1.0 (TID 1). 1818 bytes result sent to driver
+21/02/15 19:35:34 INFO TaskSetManager: Finished task 0.0 in stage 1.0 (TID 1) in 79 ms on localhost (executor driver) (1/1)
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Removed TaskSet 1.0, whose tasks have all completed, from pool 
+21/02/15 19:35:34 INFO DAGScheduler: ResultStage 1 (count at utils.scala:116) finished in 0.095 s
+21/02/15 19:35:34 INFO DAGScheduler: Job 0 finished: count at utils.scala:116, took 1.714775 s
+21/02/15 19:35:34 INFO HiveMetaStore: 0: get_database: default
+21/02/15 19:35:34 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_database: default	
+21/02/15 19:35:34 INFO HiveMetaStore: 0: get_database: default
+21/02/15 19:35:34 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_database: default	
+21/02/15 19:35:34 INFO HiveMetaStore: 0: get_tables: db=default pat=*
+21/02/15 19:35:34 INFO audit: ugi=lilycheng	ip=unknown-ip-addr	cmd=get_tables: db=default pat=*	
+21/02/15 19:35:34 INFO SparkContext: Starting job: count at utils.scala:116
+21/02/15 19:35:34 INFO DAGScheduler: Registering RDD 10 (count at utils.scala:116)
+21/02/15 19:35:34 INFO DAGScheduler: Got job 1 (count at utils.scala:116) with 1 output partitions
+21/02/15 19:35:34 INFO DAGScheduler: Final stage: ResultStage 3 (count at utils.scala:116)
+21/02/15 19:35:34 INFO DAGScheduler: Parents of final stage: List(ShuffleMapStage 2)
+21/02/15 19:35:34 INFO DAGScheduler: Missing parents: List(ShuffleMapStage 2)
+21/02/15 19:35:34 INFO DAGScheduler: Submitting ShuffleMapStage 2 (MapPartitionsRDD[10] at count at utils.scala:116), which has no missing parents
+21/02/15 19:35:34 INFO MemoryStore: Block broadcast_2 stored as values in memory (estimated size 8.3 KB, free 912.3 MB)
+21/02/15 19:35:34 INFO MemoryStore: Block broadcast_2_piece0 stored as bytes in memory (estimated size 4.3 KB, free 912.3 MB)
+21/02/15 19:35:34 INFO BlockManagerInfo: Added broadcast_2_piece0 in memory on localhost:54093 (size: 4.3 KB, free: 912.3 MB)
+21/02/15 19:35:34 INFO SparkContext: Created broadcast 2 from broadcast at DAGScheduler.scala:1039
+21/02/15 19:35:34 INFO DAGScheduler: Submitting 1 missing tasks from ShuffleMapStage 2 (MapPartitionsRDD[10] at count at utils.scala:116) (first 15 tasks are for partitions Vector(0))
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Adding task set 2.0 with 1 tasks
+21/02/15 19:35:34 INFO TaskSetManager: Starting task 0.0 in stage 2.0 (TID 2, localhost, executor driver, partition 0, PROCESS_LOCAL, 7869 bytes)
+21/02/15 19:35:34 INFO Executor: Running task 0.0 in stage 2.0 (TID 2)
+21/02/15 19:35:34 INFO Executor: Finished task 0.0 in stage 2.0 (TID 2). 1499 bytes result sent to driver
+21/02/15 19:35:34 INFO TaskSetManager: Finished task 0.0 in stage 2.0 (TID 2) in 13 ms on localhost (executor driver) (1/1)
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Removed TaskSet 2.0, whose tasks have all completed, from pool 
+21/02/15 19:35:34 INFO DAGScheduler: ShuffleMapStage 2 (count at utils.scala:116) finished in 0.022 s
+21/02/15 19:35:34 INFO DAGScheduler: looking for newly runnable stages
+21/02/15 19:35:34 INFO DAGScheduler: running: Set()
+21/02/15 19:35:34 INFO DAGScheduler: waiting: Set(ResultStage 3)
+21/02/15 19:35:34 INFO DAGScheduler: failed: Set()
+21/02/15 19:35:34 INFO DAGScheduler: Submitting ResultStage 3 (MapPartitionsRDD[13] at count at utils.scala:116), which has no missing parents
+21/02/15 19:35:34 INFO MemoryStore: Block broadcast_3 stored as values in memory (estimated size 7.5 KB, free 912.3 MB)
+21/02/15 19:35:34 INFO MemoryStore: Block broadcast_3_piece0 stored as bytes in memory (estimated size 3.9 KB, free 912.3 MB)
+21/02/15 19:35:34 INFO BlockManagerInfo: Added broadcast_3_piece0 in memory on localhost:54093 (size: 3.9 KB, free: 912.3 MB)
+21/02/15 19:35:34 INFO SparkContext: Created broadcast 3 from broadcast at DAGScheduler.scala:1039
+21/02/15 19:35:34 INFO DAGScheduler: Submitting 1 missing tasks from ResultStage 3 (MapPartitionsRDD[13] at count at utils.scala:116) (first 15 tasks are for partitions Vector(0))
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Adding task set 3.0 with 1 tasks
+21/02/15 19:35:34 INFO TaskSetManager: Starting task 0.0 in stage 3.0 (TID 3, localhost, executor driver, partition 0, NODE_LOCAL, 7754 bytes)
+21/02/15 19:35:34 INFO Executor: Running task 0.0 in stage 3.0 (TID 3)
+21/02/15 19:35:34 INFO ShuffleBlockFetcherIterator: Getting 1 non-empty blocks out of 1 blocks
+21/02/15 19:35:34 INFO ShuffleBlockFetcherIterator: Started 0 remote fetches in 0 ms
+21/02/15 19:35:34 INFO Executor: Finished task 0.0 in stage 3.0 (TID 3). 1775 bytes result sent to driver
+21/02/15 19:35:34 INFO TaskSetManager: Finished task 0.0 in stage 3.0 (TID 3) in 15 ms on localhost (executor driver) (1/1)
+21/02/15 19:35:34 INFO TaskSchedulerImpl: Removed TaskSet 3.0, whose tasks have all completed, from pool 
+21/02/15 19:35:34 INFO DAGScheduler: ResultStage 3 (count at utils.scala:116) finished in 0.024 s
+21/02/15 19:35:34 INFO DAGScheduler: Job 1 finished: count at utils.scala:116, took 0.051877 s
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 6
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 107
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 42
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 110
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 52
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 68
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 97
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 63
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 105
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 80
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 116
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 109
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 20
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 123
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 72
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 127
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 98
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 86
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 114
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 103
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 21
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 38
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 19
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 95
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 104
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 89
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 88
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 81
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 39
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 100
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 78
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 33
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 90
+21/02/15 20:05:14 INFO BlockManagerInfo: Removed broadcast_2_piece0 on localhost:54093 in memory (size: 4.3 KB, free: 912.3 MB)
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 77
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 126
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 94
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 106
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 73
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 40
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 111
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 50
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 71
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 55
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 44
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 69
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 93
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 26
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 83
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 58
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 57
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 75
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 60
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 43
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 53
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 16
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 62
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 76
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 70
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 74
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 56
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 23
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 51
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 112
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 124
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 41
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 91
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 59
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 28
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 102
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 27
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 46
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 84
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 34
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 36
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 29
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 18
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 31
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 22
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 66
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 101
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 121
+21/02/15 20:05:14 INFO BlockManagerInfo: Removed broadcast_3_piece0 on localhost:54093 in memory (size: 3.9 KB, free: 912.3 MB)
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 64
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 125
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 67
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 79
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 99
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned shuffle 1
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 54
+21/02/15 20:05:14 INFO BlockManagerInfo: Removed broadcast_0_piece0 on localhost:54093 in memory (size: 4.3 KB, free: 912.3 MB)
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 117
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 82
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 108
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 30
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 35
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 65
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 24
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 32
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 45
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 85
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 47
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 130
+21/02/15 20:05:14 INFO BlockManagerInfo: Removed broadcast_1_piece0 on localhost:54093 in memory (size: 3.9 KB, free: 912.3 MB)
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 87
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 115
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 25
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 17
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 119
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 122
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 61
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 128
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 118
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 37
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 49
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 129
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 48
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 92
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 120
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 131
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 96
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 113
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned shuffle 0
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 9
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 0
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 10
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 15
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 5
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 7
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 14
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 13
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 11
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 8
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 2
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 3
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 12
+21/02/15 20:05:14 INFO ContextCleaner: Cleaned accumulator 4
+21/02/15 20:08:58 INFO SparkContext: Invoking stop() from shutdown hook
+21/02/15 20:08:58 INFO SparkUI: Stopped Spark web UI at http://localhost:4040
+21/02/15 20:08:58 INFO MapOutputTrackerMasterEndpoint: MapOutputTrackerMasterEndpoint stopped!
+21/02/15 20:08:58 INFO MemoryStore: MemoryStore cleared
+21/02/15 20:08:58 INFO BlockManager: BlockManager stopped
+21/02/15 20:08:58 INFO BlockManagerMaster: BlockManagerMaster stopped
+21/02/15 20:08:58 INFO OutputCommitCoordinator$OutputCommitCoordinatorEndpoint: OutputCommitCoordinator stopped!
+21/02/15 20:08:58 INFO SparkContext: Successfully stopped SparkContext
+21/02/15 20:08:58 INFO ShutdownHookManager: Shutdown hook called
+21/02/15 20:08:58 INFO ShutdownHookManager: Deleting directory /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-32785d32-b636-4f47-a1f0-607919e4a710
+21/02/15 20:08:58 INFO ShutdownHookManager: Deleting directory /private/var/folders/zx/wg0gm3254ng247fmn1yvy5hm0000gn/T/spark-c704220a-c273-469d-87df-c6f659383289

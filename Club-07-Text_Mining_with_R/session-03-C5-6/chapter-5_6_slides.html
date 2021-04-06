@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Text Mining with R: a Tidy Approach</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Lily Cheng" />
+    <meta name="date" content="2021-04-05" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Text Mining with R: a Tidy Approach
+## Chapters 5-6
+### Lily Cheng
+### Orange County R Users Group
+### 2021-04-05
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+# Review
+
+* **tidytext**: `unnest_tokens` restructure data in the one-token-per-row format
+`anti_join()` remove stop words
+* **Sentiment analysis**:  `AFINN`, `bing`, `nrc`, `inner_join()`
+* **Word and document frequency**: `tf-idf` measure word importance, `Zipf’s law` frequency vs. rank, `bind_tf_idf()`
+* **Word relationships**: `token = "ngrams"`, `separate()`,`unite()`, `ggraph`,`pairwise_cor()`
+
+&lt;br&gt;
+* tidy text format: a table with one-token-per-document-per-row
+
+* However, most of the existing R tools for natural language processing, besides the tidytext package, aren’t compatible with this format.  
+
+---
+
+# Core Concepts
+
+* **corpus**:document collections
+
+* **document term matrix (DTM)**: 1) each row represents one document (such as a book or article) 2) each column represents one term 3) each value (typically) contains the number of appearances of that term in that document
+
+---
+
+# tidy vs. non-tidy data structures
+
+&lt;img src='fig1.png' alt='' height='450px'&gt;
+
+* This chapter shows how to convert back and forth between document-term matrices and tidy data frames, as well as converting from a Corpus object to a text data frame.
+
+---
+
+# DTM
+
+`tm` package. Most commonly used in R.
+
+&lt;img src='fig2.png' alt='' height='300px'&gt;
+
+---
+
+# dfm
+`dfm` (document-feature matrix) class from the `quanteda` package
+
+&lt;img src='fig3.png' alt='' height='300px'&gt;
+
+---
+
+# Casting tidy text data into a matrix
+
+`cast_dtm()` cast tidy text data back into a document-term matrix
+`cast_dfm()` cast the table into a dfm object
+`cast_sparse()` converting to a sparse matrix from the Matrix package
+
+---
+
+# Tidying corpus objects with metadata
+
+**metadata**: may include an ID, date/time, title, or language for each document.
+
+&lt;img src='fig4.png' alt='' height='300px'&gt;
+
+---
+
+# Topic Modeling
+
+* **Topic modeling** is a method for unsupervised classification of such documents, similar to clustering on numeric data, which finds natural groups of items even when we’re not sure what we’re looking for.
+
+* **Latent Dirichlet allocation (LDA)**: a particularly popular method for fitting a topic model. It treats each document as a mixture of topics, and each topic as a mixture of words. This allows documents to “overlap” each other in terms of content, rather than being separated into discrete groups, in a way that mirrors typical use of natural language.
+
+---
+
+# text analysis flowchart
+
+&lt;img src='fig5.png' alt='' height='500px'&gt;
+
+---
+
+# Latent Dirichlet allocation
+
+* **Every document is a mixture of topics.** “Document 1 is 90% topic A and 10% topic B, while Document 2 is 30% topic A and 70% topic B.”
+
+* **Every topic is a mixture of words.** The most common words in the politics topic might be “President”, “Congress”, and “government”
+
+* use the `LDA()` function from the topicmodels package, setting `k = n`, to create a n-topic LDA model.
+
+---
+
+# Word-topic probabilities
+
+`β` in tidy method extracts the per-topic-per-word probabilities
+
+&lt;img src='fig6.png' alt='' height='300px'&gt;
+ 
+---
+
+# Document-topic probabilities
+
+`γ` models each document as a mixture of topics.
+
+&lt;img src='fig7.png' alt='' height='300px'&gt;
+
+
+---
+
+# augment() function
+
+augment() uses a model to add information to each observation in the original data.
+
+---
+
+# Alternative LDA implementations
+
+`mallet` package takes non-tokenized documents and performs the tokenization itself, and requires a separate file of stopwords.This means we have to collapse the text into one string for each document before performing LDA.
+
+---
+
+# Questions 1 
+
+**Visualize which words from the Associated Press news articles most often contributed to positive sentiment using AFINN sentiment analysis.**
+
+
+&lt;img src='fig8.png' alt='' height='350px'&gt;
+
+
+---
+
+# Questions 2
+
+**Create a 3-topic LDA model of the AP data. Calculate word-topic probabilities. Then visualize the 15 terms that are most common within each topic.**
+
+&lt;img src='fig9.png' alt='' height='350px'&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
