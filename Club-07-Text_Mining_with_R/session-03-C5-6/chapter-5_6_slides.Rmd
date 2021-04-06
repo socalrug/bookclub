@@ -148,7 +148,7 @@ augment() uses a model to add information to each observation in the original da
 
 # Questions 1 
 
-**Visualize which words from the Associated Press news articles most often contributed to positive sentiment using AFINN sentiment analysis.**
+**Visualize which words from the Associated Press news articles most often contributed to positive and negative sentiments using AFINN sentiment analysis.**
 
 
 <img src='fig8.png' alt='' height='350px'>

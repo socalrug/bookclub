@@ -1,3 +1,4 @@
+# question 1
 library(tm)
 
 data("AssociatedPress", package = "topicmodels")
@@ -30,6 +31,8 @@ ap_sentiments %>%
   labs(x = "Contribution to sentiment", y = NULL)
 
 # --------------------------------
+
+# question 2 
 library(topicmodels)
 
 data("AssociatedPress")
