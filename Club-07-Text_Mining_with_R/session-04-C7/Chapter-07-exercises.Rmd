@@ -1,0 +1,68 @@
+---
+title: "Chapter 07 exercise"
+author: "John Peach"
+date: "4/12/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidytext)
+```
+
+```{r}
+tweets_julia <- read_csv("tweets_julia.csv")
+tweets_dave <- read_csv("tweets_dave.csv")
+tweets <- bind_rows(tweets_julia %>% 
+                      mutate(person = "Julia"),
+                    tweets_dave %>% 
+                      mutate(person = "David")) %>% 
+  mutate(timestamp = ymd_hms(timestamp))
+```
+```{r}
+replace_reg1 <- "https://t.co/[A-Za-z\\d]+|"
+replace_reg2 <- "http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https"
+replace_reg <- paste0(replace_reg1, replace_reg2)
+unnest_reg <- "([^A-Za-z_\\d#@']|'(?![A-Za-z_\\d#@]))"
+tidy_tweets <- tweets %>% 
+  dplyr::filter(!str_detect(text, "^RT")) %>% 
+  mutate(text = str_replace_all(text, replace_reg, "")) %>% 
+  unnest_tokens(word, text, token = "regex", pattern = unnest_reg) %>% 
+  dplyr::filter(!word %in% stop_words$word,
+                str_detect(word, "[a-z]"))
+```
+
+# Question 1
+
+```{r, message=FALSE}
+tidy_tweets %>% 
+  select(word) %>% 
+  count(word, sort = TRUE) %>% 
+  top_n(15) %>% 
+  ggplot(aes(y = reorder(word, n), x = n)) +
+    geom_col() +
+    labs(x = 'Count', y = 'Word')
+```
+
+# Question 2
+
+```{r, message=FALSE}
+
+
+tidy_tweets %>% 
+  count(word) %>% 
+  inner_join(get_sentiments("bing"), by = c('word' = 'word')) %>% 
+  select(c(word, sentiment, n)) %>% 
+  group_by(sentiment) %>% 
+  top_n(15) %>% 
+  ggplot(aes(x = n, y = reorder(word, n))) +
+    geom_col() + 
+    facet_wrap(~ sentiment, scales="free") +
+    labs(x = 'Count', y = 'Word')
+  
+```
+
