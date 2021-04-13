@@ -1,0 +1,137 @@
+---
+title: "Chap_7_exercise"
+author: "Krystal Maughan"
+date: "4/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+## Find the count of the top 15 unique words found in tidy_tweets
+## You should use the second definition of tidy_tweets that uses
+## the last 18 months in the Favourites and Retweets section,
+## and that has retweets and replies removed
+
+## Load libraries
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidytext)
+library(stringr)
+library(wordcloud) 
+
+## Load data
+tweets_julia <- read_csv("data/juliasilge_tweets.csv")
+tweets_dave <- read_csv("data/drob_tweets.csv")
+tweets <- bind_rows(tweets_julia %>% 
+                      mutate(person = "Julia"),
+                    tweets_dave %>% 
+                      mutate(person = "David")) %>%
+  mutate(created_at = ymd_hms(created_at))
+
+remove_reg <- "&amp;|&lt;|&gt;"
+## Obtain tidy tweets
+tidy_tweets <- tweets %>% 
+  filter(!str_detect(text, "^(RT|@)")) %>%
+  mutate(text = str_remove_all(text, remove_reg)) %>%
+  unnest_tokens(word, text, token = "tweets", strip_url = TRUE) %>%
+  filter(!word %in% stop_words$word,
+         !word %in% str_remove_all(stop_words$word, "'"))
+
+tidy_tweets %>%
+count(word, sort = TRUE) %>%
+top_n(15) %>%
+mutate(word = reorder(word, n)) %>%
+ggplot(aes(x = word, y = n)) +
+geom_col() +
+xlab(NULL) +
+coord_flip() +
+labs(y = "Count",
+x = "Unique words",
+title = "Count of unique words found in tweets")
+
+## ==========================================================================
+
+## Question 2
+## Take tidy tweets and use bing to find the top 10 positive and negative words
+## Use the regular dataset with Julia and dave and stop words
+###Step 1. Preparation
+
+## 1.1 Load libraries
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+## Load data
+tweets_julia <- read_csv("data/tweets_julia.csv")
+tweets_dave <- read_csv("data/tweets_dave.csv")
+tweets <- bind_rows(tweets_julia %>% 
+                      mutate(person = "Julia"),
+                    tweets_dave %>% 
+                      mutate(person = "David")) %>%
+  mutate(timestamp = ymd_hms(timestamp))
+
+## Obtain tidy tweets
+remove_reg <- "&amp;|&lt;|&gt;"
+tidy_tweets <- tweets %>% 
+  filter(!str_detect(text, "^RT")) %>%
+  mutate(text = str_remove_all(text, remove_reg)) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
+  filter(!word %in% stop_words$word,
+         !word %in% str_remove_all(stop_words$word, "'"),
+         str_detect(word, "[a-z]"))
+
+bing_word_counts <- tidy_tweets %>%
+      inner_join(get_sentiments("bing")) %>%
+      count(word, sentiment, sort = TRUE) %>%
+      ungroup()
+
+bing_word_counts %>%
+      group_by(sentiment) %>%
+      slice_max(n, n = 15) %>% 
+      ungroup() %>%
+      mutate(word = reorder(word, n)) %>%
+      ggplot(aes(n, word, fill = sentiment)) +
+      geom_col(show.legend = FALSE) +
+      facet_wrap(~sentiment, scales = "free_y") +
+      labs(x = "Contribution to sentiment",
+          y = NULL)
+
+## ==========================================================================
+
+ ## Three
+ ## Make a wordcloud of David's tweets
+ library(wordcloud) 
+
+ # Regex tokenize word (can redo this part)
+ 
+ words <- tweets_dave %>%
+     mutate(text = str_remove_all(text, "&amp;|&lt;|&gt;"),
+            text = str_remove_all(text, "\\s?(f|ht)(tp)(s?)(://)([^\\.]*)[\\.|/](\\S*)"),
+            text = str_remove_all(text, "[^\x01-\x7F]")) %>% 
+     unnest_tokens(word, text, token = "tweets") %>%
+     filter(!word %in% stop_words$word,
+            !word %in% str_remove_all(stop_words$word, "'"),
+            str_detect(word, "[a-z]"),
+            !str_detect(word, "^#"),         
+            !str_detect(word, "@\\S+")) %>%
+     count(word, sort = TRUE)
+
+# Plot word cloud with teal
+words %>% 
+     with(wordcloud(word, n, random.order = FALSE, max.words = 100, colors = "#008080"))
+
+## More here: 
+## https://medium.com/@traffordDataLab/exploring-tweets-in-r-54f6011a193d
+## https://towardsdatascience.com/a-guide-to-mining-and-analysing-tweets-with-r-2f56818fdd16
+## https://www.earthdatascience.org/courses/earth-analytics/get-data-using-apis/use-twitter-api-r/
+## https://medium.com/@traffordDataLab/exploring-tweets-in-r-54f6011a193d
+## https://dicook.github.io/WOMBAT/slides/yanchang.pdf
+## https://rforjournalists.com/2019/12/23/how-to-perform-sentiment-analysis-on-tweets/
+
+
