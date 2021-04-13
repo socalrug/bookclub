@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Text Mining in R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Aaron Hardisty" />
+    <meta name="date" content="2021-02-15" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Text Mining with R
+## Chapter 7 : Twitter Case Study
+### Krystal Maughan
+### Orange County R Users Group
+### 2021-04-12
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+# Review: Chapters 5 and 6 (Topic Modeling)
+
+* **LDA**: Allowed us to look at estimating two-topic models
+* **LDA**: We also explored 3-topic LDA model for our exercise using AP data.
+* **LDA**: Is from the topicmodels package
+* **Confusion Matrix **: using dplyr's count and ggplot's geom tile.
+* **Gamma**: per-document-per-topic probabilities
+
+```r
+chapters_gamma <- tidy(chapters_lda, matrix = "gamma")
+chapters_gamma
+
+# chapter gamma
+chapter_classifications <- chapters_gamma %>%
+  group_by(title, chapter) %>%
+  slice_max(gamma) %>%
+  ungroup()
+```
+
+
+&lt;br&gt;
+
+
+---
+# Chapter 7 (Twitter Case Study)
+
+* **Chapter 7**: Loading Data and our first Case Study
+* **readr**: Read in data such as csv files
+* **ymd_hms**: later on, we see (created at) instead of timestamp being used for retweets.
+* **ymd_hms**: takes timestamps and converts them to POSIXct objects.
+* **POSIXct objects**: take your datetime string or timestamp and allow you extract day, year easily.
+
+```r
+tweets_julia <- read_csv("data/tweets_julia.csv")
+tweets_dave <- read_csv("data/tweets_dave.csv")
+tweets <- bind_rows(tweets_julia %>% 
+                      mutate(person = "Julia"),
+                    tweets_dave %>% 
+                      mutate(person = "David")) %>%
+  mutate(timestamp = ymd_hms(timestamp))
+
+ggplot(tweets, aes(x = timestamp, fill = person)) +
+  geom_histogram(position = "identity", bins = 20,
+   show.legend = FALSE) +
+  facet_wrap(~person, ncol = 1)
+```
+---
+## Reading in csv file (readr)
+
+* **Types of Columns**: Loads types of columns (use readr)
+* **Like pd.read_csv**: If you know Python
+
+
+```r
+library(readr)
+
+cols(
+  tweet_id = col_double(),
+  in_reply_to_status_id = col_double(),
+  in_reply_to_user_id = col_double(),
+  )
+
+# A tibble: 13,091 x 10
+```
+
+---
+## Lubridate (parsing timestamp)
+* **Lubridate package**: Used to convert the string timestamps to date-time objects
+* **Lubridate**: In our example, we use ymd_hms(), which reads the timezone according to the timestamp.
+
+```r
+tweets_julia <- read_csv("data/tweets_julia.csv")
+tweets_dave <- read_csv("data/tweets_dave.csv")
+tweets <- bind_rows(tweets_julia %>% 
+                      mutate(person = "Julia"),
+                    tweets_dave %>% 
+                      mutate(person = "David")) %>%
+  mutate(timestamp = ymd_hms(timestamp))
+
+ggplot(tweets, aes(x = timestamp, fill = person)) +
+  geom_histogram(position = "identity", bins = 20,
+   show.legend = FALSE) +
+  facet_wrap(~person, ncol = 1)
+```
+---
+
+# Chapter 7 (Twitter Case Study)
+
+* **Spread**: spread (tidyr) and gather are usually compliments.
+* **Geom_Jitter**: adds a small amount of random variation to the location of each point.
+* **Jitter**: is a useful way of handling overplotting (obscuring data and labels)
+caused by discreteness (separateness / lack of unity) in smaller datasets.
+
+```r
+library(dplyr)
+stocks <- data.frame(
+  time = as.Date('2009-01-01') + 0:9,
+  X = rnorm(10, 0, 1),
+  Y = rnorm(10, 0, 2),
+  Z = rnorm(10, 0, 4)
+)
+stocksm <- stocks %>% gather(stock, price, -time)
+stocksm %>% spread(stock, price)
+stocksm %>% spread(time, price)
+```
+---
+## Filter vs Stop Words
+
+* **Filter**: We can't use stop words because of the nature of the format of the data
+* **Tweets Tokenizer**: We use the "tweets" tokenizer, which is a built in tokenizer for tweets
+* **Filter**: We can't use anti_join() because we have hashtags and usernames. 
+
+```r
+library(tidytext)
+library(stringr)
+
+remove_reg <- "&amp;|&lt;|&gt;"
+tidy_tweets <- tweets %>% 
+  filter(!str_detect(text, "^RT")) %>%
+  mutate(text = str_remove_all(text, remove_reg)) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
+  filter(!word %in% stop_words$word,
+         !word %in% str_remove_all(stop_words$word, "'"),
+         str_detect(word, "[a-z]"))
+```
+---
+## Regex
+
+```r
+# Regex characters
+remove_reg <- "&amp;|&lt;|&gt;"
+
+# Less than (<)
+"& lt;"
+
+# Greater than (>)
+"& gt;"
+
+# And sign ie &
+"& amp;"
+
+# Quotation sign
+"& quot;"
+```
+- More information [here](https://www.w3.org/TR/html4/charset.html#h-5.3.2)
+
+---
+# Group Frequency by Julia and David
+
+* **group_by**: used to group frequency of tweets by person
+
+```r
+frequency <- tidy_tweets %>% 
+  group_by(person) %>% 
+  count(word, sort = TRUE) %>% 
+  left_join(tidy_tweets %>% 
+              group_by(person) %>% 
+              summarise(total = n())) %>%
+  mutate(freq = n/total)
+
+# looking at the columns in frequency
+frequency
+#> # A tibble: 24,067 x 5
+#> # Groups:   person [2]
+#>    person word               n total    freq
+```
+---
+# Pivot Words
+
+* **pivot_wider()**: From tidyr package. Used to make a differently shaped data frame so we can plot
+the frequencies on an x and y axis.
+
+
+```r
+library(tidyr)
+
+# what is the difference between frequency 
+# vs our frequency with pivot_wider applied?
+
+frequency <- frequency %>% 
+  select(person, word, freq) %>% 
+  pivot_wider(names_from = person, values_from = freq) %>%
+  arrange(Julia, David)
+
+# we get
+> frequency
+# A tibble: 25,253 x 5
+# Groups:   person [2]
+   person word      n  total   freq
+
+# vs
+
+# A tibble: 21,710 x 3
+   word                Julia     David
+```
+
+---
+
+# Answering Questions with Data
+
+* **Log odds ratio**: log of the odds, where odds means probability that something will not happen.
+We do this for each word against Julie and David. This allows us to see how likely Julia or David
+are to use certain words eg. science, file, purrr, api, sad.
+- The book initially looks at words that are most likely to be used by either Julia and David,
+and then identifies those that are more likely to be used by either David or Julia.
+They use n, where n is is the number of times the word in question is used by 
+each person and the total indicates the total words for each person.
+
+```r
+word_ratios <- tidy_tweets %>%
+  filter(!str_detect(word, "^@")) %>%
+  count(word, person) %>%
+  group_by(word) %>%
+  filter(sum(n) >= 10) %>%
+  ungroup() %>%
+  spread(person, n, fill = 0) %>%
+  mutate_if(is.numeric, list(~(. + 1) / (sum(.) + 1))) %>%
+  mutate(logratio = log(David / Julia)) %>%
+  arrange(desc(logratio))
+```
+---
+
+# Log Odds
+
+* **How Likely are Distinct Words?**: We look at the top 15 that are distinctly Julia or David.
+We see David has tweeted about conferences, and Julia has tweeted about Utah, Census, data and
+her family.
+
+```r
+word_ratios %>%
+  group_by(logratio < 0) %>%
+  top_n(15, abs(logratio)) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, logratio)) %>%
+  ggplot(aes(word, logratio, fill = logratio < 0)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  ylab("log odds ratio (David/Julia)") +
+  scale_fill_discrete(name = "", labels = c("David", "Julia"))
+```
+---
+
+# Floor and Lubridate
+
+* **How are words used over time?**: Might we be able to look at words that have declined in use over time?
+* They use floor_date() from the lubridate library.
+* Floor date takes a date-time object and rounds it down to the nearest 
+boundary of the specified time unit.
+
+```r
+words_by_time <- tidy_tweets %>%
+  filter(!str_detect(word, "^@")) %>%
+  mutate(time_floor = floor_date(timestamp, unit = "1 month")) %>%
+  count(time_floor, person, word) %>%
+  group_by(person, time_floor) %>%
+  mutate(time_total = sum(n)) %>%
+  group_by(person, word) %>%
+  mutate(word_total = sum(n)) %>%
+  ungroup() %>%
+  rename(count = n) %>%
+  filter(word_total > 30)
+```
+
+---
+# Map (purrr)
+
+* **Map**: From the purrr library. Like for each.
+* **Nest**: summarizing so you get one row for each group defined by non-nested columns.
+* **Glm**: used to fit generalized linear models; it returns an object of class glm. eg glm.fit.
+We observe what falls within and outside this linear model
+* **squiggly line?**: the remaining variables contained in the dataframe.
+* **Binomial (glm):**“Was a given word mentioned in a given time bin? Yes or no? How does the 
+count of word mentions depend on time?”
+
+```r
+library(purrr)
+
+nested_models <- nested_data %>%
+  mutate(models = map(data, 
+  ~ glm(cbind(count, time_total) 
+  ~ time_floor, .,
+  family = "binomial")))
+``` 
+---
+#  vs Map (broom)
+* **Map**: map() and tidy() from the broom package used pull out the slopes for each of these models and find the important ones.
+
+```r
+library(broom)
+
+slopes <- nested_models %>%
+  mutate(models = map(models, tidy)) %>%
+  unnest(cols = c(models)) %>%
+  filter(term == "time_floor") %>%
+  mutate(adjusted.p.value = p.adjust(p.value))
+```
+
+---
+# Slopes 
+
+* **Slopes**: Statistically significant (according to p values).
+
+```r
+# we look for the top slopes
+top_slopes <- slopes %>% 
+  filter(adjusted.p.value < 0.05)
+
+# we plot our top slopes for David (top 4 words)
+# words were user2016, ggplot2, overflow, stack
+words_by_time %>%
+  inner_join(top_slopes, by = c("word", "person")) %>%
+  filter(person == "David") %>%
+  ggplot(aes(time_floor, count/time_total, color = word)) +
+  geom_line(size = 1.3) +
+  labs(x = NULL, y = "Word frequency")
+```
+---
+# Favourite Tweets, Retweets an Twitter API
+
+```r
+# number of retweets
+totals <- tidy_tweets %>% 
+  group_by(person, id) %>% 
+  summarise(rts = first(retweets)) %>% 
+  group_by(person) %>% 
+  summarise(total_rts = sum(rts))
+```
+---
+
+# Exercises
+* **One**:Find the count of the top 15 unique words found in tidy_tweets
+* **Two**: Take tidy tweets and use bing to find the top 10 positive and negative words
+* **Three:** Make a wordcloud of David's tweets
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
