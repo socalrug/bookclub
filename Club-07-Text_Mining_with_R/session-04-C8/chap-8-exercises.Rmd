@@ -1,0 +1,95 @@
+---
+title: "Chapter 8 excercises"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(wordcloud)
+```
+
+
+```{r load-data}
+load("data/metadata.rda")
+load("data/desc_lda.rda")
+my_stopwords <- tibble(word = c(
+  as.character(1:10),
+  "v1", "v03", "l2", "l3", "l4", "v5.2.0",
+  "v003", "v004", "v005", "v006", "v7"
+))
+
+nasa_title <- tibble(
+  id = metadata$dataset$`_id`$`$oid`,
+  title = metadata$dataset$title
+) %>%
+  unnest_tokens(word, title) %>%
+  anti_join(stop_words) %>%
+  anti_join(my_stopwords)
+
+nasa_desc <- tibble(
+  id = metadata$dataset$`_id`$`$oid`,
+  desc = metadata$dataset$description
+) %>%
+  unnest_tokens(word, desc) %>%
+  anti_join(stop_words) %>%
+  anti_join(my_stopwords)
+
+nasa_keyword <- tibble(
+  id = metadata$dataset$`_id`$`$oid`,
+  keyword = metadata$dataset$keyword
+) %>%
+  unnest(keyword) %>%
+  mutate(
+    keyword = toupper(keyword),
+    keyword_type = case_when(
+      grepl("ocean", keyword, ignore.case = TRUE) ~ "ocean",
+      grepl("center|lab|project|complete|active", keyword, ignore.case = TRUE) ~ "laboratory",
+      TRUE ~ "earth+"
+    )
+  )
+
+desc_tf_idf <- nasa_desc %>%
+  count(id, word, sort = TRUE) %>%
+  ungroup() %>%
+  bind_tf_idf(word, id, n) %>%
+  full_join(nasa_keyword)
+```
+
+## Exercise 1
+
+Create a wordcloud from `nasa_desc` after removing the word "data".
+
+```{r}
+
+```
+
+## Exercise 2
+
+From `nasa_keyword`, create a chart of the 30 most popular keywords' counts.
+Bonus point if colored by `keyword_type`.
+
+```{r}
+
+```
+
+## Excercise 3
+
+Choose 3 keywords of your choice and plot the words with highest tf-idf for each keyword.
+
+```{r}
+
+```
+
+## Excercise 4
+
+Create a heatmap of the topic modeling result.
+
+```{r}
+tidy_lda <- tidy(desc_lda)
+beta_mat <- tidy_lda %>%
+  filter(beta > 0.02) %>%
+  mutate(topic = paste("Topic", topic)) %>%
+  __________
+
+```
