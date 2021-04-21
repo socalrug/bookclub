@@ -3,6 +3,8 @@ title: "Chapter 8 excercises"
 output: html_document
 ---
 
+Slides: https://slides.com/trang1618/tidy-text-chap-8
+
 ```{r}
 library(tidyverse)
 library(tidytext)
