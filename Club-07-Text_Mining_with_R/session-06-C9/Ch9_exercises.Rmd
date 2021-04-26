@@ -1,0 +1,55 @@
+### Ch 9 - Usenet case study - Exercises ###
+
+## Required packages
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(readr)
+library(ggplot2)
+library(stringr)
+library(tidytext)
+library(ggraph)
+library(igraph)
+library(widyr)
+library(rcartocolor)
+
+## Exercise 1: Network graph of tf-idf correlations
+
+newsgroup_cors_tf <- 
+
+set.seed(2017)
+
+newsgroup_cors_tf %>%
+
+## Exercise 2: Topic modeling for religion newsgroups
+
+# (a)
+# Column graph displaying, for each topic, words with highest 12 betas
+
+rel_lda %>%
+
+# (b)
+# Calculate log ratio of each word's beta for topic 1 to its
+#   beta for topic 2, then graph the 24 words with highest absolute
+#   values of log ratios
+ 
+# create tidy version of lda results 
+rel_topics <- 
+
+# widen data
+beta_wide <- rel_topics %>%
+
+# create graph
+beta_wide %>%
+
+# (c)
+# Create boxplots of gamma for each combination of topic and
+#   religion newsgroup
+  
+rel_lda %>%
+
+## Exercise 3: Adverbs of degree exercise
+
+adverbs <- c("very","really","extremely","totally")
+
+usenet_bigram_counts %>%
