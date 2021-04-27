@@ -1,0 +1,110 @@
+## Ch 9 - Usenet case study - Exercises key
+
+## Required packages
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(readr)
+library(ggplot2)
+library(stringr)
+library(tidytext)
+library(ggraph)
+library(igraph)
+library(widyr)
+library(rcartocolor)
+
+## Exercise 1: Network graph of tf-idf correlations
+
+newsgroup_cors_tf <- tf_idf %>%
+  pairwise_cor(newsgroup, word, tf_idf, sort = TRUE)
+
+set.seed(2017)
+
+newsgroup_cors_tf %>%
+  filter(correlation > 0.1) %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(alpha = correlation, width = correlation)) +
+  geom_node_point(size = 6, color = "lightblue") +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_void()
+
+## Exercise 2: Topic modeling for religion newsgroups
+
+# (a)
+# Column graph displaying, for each topic, words with highest 12 betas
+
+rel_lda %>%
+  tidy() %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 12) %>%
+  ungroup() %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+    coord_cartesian(expand = FALSE) +
+    geom_col(show.legend = FALSE) +
+    scale_fill_carto_d(palette = 3) +
+    facet_wrap(~ topic, scales = "free") +
+    scale_y_reordered()
+
+# (b)
+# Calculate log ratio of each word's beta for topic 1 to its
+#   beta for topic 2, then graph the 24 words with highest absolute
+#   values of log ratios
+
+rel_topics <- tidy(rel_lda, matrix = "beta")
+
+beta_wide <- rel_topics %>%
+  mutate(topic = paste0("topic", topic)) %>%
+  pivot_wider(names_from = topic, values_from = beta) %>% 
+  filter(topic1 > .001 | topic2 > .001) %>%
+  mutate(log_ratio = log2(topic2 / topic1))
+
+beta_wide %>%
+  arrange(desc(abs(log_ratio))) %>%
+  head(24) %>%
+  mutate(term = reorder(term, log_ratio)) %>%
+  ggplot(aes(log_ratio,term,fill=log_ratio>0)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_carto_d(palette = 3)
+
+# (c)
+# Create boxplots of gamma for each combination of topic and
+#   religion newsgroup
+
+rel_lda %>%
+  tidy(matrix = "gamma") %>%
+  separate(document, c("newsgroup", "id"), sep = "_") %>%
+  mutate(newsgroup = reorder(newsgroup, gamma * topic)) %>%
+  ggplot(aes(factor(topic), gamma, fill=factor(topic))) +
+  geom_boxplot() +
+  scale_fill_carto_d(palette = 3) +
+  theme(legend.position="none") +
+  facet_wrap(~ newsgroup) +
+  labs(x = "Topic",
+       y = "Proportion of messages where this was highest % topic")
+
+
+## Exercise 3: Adverbs of degree exercise
+
+adverbs <- c("very","really","extremely","totally")
+
+usenet_bigram_counts %>%
+  filter(word1 %in% adverbs,
+         str_detect(newsgroup,"^sci")) %>%
+  count(word1, word2, wt = n, sort = TRUE) %>%
+  inner_join(get_sentiments("afinn"), by = c(word2 = "word")) %>%
+  mutate(contribution = value * n) %>%
+  group_by(word1) %>%
+  slice_max(abs(contribution), n = 8) %>%
+  ungroup() %>%
+  mutate(word2 = reorder_within(word2, contribution, word1)) %>%
+  ggplot(aes(contribution, word2, fill = contribution > 0)) +
+  coord_cartesian(expand = FALSE) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_carto_d(palette = 3) +
+  facet_wrap(~ word1, scales = "free", nrow = 3) +
+  scale_y_reordered() +
+  labs(x = "Sentiment value * # of occurrences",
+       y = "Words preceded by adverb of degree")
+
