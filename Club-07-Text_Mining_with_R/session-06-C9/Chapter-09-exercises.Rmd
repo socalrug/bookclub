@@ -1,0 +1,84 @@
+---
+title: "Chapter 09 exercise"
+author: "John Peach"
+date: "4/26/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidytext)
+library(widyr)
+library(igraph)
+library(ggraph)
+```
+
+```{r}
+load('Ch9_exercise_data.RData')
+```
+
+```{r}
+tf_idf %>% 
+  pairwise_cor(newsgroup, word, tf_idf) %>% 
+  dplyr::filter(correlation > 0.1) %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = 'fr') +
+    geom_edge_link(aes(alpha = correlation, width = correlation)) +
+    geom_node_point(size = 6, colour = "lightblue") +
+    geom_node_text(aes(label = name), repel = TRUE) +
+    theme_void()
+```
+
+```{r}
+rel_lda %>% 
+  tidy() %>% 
+  group_by(topic) %>% 
+  top_n(n = 12, beta) %>% 
+  ungroup() %>% 
+  ggplot(aes(y = reorder_within(term, beta, topic), x = beta, fill = topic)) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~topic, scales = "free") +
+    labs(y = "term") +
+    scale_y_reordered() +
+    NULL
+```
+
+```{r}
+rel_lda %>% 
+  tidy(matrix = "gamma") %>% 
+  separate(document, c("newsgroup", "trash"), sep = "_") %>% 
+  mutate(newsgroup = reorder(newsgroup, gamma * topic)) %>% 
+  ggplot(aes(x = factor(topic), y = gamma, fill = topic)) +
+    geom_boxplot(show.legend = FALSE) +
+    facet_wrap(~newsgroup) +
+    labs(x = "Topic",
+         y = "Proportion of messages where this was the highest %topic") +
+    NULL
+```
+
+```{r}
+# Not working
+usenet_bigram_counts %>%
+  dplyr::filter(word1 %in% adverbs,
+                str_detect(newsgroup, "^sci")) %>% 
+  count(word1, word2, wt = n, sort = TRUE) %>% 
+  inner_join(get_sentiments("afinn"), by = c(word2 = "words")) %>% 
+  mutate(contribution = score * nn) %>% 
+  group_by(word1) %>% 
+  top_n(n = 10, abs(contribution)) %>% 
+  ungroup() %>% 
+  mutate(word2 = reorder(paste(word2, word1, sep = "___"), contribution)) %>% 
+  ggplot(aes(word2, contribution, fill = contribution > 0)) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~word1, scales = "free", ncol = 3) +
+    scale_x_discrete(labels = function(x) gsub("___.+$", "", x)) +
+    labs(x = "Sentiment value * # of occurences",
+         y = "Words preceded by adverb of degree") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    coord_flip()
+```
+
