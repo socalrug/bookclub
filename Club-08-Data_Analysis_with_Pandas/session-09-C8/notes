@@ -1,0 +1,30 @@
+* p451: Assumptions
+    * Poisson process for login attempts
+    * 1-3 IP address
+* p453: login_attempt_simulator
+    * Simulate the logins
+    * Creates 133 usernames and IP addresses associated with them.
+* p458: Flow diagram
+* p463: Go over the distributions
+    * What are the properites of a distribution
+    * Poisson is PMF and discrete
+* p467: go over CLO and argparse
+* p468: go over try/except
+* p470: how to read CLI usage strings.
+* p473: 9338 login attempts, 39 attacks. This ratio is really what sents anamoly detection apart.
+* p474: Graphed data in spiky but not ever day. You would assume that most people log in about the same time each day.
+* p474: Data is highly skewed (max = 258)
+* p476: We could block IP addresses but 
+     * that is easy to get around
+     * we would have to have a sustained attack to detect and block
+* p477: hackers success rate is 17%, true users is 99%
+* p478: Error rates seem to be the most fruitful metric for detecting attacks.
+* p482: Plots shows pattern of hacker and true user
+* p483: We want to find the IP addresses with excessive amounts of attempts accompained by low success rates, and those attempting to log in with more unique usernames that we would deem normal.
+* p484: Approarch: difference of the true user - hacker.
+* p488: Tukey fence. k is a hyperparameter
+* p490: Z-score
+* p493: Accuracy: proportion that you got correct - no good for anomaly detection.
+* p494: Precision: portion that you correctly said were true over what you said was true
+* p494: Recall: portion that you correctly said were true over what is actually true
+* p495: F_1: harmonic mean of precision and recall
