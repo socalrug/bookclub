@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>OpenIntro Statistics</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="John Peach" />
+    <meta name="date" content="2021-07-27" />
+    <script src="libs/header-attrs-2.9/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# OpenIntro Statistics
+## Chapter 2
+### John Peach
+### OCRUG
+### 2021-07-27
+
+---
+
+&lt;style&gt;
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0px;
+    margin-top: 0em;
+    margin-right: 0px;
+    margin-bottom: 0em;
+    margin-left: 0px;
+}
+&lt;/style&gt;
+
+
+
+# Histograms
+
+* The shape can change significantly with bin width.
+* Use variable bin with long tail. Keep the area the same.
+
+---
+
+# Mean and Variance
+
+* These are really just moments
+`$$\mu_n = \int_{-\infty}^{\infty} (x-c)^n f(x)dx$$`
+
+* The n-th moment about zero of a probability density function `\(f(x)\)` is the expected value of `\(X^n\)`. `\(F(x)\)` is the cumulative probability function.
+
+`$$\mu^{'}_n = \mathbb{E}[X^n] = \int_{-\infty}^{\infty} x^n dF(x)$$`
+
+|Moment Ordinal (n)|Moment  |
+|:----------------:|:------:|
+|1                 |Mean    |
+|2                 |Variance|
+|3                 |Skew    |
+|4                 |Kurtosis|
+
+---
+
+# Box Plot
+
+![](box_plot.png)
+
+* Whiskers are 1.5 * IQR or the last point in that range.
+
+---
+
+# Variation in the Data
+
+What is variation in the data?
+
+![](DiffInInfectionRates.png)
+---
+
+# Problems
+
+* Problem 2.27 p77
+* Problem 2.28 p77
+* Problem 2.30 p77
+* Problem 2.32 p78
+* Problem 2.33 p78
+
+---
+
+# Problem 2.27
+
+a) It decreases the average as it is below the mean.
+
+b) The new mean would be:
+
+```r
+(24 * 74 + 64 ) / (24 + 1)
+```
+
+```
+## [1] 73.6
+```
+
+c) It will increase it.
+Recall:
+`$$\mathbb{E}[X^2] = \frac{\sum(x-\mathbb{E}[X])^2}{n-1}$$`
+Assuming the change of `\(\mathbb{E}[X]\)` is small. The new variance will be something like:
+
+```r
+((24 - 1) * 8.9 + (74 - 64)^2 ) / (24 + 1 - 1)
+```
+
+```
+## [1] 12.69583
+```
+
+---
+
+# Problem 2.28
+
+a) Q1 is at the p=0.25 so that would be somewhere in the 0-10 bin. Let us assume that it is uniform in that bin. Q1 would be about:
+
+```r
+Q1 &lt;- 10 - 10 * (.37 - .25) / .37; print(Q1)
+```
+
+```
+## [1] 6.756757
+```
+Q3 is at p=0.75. If we add the bins to get to that value we have:
+
+```r
+Q3 &lt;- 0.37 + 0.22 + 0.11 + 0.05; print(Q3)
+```
+
+```
+## [1] 0.75
+```
+That gets us to 40 infant moralities and Q3.
+The IRQ would be:
+
+```r
+IQR = Q3 - Q1; print(IQR)
+```
+
+```
+## [1] -6.006757
+```
+
+b) The mean of the dataset will be larger than the median. The data is right skewed so the bulk of the values are to the left so the median will be towards the left. However, with the long tail the mean is shift towards the tail, thus it is larger than the median.
+
+---
+
+# Problem 2.30
+
+a) symmetric
+
+b) left skewed
+
+c) right skewed
+
+
+---
+
+# Problem 2.32
+
+The data is not symmetric as the maximum score is 100% so we would expect that there should be some value that are more that 1 SD away. However, that would violate the maximum score as mean (85%) + 1 SD(15%) is already 100%. We would not be seeing data beyand the one SD in the positive direction. Therefore the data must be left skewed.
+
+---
+
+# Problem 2.33
+
+
+```r
+data &lt;- c(57, 66, 67, 71, 72, 73, 74, 77, 78, 78, 79, 81, 81, 82, 83, 83, 88, 89, 94)
+tibble(x = data) |&gt; ggplot(aes(x = data)) + geom_boxplot()
+```
+
+![](summarizing-data_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+
+
+```r
+IQR &lt;- 82.5 - 72.5; print(IQR)
+```
+
+```
+## [1] 10
+```
+
+```r
+wisker &lt;- 1.5 * IQR; print(wisker)
+```
+
+```
+## [1] 15
+```
+
+```r
+wisker_max &lt;- 82.5 + wisker; print(wisker_max)
+```
+
+```
+## [1] 97.5
+```
+
+```r
+actual_wisker_max &lt;- min(max(data), wisker_max); print(actual_wisker_max)
+```
+
+```
+## [1] 94
+```
+
+```r
+wisker_min &lt;- 72.5 - wisker; print(wisker_min)
+```
+
+```
+## [1] 57.5
+```
+
+```r
+actual_wisker_min &lt;- max(min(data[data &gt; wisker_min]), wisker_min); print(actual_wisker_min)
+```
+
+```
+## [1] 66
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
