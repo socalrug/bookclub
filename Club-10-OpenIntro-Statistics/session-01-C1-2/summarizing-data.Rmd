@@ -97,7 +97,7 @@ Recall:
 $$\mathbb{E}[X^2] = \frac{\sum(x-\mathbb{E}[X])^2}{n-1}$$
 Assuming the change of $\mathbb{E}[X]$ is small. The new variance will be something like:
 ```{r, echo=TRUE}
-((24 - 1) * 8.9 + (74 - 64)^2 ) / (24 + 1 - 1)
+sqrt(((24 - 1) * 8.9^2 + (74 - 64)^2 ) / (24 + 1 - 1))
 ```
 
 ---
