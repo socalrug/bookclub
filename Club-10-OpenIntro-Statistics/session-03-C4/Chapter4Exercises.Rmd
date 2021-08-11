@@ -1,0 +1,443 @@
+---
+title: "OpenIntroStatistics Chapter 4 Selected Exercises"
+author: "lindacpalmer@gmail.com"
+date: "8/8/2021"
+---
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(openintro)
+```
+
+### Chapter exercises
+### 4.35 Roulette winnings. 
+#### In the game of roulette, a wheel is spun and you place bets on where it will stop. One popular bet is that it will stop on a red slot; such a bet has an 18/38 chance of winning. If it stops on red, you double the money you bet. If not, you lose the money you bet. Suppose you play 3 times, each time with a $1 bet. Let Y represent the total amount won or lost. Write a probability model for Y.  
+ 
+"Write a probability model for Y."
+
+I think what this is asking for, is:  
+i) what are all the possible outcomes:   
+   all possible total amounts, given you play this game 3 times and bet each time $1 on red  
+ii) what is the probability of each of these outcomes  
+ 
+So, i) the possible outcomes:  
+You play 3 times, betting each time $1 and either: losing that dollar (-1) or getting back two dollars but one is your bet so profit is just one (+1)  
+
+```{r}
+# All possible outcomes in three plays are, where W=win and L=loss for each play:  
+# LLL   = -1 -1 -1 = -$3  
+# LLW   = -1 -1 +1 = -$1  
+# LWL   = -1 +1 -1 = -$1  
+# LWW   = -1 +1 +1 = +$1  
+# WLL   = +1 -1 -1 = -$1  
+# WLW   = +1 -1 +1 = +$1  
+# WWL   = +1 +1 -1 = +$1  
+# WWW   = +1 +1 +1 = +$3  
+
+```
+We have:  
+1 outcome totaling +$3: "gain3"
+1 outcome totaling -$3, "lose3"
+3 outcomes totaling -$1, "lose1"
+3 outcomes totaling +$1, "gain1"
+But they are not equiprobable. prob W is 18/38, and of L is 1- 18/38
+
+All right; and, e.g. the probability of the outcome P(WLL) win-loss-loss (aka 'success-fail-fail' or '1-0-0') on three plays is:   
+
+P(WLL)   = 18/38 * (1 - 18/38) * (1 - 18/38)  
+
+```{r}
+# Probability of each outcome, using P.WLL for P(WLL): 
+P.LLL   = (1 - 18/38)^3
+P.LLW   = (1 - 18/38)^2 * 18/38
+P.LWL   = (1 - 18/38) * 18/38 * (1 - 18/38) 
+P.LWW   = (1 - 18/38) * (18/38)^2
+P.WLL   = 18/38 * (1 - 18/38)^2
+P.WLW   = 18/38 * (1 - 18/38) * 18/38
+P.WWL   = (18/38)^2 * (1 - 18/38)
+P.WWW   = (18/38)^3
+
+betprobs <- c(P.LLL, P.LLW, P.LWL, P.LWW, P.WLL, P.WLW, P.WWL, P.WWW )
+names(betprobs) <- c("P.LLL", "P.LLW", "P.LWL", "P.LWW", "P.WLL", "P.WLW", "P.WWL", "P.WWW" )
+
+betprobs
+
+# OK let's sort them:
+sort(betprobs)
+
+```
+### All right. We had three different kind of "events" i.e. money after 3 plays, possible here:  
+### event 1: gain $3
+### event 2: gain $1
+### event 3: lose $1
+### event 4: lose $3
+gain1  = two wins and one loss: WWL, WLW, LWW
+lose1  = two losses and one win: LLW, LWL, WLL
+gain3  = three wins: WWW
+lose3  = three losses: LLL
+
+P(gain3) = P(WWW) = 0.1062837
+P(gain1) = P(LWW) + P(WLW) + P(WWL) = 0.1180930 * 3 = 0.354279
+P(lose1) = P(LLW) + P(LWL) + P(WLL) = 0.1312145 * 3 = 0.3936435
+P(lose3) = P(LLL) = 0.1457938
+
+And yeah, we could have done this more concisely, because
+1) the money outcome of some of the outcomes are the same; those define our events:
+2) the outcomes with the same money outcomes are also equiprobable to each other, because the order of the multiplication terms does not matter (that is a*b*c = b*a*c = c*a*b etc).
+
+(Note "lose $1" is not the same as "one loss" -- annoying that the opposite of "win", "gain", "profit" are all the same word, "loss"...! am using here "win/loss" for each play result -- aka success/failure -- and am using "gain/lose" for the total amount of money obtained or lost).
+
+```{r}
+
+# Question: Does this count as a probability distribution?
+# if I plot it:
+hist(betprobs) # no, wrong sort of plot
+barplot(betprobs) # closer to what we want but still not quite right
+
+P.gain3 = P.WWW 
+P.gain1 = P.LWW + P.WLW + P.WWL 
+P.lose1 = P.LLW + P.LWL + P.WLL 
+P.lose3 = P.LLL 
+
+beteventprobs <- c(p.gain3 = P.gain3, p.gain1 = P.gain1, p.lose1 = P.lose1, p.lose3 = P.lose3)
+beteventprobs
+
+hist(beteventprobs) # again, no, useless
+barplot(beteventprobs) # This is the useful plot.
+# Prob gaining 3 dollars is least; most probable is losing one dollar, with gaining one dollar a close second. Losing three dollars is much less likely but still more than gaining three.
+
+```
+barplot(beteventprobs) # This is the useful plot.
+  p.gain3   p.gain1   p.lose1   p.lose3 
+0.1062837 0.3542790 0.3936434 0.1457938 
+
+#### Prob gaining 3 dollars is least - about 10%; most probable is losing one dollar (almost 40%) with gaining one dollar a close second (35%). Losing three dollars is much less likely (15%) but still more than gaining three.
+
+OK, cool.
+Note: 18/38 is 0.4736842 -- that is not very different from 0.5!
+What would the above results look like if W and L were both 0.5?
+
+```{r}
+
+p <- 18/38 # game as setup by casino! vs 18/36 = 0.5
+# Try it with p=0.5:
+p <- 0.5
+P.LLL   = (1 - p)^3
+P.LLW   = (1 - p)^2 * p
+P.LWL   = (1 - p) * p * (1 - p) 
+P.LWW   = (1 - p) * (p)^2
+P.WLL   = p * (1 - p)^2
+P.WLW   = p * (1 - p) * p
+P.WWL   = (p)^2 * (1 - p)
+P.WWW   = (p)^3
+
+betprobs <- c(P.LLL, P.LLW, P.LWL, P.LWW, P.WLL, P.WLW, P.WWL, P.WWW )
+names(betprobs) <- c("P.LLL", "P.LLW", "P.LWL", "P.LWW", "P.WLL", "P.WLW", "P.WWL", "P.WWW" )
+
+P.gain3 = P.WWW 
+P.gain1 = P.LWW + P.WLW + P.WWL 
+P.lose1 = P.LLW + P.LWL + P.WLL 
+P.lose3 = P.LLL 
+
+beteventprobs <- c(p.gain3 = P.gain3, p.gain1 = P.gain1, p.lose1 = P.lose1, p.lose3 = P.lose3)
+beteventprobs
+barplot(beteventprobs) # This is the useful plot.
+
+```
+
+
+4.36 Speeding on the I-5, Part I. The distribution of passenger vehicle speeds traveling on the Interstate 5 Freeway (I-5) in California is nearly normal with a mean of 72.6 miles/hour and a standard deviation of 4.78 miles/hour.40
+(a) What percent of passenger vehicles travel slower than 80 miles/hour?
+(b) What percent of passenger vehicles travel between 60 and 80 miles/hour?
+(c) How fast do the fastest 5% of passenger vehicles travel?
+(d) The speed limit on this stretch of the I-5 is 70 miles/hour. Approximate what percentage of the passenger
+vehicles travel above the speed limit on this stretch of the I-5.
+
+### 4.37 University admissions. Suppose a university announced that it admitted 2,500 students for the following year’s freshman class. However, the university has dorm room spots for only 1,786 freshman students. If there is a 70% chance that an admitted student will decide to accept the offer and attend this university, what is the approximate probability that the university will not have enough dormitory room spots for the freshman class?
+```{r}
+# We want to find the probability that there will be more than 1786 students who accept their admittance offer, of 2500 admitted and with a 70% chance admitted student will accept.
+
+# From the text:
+# Normal Approximation to the Binomial Distribution
+# 
+# given your probability of occurrence p
+# then for a sample size n
+# if n*p > 10 and n(1-p) > 10 
+# both
+# then the distribution of ... number of successes in that sample size,
+# is nearly normal. Use mean mu = np and sigma sd = sqrt( np(1-np))
+# 
+# breaks down on small intervals.
+# can do a correction by adding 0.5 to one side or something... ugh.
+
+# Here, n=2500
+# 'success' means a given student accepted admission, "fail"means they did not
+# Given a sample what's the predicted number of students who fulfill certain criteria?
+
+# np = 2500*0.7 Is this > 10? Yes
+2500*0.7
+# n(1-p) = 2500*0.3 Is this > 10? Yes
+2500*0.3
+# So we can use the "Normal Approximation to the Binomial Distribution"
+
+# I think this means ... how to find the predicted number of students who accept, if expectation of acceptance is 0.7 and we invited 2500;and whether that number exceeds 1786, the number of dorm spaces available?
+
+# So the 
+
+# Shouldn't that just be 0.7*2500?
+# OK, yes that's the predicted or expected number of students who accept: that's the mean of the distribution of accepteds from the probability distribution. OK, kind of get this.
+# That mean is:
+0.7*2500 # mean mu = 1750
+# And standard deviation sigma is: sqrt( np(1-p) )
+sqrt( 0.7*2500*(1-0.7)) # sigma = 22.91288
+
+# We want pnorm(x, mean, sd)) for area under prob curve to right of x=1786:
+1 - pnorm(1786, mean=1750, sd=22.91288)
+pnorm(1786, mean=1750, sd=22.91288, lower.tail=FALSE)
+# answer: 0.05807173
+
+# Book's answer:
+
+# book instead calculates Z from above as 1.61 using sigma approx. 23;
+# The Z-score of an observation x is the number of sd's it falls above or below the mean; defined as: Z = (x-mu)/sigma
+
+Z = (1786 - 1750)/ sqrt( 0.7*2500*(1-0.7)) 
+Z # But I get 1.571169, not 1.61, for Z
+# how about using the approximation of 23 for sigma:
+(1786 - 1750)/ 23 # no, still not 1.61:  1.565217
+
+# Try with approx of 23:
+1 - pnorm(1786, mean=1750, sd=23) # no, still like mine: 0.05876597
+1 - pnorm(Z) # still like mine: 0.05807172
+
+# Try 1 - pnorm(Z), using book's Z value:
+1 - pnorm(1.61) # 0.05369893  # This matches book's answer. Rounding error?
+
+# Then book adds the "0.5 correction" which I don't quite grok yet:
+
+1 - pnorm(1.61) + 0.5 # 0.5536989
+
+# And geez the magnitude of the correction seems pretty significant compared to the pnorm so yeah I don't get it.
+
+# R uses pbinom, dbinom, ... maybe look into that! That would be not using the normal approximation...
+
+
+```
+
+
+4.38 Speeding on the I-5, Part II. Exercise 4.36 states that the distribution of speeds of cars traveling on the Interstate 5 Freeway (I-5) in California is nearly normal with a mean of 72.6 miles/hour and a standard deviation of 4.78 miles/hour. The speed limit on this stretch of the I-5 is 70 miles/hour.
+(a) A highway patrol officer is hidden on the side of the freeway. What is the probability that 5 cars pass and none are speeding? Assume that the speeds of the cars are independent of each other.
+(b) On average, how many cars would the highway patrol officer expect to watch until the first car that is speeding? What is the standard deviation of the number of cars he would expect to watch?
+
+
+### 4.39 Auto insurance premiums. Suppose a newspaper article states that the distribution of auto insurance premiums for residents of California is approximately normal with a mean of $1,650. The article also states that 25% of California residents pay more than $1,800.
+(a) What is the Z-score that corresponds to the top 25% (or the 75th percentile) of the standard normal distribution?
+(b) What is the mean insurance cost? What is the cutoff for the 75th percentile?
+(c) Identify the standard deviation of insurance premiums in California.
+
+```{r}
+# (a) Z= to be determined
+# (b) The mean insurance cost is $1650. The cutoff for the 75th percentile is $1800.
+# (c) sigma = to be determined
+
+# for (a): Well, we know 1 - pnorm(1800, mean=1650, sd= TBD) = 0.25
+# so pnorm(1800, mean=1650, sd= TBD) = 0.75
+# How do I determine the z-score for this?
+# 1 - pnorm(Z) = 0.25 = pnorm(1800, mean=1650, sd= TBD)
+# Z = (x-mu)/sigma
+# Z = (1800-1650)/sigma 
+# Honestly I do not see how to determine Z from the given information - !
+
+# Book's answer:
+# 4.39 
+# (a) Z = 0.67              # how? Given sigma I could calculate it but don't have sigma
+# (b) μ = $1650, x = $1800. # ok yes
+# (c) 0.67 = 1800−1650 → σ = $223.88   # What is the meaning of → here? implies that?
+
+# Does qnorm answer the question for Z?
+qnorm(0.75) # Qnorm gives you the zscore given the percentile! The left percentile. 
+# Z = (1800-1650)/sigma 
+sigma = (1800-1650)/qnorm(0.75)
+sigma
+
+```
+
+
+
+4.40 SAT scores. SAT scores (out of 1600) are distributed normally with a mean of 1100 and a standard deviation of 200. Suppose a school council awards a certificate of excellence to all students who score at least 1350 on the SAT, and suppose we pick one of the recognized students at random. What is the probability this student’s score will be at least 1500? (The material covered in Section 3.2 on conditional probability would be useful for this question.)
+
+
+### 4.41 Married women. The American Community Survey estimates that 47.1% of women ages 15 years and over are married.41
+(a) We randomly select three women between these ages. What is the probability that the third woman selected is the only one who is married?
+(b) What is the probability that all three randomly selected women are married?
+(c) On average, how many women would you expect to sample before selecting a married woman? What is the standard deviation?
+(d) If the proportion of married women was actually 30%, how many women would you expect to sample before selecting a married woman? What is the standard deviation?
+(e) Based on your answers to parts (c) and (d), how does decreasing the probability of an event affect the mean and standard deviation of the wait time until success?
+40S. Johnson and D. Murray. “Empirical Analysis of Truck and Automobile Speeds on Rural Interstates: Impact of Posted Speed Limits”. In: Transportation Research Board 89th Annual Meeting. 2010.
+ 41U.S. Census Bureau, 2010 American Community Survey, Marital Status.
+```{r}
+# Skipped this question.
+```
+ 
+
+
+4.42 Survey response rate. Pew Research reported that the typical response rate to their surveys is only 9%. If for a particular survey 15,000 households are contacted, what is the probability that at least 1,500 will agree to respond?42
+
+
+### 4.43 Overweight baggage. Suppose weights of the checked baggage of airline passengers follow a nearly normal distribution with mean 45 pounds and standard deviation 3.2 pounds. Most airlines charge a fee for baggage that weigh in excess of 50 pounds. Determine what percent of airline passengers incur this fee.
+```{r}
+# The percent of baggage above 50 lbs is the area under the probability curve with mean 45 and sd 3.2, that is to the right of the value 50:
+
+1-pnorm(50, 45, 3.2) # 0.05908512
+pnorm(50, mean=45, sd=3.2, lower.tail=FALSE)
+1 - pnorm( (50-45)/3.2 )
+
+# Book's answer:
+#  4.43 Z = 1.56, P (Z > 1.56) = 0.0594, i.e. 6%.
+
+# Pretty close; maybe rounding error.
+Z= (50-45)/3.2
+Z # 1.5625
+1-pnorm(Z) # same as my answer
+1-pnorm(1.56) # book's answer, 0.05937994, if rounded
+```
+
+
+4.44 Heights of 10 year olds, Part I. Heights of 10 year olds, regardless of gender, closely follow a normal distribution with mean 55 inches and standard deviation 6 inches.
+(a) What is the probability that a randomly chosen 10 year old is shorter than 48 inches? (b) What is the probability that a randomly chosen 10 year old is between 60 and 65 inches?
+(c) If the tallest 10% of the class is considered “very tall”, what is the height cutoff for “very tall”?
+
+
+### 4.45 Buying books on Ebay. Suppose you’re considering buying your expensive chemistry textbook on Ebay. Looking at past auctions suggests that the prices of this textbook follow an approximately normal distribution with mean $89 and standard deviation $15.
+(a) What is the probability that a randomly selected auction for this book closes at more than $100?
+```{r}
+1 - pnorm(100, 89, 15) # about 0.23
+
+# Book: Book always calculates the above using Z. Is there an advantage to that?
+Z = (100-89)/15
+Z # 0.7333333
+pnorm(Z) # this is prob that random book is below $100
+1 - pnorm(Z) # 0.2316776  # 
+# Book also always rounds. Any particular reason?
+1 - pnorm(0.73) # 0.2326951, rounded to 0.2327
+```
+
+(b) Ebay allows you to set your maximum bid price so that if someone outbids you on an auction you can automatically outbid them, up to the maximum bid price you set. If you are only bidding on one auction, what are the advantages and disadvantages of setting a bid price too high or too low? What if you are bidding on multiple auctions?
+```{r}
+# Here's the book's reasoning:
+# (b)Ifyou are bidding on only one auction and set a low maxi- mum bid price, someone will probably outbid you. If you set a high maximum bid price, you may win the auction but pay more than is necessary. If bidding on more than one auction, and you set your maxi- mum bid price very low, you probably won’t win any of the auctions. However, if the maximum bid price is even modestly high, you are likely to win multiple auctions.
+
+# This seems to me to make sense only if you are planning to resell the books instead of use them for class and so don't care about which particular books you acquire. Is this the problem with capitalism in a nutshell? or it's power and strength? both? or just one problem...
+
+```
+
+(c) If you watched 10 auctions, roughly what percentile might you use for a maximum bid cutoff to be somewhat sure that you will win one of these ten auctions? Is it possible to find a cutoff point that will ensure that you win an auction?
+```{r}
+# (Ah to the above point it could be that you are watching 10 auctions for the same book, which is the one you need for class.)
+
+# I am not sure how to go about answering this question.
+
+# Book says:(c) An answer roughly equal to the 10th percentile would be reasonable. Regrettably, no percentile cutoff point guarantees beyond any possible event that you win at least one auction. However, you may pick a higher percentile if you want to be more sure of winning an auction.
+
+##---------------------------------------------------------------
+# From Zoom meeting discussion: This was the right way to do it:
+##---------------------------------------------------------------
+#mean $89 and standard deviation $15.
+qnorm(0.1, mean=89, sd=15) # 69.77673
+# With this: I've asked for the 10th percentile of this distribution.
+# $69.78 max bid should win 1/10 auctions.... or 10/100 or 5/50 auctions, for that matter. The number of auctions is not actually specified, only the percent of them that are won. Or the proportion (0.1, on scale of 0 to 1).
+qnorm(1.5, mean=89, sd=15) # This gives NaNs # yeah proportion can't be greater than 1
+# qnorm tells me, given a specified area under the curve for a specified distribution,aka a specified proportion of total area under that curve, outputs: what is the value on the x-axis in the same units as the mean and sd of the distribution, that has the that proportion be the area under the curve to the left of that value.
+
+qnorm(0.2, mean=89, sd=15) # 76.37568
+# Or, $76.38 would be expected to win 2/10 auctions (i.e. percentile is 20%).
+
+# How about the reverse:
+pnorm(76.38, mean=89, sd=15) # This should give us 0.2 (the area under the curve
+# that is below the value 76.38)
+# It does. 0.2000806
+# But that is what is confusing me, thinking of "area under the curve" as the
+# proportion of values less than the specified value in the distribution,
+# and how that translates into thinking of "1 out of 10 trials" or auctions,
+# as 2 of 10 auctions is the lowest 20% of the area under the curve. Phew.
+pnorm(150, mean=89, sd=15) # returns an area under curve, given x-value and distribution
+# for pnorm all the parameters are in the same units, here, dollars.
+# output is a proportion between 0 and 1.
+qnorm(0.37, mean=89, sd=15) # returns an x-value, given area under curve and distribution
+# for qnorm the first parameter is a proportion between 0 and 1; different unit than the other two parameters: the distribution's mean and sd.
+# output is in the same units as mean and sd.
+
+# Just how reality maps onto our model; how to think of it.
+# Yeah that 1/10 trials means the lowest 10% of our distribution of prices, which is the percent of auctions won by prices up to and includig a specific price... Ow.
+# (that that's what we want, and not something like using a model that thinks of wins vs losses ie binomial or bernoulli stuff. )
+# Phew!
+
+#  I guess it does make sense though:
+# Given this distrubution of prices, 10% of them are below such-and-such price; so, that price should be expected to win one of ten auctions having that price distribution.
+
+# Brain hurts a bit but OK.
+
+```
+
+(d) If you are willing to track up to ten auctions closely, about what price might you use as your maximum bid price if you want to be somewhat sure that you will buy one of these ten books?
+```{r}
+# Book says:
+# (d) Answers will vary a little but should correspond to the answer in part (c). We use the 10th percentile: Z = −1.28 → $69.80.
+
+####-------------------------------------------------------------
+#### These were approaches we tried that did not quite work out:
+
+# mean $89 and standard deviation $15.
+# maybe: qbinom( 0.1, 10, ?)
+### qbinom(0.95, 10, not_sure)
+# qbinom(desired somewhat sure of winning, number of trials, prob of success on eqch trial)
+### qbinom(0.1, 10, unknown)
+### qnorm(not_sure)
+# what's our probability model:
+# outcomes and prob of each outcome
+# I wonder if you *could* model it this way? list all the win/loss options in 10 trials? but we don't exactly have probability of success on each trial? is that what we'd need? not sure.
+####-------------------------------------------------------------
+
+```
+
+
+4.46 Heights of 10 year olds, Part II. Heights of 10 year olds, regardless of gender, closely follow a normal distribution with mean 55 inches and standard deviation 6 inches.
+(a) The height requirement for Batman the Ride at Six Flags Magic Mountain is 54 inches. What percent of 10 year olds cannot go on this ride?
+(b) Suppose there are four 10 year olds. What is the chance that at least two of them will be able to ride Batman the Ride?
+(c) Suppose you work at the park to help them better understand their customers’ demographics, and you are counting people as they enter the park. What is the chance that the first 10 year old you see who can ride Batman the Ride is the 3rd 10 year old who enters the park?
+(d) What is the chance that the fifth 10 year old you see who can ride Batman the Ride is the 12th 10 year old who enters the park?
+
+
+### 4.47 Heights of 10 year olds, Part III. Heights of 10 year olds, regardless of gender, closely follow a normal distribution with mean 55 inches and standard deviation 6 inches.
+(a) What fraction of 10 year olds are taller than 76 inches?
+```{r}
+
+1 - pnorm(76, 55, 6) # 0.0002326291 # wow small, less than 1% (0.02)
+# Maybe that's the beauty of the Z:
+Z = (76-55)/6
+Z # 3.5
+# this means that 76 inches is 3.5 standard deviations away from the mean; 
+# and we know that's few %, from the "rule of thumb" 68-95-99.7 for 1,2,3 SD's from mean
+```
+
+(b) If there are 2,000 10 year olds entering Six Flags Magic Mountain in a single day, then compute the expected number of 10 year olds who are at least 76 inches tall. (You may assume the heights of the 10-year olds are independent.)
+```{r}
+#TBD
+```
+
+(c) Using the binomial distribution, compute the probability that 0 of the 2,000 10 year olds will be at least 76 inches tall.
+```{r}
+#TBD
+```
+
+(d) The number of 10 year olds who enter Six Flags Magic Mountain and are at least 76 inches tall in a given day follows a Poisson distribution with mean equal to the value found in part (b). Use the Poisson distribution to identify the probability no 10 year old will enter the park who is 76 inches or taller.
+```{r}
+#TBD
+```
+
+
+
+4.48 Multiple choice quiz. In a multiple choice quiz there are 5 questions and 4 choices for each question (a, b, c, d). Robin has not studied for the quiz at all, and decides to randomly guess the answers. What is the probability that
+(a) the first question she gets right is the 3rd question? (b) she gets exactly 3 or exactly 4 questions right?
+(c) she gets the majority of the questions right?
+
