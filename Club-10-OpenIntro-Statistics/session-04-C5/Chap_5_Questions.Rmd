@@ -1,0 +1,209 @@
+---
+title: "Chap 5 Problems"
+author: "Dan Scholnick"
+date: "8/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+```{r, echo= FALSE}
+#library packages
+library(tidyverse)
+library(openintro)
+library(infer)
+library(plotly)
+```
+
+*QUESTION 5.27* 
+Relaxing after work. The General Social Survey asked the question: “After an average work day, about how many hours do you have to relax or pursue activities that you enjoy?” to a random sample of 1,155 Americans. A 95% confidence interval for the mean number of hours spent relaxing or pursuing activities they enjoy was (1.38, 1.92).
+  (a) Interpret this interval in context of the data.
+  (b) Suppose another set of researchers reported a confidence interval with a larger    margin of error based on the same sample of 1,155 Americans. How does their            confidence level compare to the confidence level of the interval stated above?
+  (c) Suppose next year a new survey asking the same question is conducted, and this      time the sample size is 2,500. Assuming that the population characteristics, with        respect to how much time people spend relaxing after work, have not changed much    within a year. How will the margin of error of the 95% confidence interval             constructed based on data from the new survey compare to the margin of error of the    interval stated above?
+
+*ANSWER 5.27 *
+a) We can have 95% confidence that the average American spends between 1.38 and 1.92 hours after an average workday relaxing or pursuing activities that they enjoy.
+b) Due to the fact that the Z score/margin of error increases as the CI increases, the CI must be higher than 95%. 
+
+                  z⋆ × SE = margin of error
+                  
+c) The margin of error will decrease as increasing the sample size n will lead to a smaller SE and therefore a smaller margin of error 
+
+                  SEpˆ = sq.rt(pˆ(1 − pˆ)/n)
+                  
+![ss](images/ss.png)
+
+#########
+*QUESTION 5.28* 
+Minimum wage, Part II. In Exercise 5.21, we learned that a Rasmussen Reports survey of 1,000 US adults found that 42% believe raising the minimum wage will help the economy. Construct a 99% confidence interval for the true proportion of US adults who believe this.
+n = 1000
+p-hat = .42
+SEp = sq.rt(p(1 − p)/n)
+CI = point estimate ± z⋆ × SE
+```{r }
+#5.28 ANSWER
+n <- 1000
+p <- .42
+SE <- sqrt(p*(1-p)/n)
+print(paste("SE=", SE))
+#margin of error z for 99% = 2.576
+Z <- 2.576
+ME <- Z * SE 
+print(paste("ME=", ME))
+CIlower <- p - Z *SE
+CIupper <- p + Z *SE
+print(paste("The 99% CI is:", CIlower, "to",CIupper))
+```
+
+*QUESTION 5.29 *
+Testing for food safety. A food safety inspector is called upon to investigate a restaurant with a few customer reports of poor sanitation practices. The food safety inspector uses a hypothesis testing framework to evaluate whether regulations are not being met. If he decides the restaurant is in gross violation, its license to serve food will be revoked.
+(a) Write the hypotheses in words.
+(b) What is a Type 1 Error in this context?
+(c) What is a Type 2 Error in this context?
+(d) Which error is more problematic for the restaurant owner? Why?
+(e) Which error is more problematic for the diners? Why?
+(f) As a diner, would you prefer that the food safety inspector requires strong evidence or very strong evidence of health concerns before revoking a restaurant’s license? Explain your reasoning.
+
+*Answer 5.29*
+a) Ho:The restaurant is meeting health regulations. Ha: The restaurant is not meeting health regulations. 
+b) The restaurant inspector decides the restaurant is not meeting health regulations even though it is and revokes it license to serve food.
+c) The restaurant inspector decides the restaurant is meeting health regulations even though it is not and leaves it open to serve potentially dangerous food.
+d) Type 1 is probably more problematic for restaurant owner as it is shut down even though there is no health issue. Getting patrons sick could be worse.
+e) Type 2 is worse for patrons as they are being subjected to potentially harmful food.
+f) Strong evidence as I would not want to get sick. Better to shut down a restaurant when it does meet health standards, then to keep one open that does not.
+
+*QUESTION 5.30 *
+True or false. Determine if the following statements are true or false, and explain your reasoning. If false, state how it could be corrected.
+(a) If a given value (for example, the null hypothesized value of a parameter) is within a 95% confidence interval, it will also be within a 99% confidence interval.
+(b) Decreasing the significance level (α) will increase the probability of making a Type 1 Error.
+(c) Suppose the null hypothesis is p = 0.5 and we fail to reject H0. Under this scenario, the true population proportion is 0.5.
+(d) With large sample sizes, even small differences between the null value and the observed point estimate, a difference often called the effect size, will be identified as statistically significant.
+
+*ANSWERS 5.30*
+a) True as 99% interval is wider.
+b) False as reducing α will actually reduce Type 1 error.
+c) I think it is false as we cannot tell for sure it is p = .5. We just fail to reject it.
+d) True. As the sample size increases, the point estimate becomes more accurate. But, it might not be practically significant.
+
+*QUESTION 5.32 *
+Nearsighted. It is believed that nearsightedness affects about 8% of all children. In a random sample of 194 children, 21 are nearsighted. Conduct a hypothesis test for the following question: do these data provide evidence that the 8% value is inaccurate?
+
+*ANSWER 5.32*
+Ho = 8% of children are nearsighted
+Ha = More or less than 8% of children are nearsighted
+Conditions are met with Independence from random sample and np and n(1-p) > 10
+```{r}
+z = 1.96 #95% confidence level
+n = 194
+p = .08
+pe = 21/194 #point estimate
+print(paste("point estimate =", pe))
+print(paste("np =",n*p ))#15.52 >10
+print(paste("n(1-p) =", n*(1-p))) # 178 >10
+SE <- sqrt(p*(1-p)/n)
+print(paste("SE=", SE ))
+
+#Confidence intervals
+CI <- function(n,p,pe,z) {
+  SE <- sqrt(p*(1-p)/n)
+  CIlower <- pe - z *SE
+  CIupper <- pe + z *SE
+print(paste("The 95% CI is:", CIlower, "to",CIupper))
+}
+
+CI(n,p,pe,z)
+
+#Create data set of expected
+nearsighted <- tibble(
+  eyesight = c(rep("Yes", 178), rep("No", 16)))
+
+#calculate proportion
+nearsighted %>%
+  count(eyesight) %>%
+  mutate(p = n /sum(n))
+
+#Calculate CI using rep/sampling
+nearsighted %>%
+  specify(response = eyesight, success = "No") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.95)
+
+#Using Z value # find area under curve here (https://thepercentagecalculator.net/Zscore/Table/plus/Z-score-0.html)
+Z = (pe - p)/SE
+area_above_curve = .0735
+print(paste("Z =", Z, ". p-value =", 2* area_above_curve))
+```
+
+*ANSWER 5.32 con.* 
+Because the random sample point estimate is 0.108, which falls within the range of plausible values from the confidence interval, we cannot say the null value is implausible. (Can also calculate the Z value and see that it is within 1.96 std from the mean or more specifically p-value is .147 and standard significance level of .05.) Using either method, we cannot reject the null hypothesis.
+
+*QUESTION 5.33* 
+Nutrition labels. The nutrition label on a bag of potato chips says that a one ounce (28 gram) serving of potato chips has 130 calories and contains ten grams of fat, with three grams of saturated fat. A random sample of 35 bags yielded a confidence interval for the number of calories per bag of 128.2 to 139.8 calories. Is there evidence that the nutrition label does not provide an accurate measure of calories in the bags of potato chips?
+
+*ANSWER 5.33*
+-Simple Answer is that 130 calories is in the range of the confidence interval 128.2 to 139.8 and therefore we cannot conclude that the nutrition label is not accurate. (Conditions of Independence are met with random sample, but not sure about success/failure)
+
+*QUESTION 5.34* 
+CLT for proportions. Define the term “sampling distribution” of the sample proportion, and describe how the shape, center, and spread of the sampling distribution change as the sample size increases when p = 0.1.
+
+*ANSWER 5.34*
+The Central Limit Theorem states that the sampling distribution of the sample means will approach a normal distribution as the sample size increases. Essentially, the sample mean will equal the population mean and the curve shape will more closely represent a normal bell-curve aligning with the 68% of distribution within 1 std, 95% within 2 std and 99.7% within 3 std.
+![](images/Norm_Dist_perc.png) 
+![](images/BellCurve.jpg)
+![](images/Normal_Dist.png)
+
+
+*QUESTION 5.35*
+Practical vs. statistical significance. Determine whether the following statement is true or false, and explain your reasoning: “With large sample sizes, even small differences between the null value and the observed point estimate can be statistically significant.”
+
+*ANSWER 5.35* 
+5.35 True. If the sample size gets ever larger, then the standard error 
+
+![ss](images/ss.png)
+
+(*SE = sqrt(p(1-p)/n)*) will become ever smaller. Eventually, when the sample size is large enough and the standard error is tiny, we can find statistically significant yet very small differences between the null value and point estimate (assuming they are not ex- actly equal).
+
+*ANSWER 5.36*
+When the sample size increases, the p value decreases. This occurs because the data in distribution will become more normal with points closer to population mean and make the points farther away from the center even more unlikely.(p-value is calculated as *2( tail area*)). This makes it more likely that the null hypothesis will be rejected.
+
+*QUESTION 5.37* 
+Gender pay gap in medicine. A study examined the average pay for men and women entering the workforce as doctors for 21 different positions.
+(a) If each gender was equally paid, then we would expect about half of those positions to have men paid more than women and women would be paid more than men in the other half of positions. Write appropriate hypotheses to test this scenario.
+(b) Men were, on average, paid more in 19 of those 21 positions. Complete a hypothesis test using your hypotheses from part (a).
+
+*ANSWER 5.37*
+a) Ho = .5 (Men and women are paid equally.)
+   Ha not = .5 (Men and women are not paid equally.)
+b)Conditions for CLT
+Not sure about independence
+```{r}
+#Success/Failure condition tests
+n= 21
+p= .5
+print(paste("np =",n*p ))#10.5 >10
+print(paste("n(1-p) =", n*(1-p))) # 10.5 >10
+
+#Calculate SE
+SE <- sqrt(p*(1-p)/n)
+print(paste("SE=", SE ))
+
+#calculate point estimate from sample data
+point_estimate = 19/21
+print(paste("point estimate =", point_estimate))
+
+#Using Z value
+Z = (point_estimate - p)/SE
+print(paste("Z=", Z))
+
+#The proportion of the tail area is 0.00010
+print(paste("p-value=", 2*0.0001, ": p is low, so Ho must go"))
+
+```
+*ANSWER 5.37 con.*
+Because the p-value is smaller than (0.05), we reject the null hypothesis and conclude that men and women are not paid equally.
+
