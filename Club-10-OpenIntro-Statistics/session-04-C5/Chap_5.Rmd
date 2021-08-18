@@ -1,0 +1,146 @@
+---
+title: "Chap_5"
+author: "Dan Scholnick"
+date: "8/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+# 1. Create a set of 250 million entries, where 88% of them are "support"
+# and 12% are "not".
+pop_size <- 250000000
+possible_entries <- c(rep("support", 0.88 * pop_size), rep("not", 0.12 * pop_size))
+# 2. Sample 1000 entries without replacement.
+sampled_entries <- sample(possible_entries, size = 1000)
+# 3. Compute p-hat: count the number that are "support", then divide by # the sample size.
+sum(sampled_entries == "support") / 1000
+```
+As we begin applying the Central Limit Theorem, be mindful of the two technical conditions: 
+  1)Independence: -the observations must be independent 
+    a) Subjects in an experiment are considered independent if they undergo           random assignment to the treatment groups.
+    b) If the observations are from a simple random sample, then they are             independent.
+    c) If a sample is from a seemingly random process, e.g. an occasional             error on an assembly line, checking independence is more difficult. 
+    
+  2)Success-failure condition:
+    - the sample size must be sufficiently large such that: 
+    a) np ≥ 10 
+    b) n(1 − p) ≥ 10
+    
+  3) samples from a population are no larger than 10% of the population *
+
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+95% CONFIDENCE INTERVAL FOR A PARAMETER
+When the distribution of a point estimate qualifies for the Central Limit Theorem and therefore closely follows a normal distribution, we can construct a 95% confidence interval as:
+                        
+                        point estimate ± 1.96 × SE
+                        
+For any confidence interval:
+ 
+                        point estimate ± z⋆ × SE 
+
+where z⋆ corresponds to the confidence level selected.
+
+ MARGIN OF ERROR
+In a confidence interval, z⋆ × SE is called the margin of error.
+
+NULL AND ALTERNATIVE HYPOTHESES
+The null hypothesis (H0) often represents a skeptical perspective or a claim to be tested. The alternative hypothesis (HA) represents an alternative claim under consideration and is often represented by a range of possible parameter values.
+Our job as data scientists is to play the role of a skeptic: before we buy into the alternative hypothesis, we need to see strong supporting evidence.
+
+```{r}
+#check to see if the conditions are met for pˆ to be approximately normal
+p = .149 
+n = 228
+#Calculate np & n(1 − p)
+n*p # 33.972
+n*(1-p) # 194.028
+```
+```{r}
+#Calculate 95% CI  (point estimate ± z⋆ × SE)
+
+#First calculate SE (SEpˆ = sq.rt(pˆ(1 − pˆ)/n))
+SE <- sqrt((.149*(1-.149))/228) #.024
+
+#Then calculate CI (z = 1.96 for 95% CI)
+z <- 1.96
+p <- .149
+CIupper <- p + z *SE
+CIlower <- p - z *SE
+CIlower
+CIupper
+print("We reject the null hypothesis with a 95% CI and decide that college-educated adults do worse than random guessing on this question.")
+```
+
+P-VALUE
+The p-value is the probability of observing data at least as favorable to the alternative hypothesis as our current data set, if the null hypothesis were true. We typically use a summary statistic of the data, in this section the sample proportion, to help compute the p-value and evaluate the hypotheses.
+*The p-value is a way of quantifying the strength of the evidence against the null hypothesis and in favor of the alternative hypothesis.
+
+COMPARE THE P-VALUE TO α TO EVALUATE H0
+When the p-value is less than the significance level, α, reject H0. We would report a conclusion
+that the data provide strong evidence supporting the alternative hypothesis.
+When the p-value is greater than α, do not reject H0, and report that we do not have sufficient evidence to reject the null hypothesis.
+  
+  **** For 2-sided hypothesis test we double the tail area to get the p-value
+  **** For 1-sided hypothesis test we use the tail area as the p-value
+  
+If making a Type 1 Error is dangerous or especially costly, we should choose a small significance level (e.g. 0.01). Under this scenario we want to be very cautious about rejecting the null hypothesis, so we demand very strong evidence favoring HA before we would reject H0.
+If a Type 2 Error is relatively more dangerous or much more costly than a Type 1 Error, then we might choose a higher significance level (e.g. 0.10). Here we want to be cautious about failing to reject H0 when the alternative hypothesis is actually true.
+
+DECIDING THE SIGNIFICANCE LEVEL
+If making a Type 1 Error is dangerous or especially costly, we should choose a small significance level (e.g. 0.01). Under this scenario we want to be very cautious about rejecting the null hypothesis, so we demand very strong evidence favoring HA before we would reject H0.
+If a Type 2 Error is relatively more dangerous or much more costly than a Type 1 Error, then we might choose a higher significance level (e.g. 0.10). Here we want to be cautious about failing to reject H0 when the alternative hypothesis is actually true.
+
+```{r, echo= FALSE}
+library(tidyverse)
+library(openintro)
+library(infer)
+library(plotly)
+```
+The Welcome Global Monitor finds that 20% of people globally do not believe that the work scientists do benefits people like them. First create our population assuming a population size of 100,000. This means 20,000 (20%) of the population think the work scientists do does not benefit them personally and the remaining 80,000 think it does.
+```{r}
+#create data
+global_monitor <- tibble(
+  scientist_work = c(rep("Benefits", 80000), rep("Doesn't benefit", 20000)))
+
+#visualize
+#Create bar plot 
+global_monitor %>%
+  group_by(scientist_work) %>%
+  summarise(count = n()) %>% plot_ly( x = ~scientist_work,  y =~ count, type = 'bar') %>% layout(title = "Science Is Beneficial Survey")
+```
+
+```{r}
+#sample form global_monitor
+samp1 <- global_monitor %>%
+  sample_n(50)
+#create p-hat for samp1
+samp1 %>% 
+  count(scientist_work) %>%
+  mutate(p_hat = n /sum(n))
+
+#use rep to get a distribution of random samples for doesn't benefit
+sample_props50 <- global_monitor %>%
+                    rep_sample_n(size = 50, reps = 15000, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Doesn't benefit")
+#plot results
+sample_props50 %>% ggplot(aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(x = "p_hat (Doesn't benefit)", title = "Sampling distribution of p_hat",
+    subtitle = "Sample size = 50, Number of samples = 15000")
+```
