@@ -1,0 +1,24 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Problem 9.1
+
+a.  $weight = -8.94 smoke + 123.05$
+b.  
+
+-   The intercept is the average weight, in ounces, of a baby born to a mother that does not smoke.
+-   Average weight of a baby where the mother does not smoke: 123.05 oz.
+-   Average weight of a baby where the mother who smokes: `r -8.94 + 123.05` oz.
+c. Yes.
+
+# Problem 9.5
+a. 
+  * Recall $SE = \frac{sigma}{\sqrt{n}}$
+  * $\sigma =$ `r 0.12 * sqrt(55)`
+  * 95th CI = (`r qnorm(c(0.05/2, 0.95 + 0.05/2), mean = -0.08, sd = 0.12)`)
+
+b. Yes, because 0 is within the 95th CI.
