@@ -17,8 +17,65 @@ c. Yes.
 
 # Problem 9.5
 a. 
-  * Recall $SE = \frac{sigma}{\sqrt{n}}$
+  * Recall $SE = \frac{\sigma}{\sqrt{n}}$
   * $\sigma =$ `r 0.12 * sqrt(55)`
   * 95th CI = (`r qnorm(c(0.05/2, 0.95 + 0.05/2), mean = -0.08, sd = 0.12)`)
 
 b. Yes, because 0 is within the 95th CI.
+
+# Problem 9.7
+
+No gestation is the best candidate for removal because it has the lowest adjusted $R^2$ and it is below the adjusted $R^2$ of the previous step (the full model).
+
+Why not remove the other terms at the same time?
+
+# Problem 9.9
+
+There are two approaches to adding features in forward/backward selection. You can base it off the adjusted $R^2$ or the p-value. In the case of the adjusted $R^2$ you add the feature that has the highest adjusted $R^2$ iff it is above the previous model. In the case of the p-value you add the feature that is most significant. 
+
+In this case it would be $\text{gestation}$ based on adjusted $R^2$. It is a tie between $\text{gestation}$ and $\text{smoke}$ for the p-value approach.
+
+# Problem 9.11
+
+Forward/Backward stepwise regression.
+
+What are the pros/cons of these methods?
+
+# Problem 9.13
+
+It all looks good. Maybe some high-leverage points. Compute the h-value.
+
+# Problem 9.15
+
+a.
+* $\text{head_length}$ has some low and high values that look like they might have an effect. 
+* The $\text{skull_width}$ has some values that are high. 
+* The $\text{total_length}$ looks like it might be bi-modal and thus the high and low values may actually just be the tails of the two modes. A factor plot with $\text{population}$ would help clarify this.
+
+b. Because there is correlations between the variables so some of the information in $head_length$ was shared with the other features.
+
+# Problem 9.17
+
+a. 
+$$\ln \left (\frac{p_i}{1-p_i} \right ) = 33.5095 - 1.4207 \text{ sex_male} - 0.2787 \text{ skull_width} + 
+0.5687 \text{ total_length} - 1.8057 \text{ tail_length}$$
+
+Since all the measurements are positive, the coefficients that are positive are positively associated with the $\text{population}$. Thus, $\text{total_length}$ is positively correlated with the outcome. If you were to switch the indicator variable you would have different positive associations (I think).
+
+b.
+
+$$p_i = \frac{e^{33.5095 - 1.4207 \text{ sex_male} - 0.2787 \text{ skull_width} - 
+0.5687 \text{ total_length} + 1.8057 \text{ tail_length}}}{1 + e^{33.5095 - 1.4207 \text{ sex_male} - 0.2787 \text{ skull_width} - 
+0.5687 \text{ total_length} + 1.8057 \text{ tail_length}}}$$
+
+```{r}
+sex_male <- 1
+skull_width <- 63
+tail_length <- 37
+total_length <- 83
+x = 33.5095 - 1.4207 * sex_male - 0.2787 * skull_width - 
+0.5687 * total_length + 1.8057 * tail_length
+p <- exp(x)/exp(1 + x)
+```
+
+$p_i=$ `r p` which indicates that it is most-likely from New South Wales or Queensland because $p < 0.5$. That is, the probability that the possum is from Victoria is `r p`. Thus the probability that it is from New South Wales or Queensland is `r 1 - p`. 
