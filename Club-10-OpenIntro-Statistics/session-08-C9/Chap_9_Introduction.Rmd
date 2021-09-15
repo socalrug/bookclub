@@ -1,0 +1,112 @@
+---
+title: "Chap_9"
+author: "Dan Scholnick"
+date: "9/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+```{r, echo= FALSE}
+library(tidyverse)
+library(openintro)
+library(GGally) # enhanced addition to ggplot()
+library(broom)
+library(skimr)
+library(plotly)
+```
+
+*MUTLIVARIATE LINEAR REGRESSION*
+```{r}
+
+#check out mtcars data set
+skim(mtcars)
+
+#look at relationship between mpg and explanatory variables
+m <- lm(mpg ~ ., data = mtcars)
+summary(m)
+
+#Tinker with explanatory variables to try to find best model
+m1 <- lm(mpg ~ wt + cyl , data = mtcars)
+summary(m1)
+```
+*Use regression to create an equation that you can use to model unknown y based on  known x values.*
+
+Look at Adjusted R-squared, p-values for explanatory variables, F-statistic and p-value to measure the value of the model.
+
+The model is using the explanatory variables to model the variability in the response variable. How does changing an explanatory variable impact the response variable?
+
+``` {r}
+#check out multi linear regression results using tidy()
+tidy(m1)
+
+#Model Diagnostics with augment()
+m1_aug <- augment(m1)
+
+#plot fitted vs residuals
+ggplot(data = m1_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  xlab("Fitted values") +
+  ylab("Residuals")
+
+#check for normality of residuals with a histogram
+ggplot(data = m1_aug, aes(x = .resid)) +
+  geom_histogram(bins = 30) +
+  xlab("Residuals")
+
+#check the fit/residual, normality, heteroskedasticity
+plot(m1)
+
+#check for multi-collinearity
+library(car)
+vif(m1)
+
+```
+*Normality*: qq plot  (test of normality)
+*Heteroskedasticity* (test for variance): Scale-Location plot (Is there a pattern in points?)
+*Outliers*: Residuals vs Leverage (high vs influential)
+*Collinearity*: VIF() Higher means signs of collinearity
+
+
+*LOGSITIC REGRESSION*
+```{r}
+#####Focus on binary, categorical variable am
+
+#Logistic regression for am vs mpg
+logit <- glm(am ~  mpg, data = mtcars, family = binomial)
+
+#check out results
+summary(logit)
+
+#plot logistic regression curve for mpg
+ggplot(logit, aes(x=mpg , y=am)) + 
+  geom_point(alpha=.5) +
+  stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial),
+              col="red", lty=2)
+
+#Logistic regression for am vs mpg + wt + hp
+logit1 <- glm(am ~ mpg + wt + hp, data = mtcars, family = binomial)
+
+#check out results
+summary(logit1)
+
+#plot logistic regression curve for weight
+ggplot(logit1, aes(x=wt, y=am)) + 
+  geom_point(alpha=.5) +
+  stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial),
+              col="red", lty=2)
+```
+*Generally for logistic, look at AIC first along with deviance and then consider p values of explanatory variables.*
+
+The null deviance shows how well the response is predicted by the model with nothing but an intercept.
+
+The residual deviance shows how well the response is predicted by the model when the predictor is included. 
+
