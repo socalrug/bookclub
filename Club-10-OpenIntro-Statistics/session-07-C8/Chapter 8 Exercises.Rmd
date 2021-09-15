@@ -1,0 +1,231 @@
+---
+title: "Chapter 8 Problems"
+output: html_notebook
+---
+
+## Section 8.1 Fitting a Line, Residuals, and Correlation
+### Exercise 8.2
+Shown below are two plots of residuals remaining after fitting a linear model to two different sets of data. Describe important features and determine if a linear model would be appropriate for these data. Explain your reasoning.
+
+![](screenshots/8-2.PNG)
+```{r}
+# Answer: 
+
+# a) Plot if fan shapped meaning toward the beggining the line is a closer fit but toward the end the varaiton in the residuals is greater with more points scattered outward. Not an appropriate linear fit
+
+# b) Plot seems to have a curvature at the beggining, indicating that the data has some none linear relation within it. Thus, not appropriate to model with a linear relationship.
+```
+
+### Exercise 8.5
+The two scatterplots below show the relationship between final and mid-semester exam grades recorded during several years for a Statistics course at a university.
+
+a) Based on these graphs, which of the two exams has the strongest correlation with the final exam grade?
+b) Can you think of a reason why the correlation between the exam you chose in part (a) and the final exam is higher?
+
+![](screenshots/8-5.PNG)
+
+```{r}
+# answer:
+
+# a) Based on the two plots it seems that Exam 2 has a stronger correlation with the final exam grade. The residual variation appears to be smaller than that of Exam 1
+
+# b) One possible explanation is that Exam 2 is a good indicator of improvment in the class which could help a student receive a better grade on their final exam
+```
+
+### Exercise 8.13
+Researchers studying anthropometry collected body girth measurements and skeletal diameter measurements, as well as age, weight, height and gender for 507 physically active individuals The scatterplot below shows the relationship between height and shoulder girth (over deltoid muscles), both measured in centimeters.
+
+a) Describe the relationship between shoulder girth and height.
+b) How would the relationship change if shoulder girth was measured in inches while height remained in centimeters?
+
+![](screenshots/8-13.PNG)
+
+```{r}
+# a) There is a moderately strong, postive relationship between shoulder girth and height.
+# b) Changing the units of one or both variable does not affect the form, direction, or shape of the relationship between the two variables. Relationship looks the same just on another scale.
+```
+ 
+## Section 8.2: Least Squares Regression
+### Exercise 8.21
+The Association of Turkish Travel Agencies reports the number of foreign tourists visiting Turkey and tourist spending by year. Three plots are provided: scatterplot showing the relationship between these two variables along with the least squares fit, residuals plot, and histogram of residuals.
+
+![](screenshots/8-21.PNG)
+
+a) Describe the relationship between number of tourists and spending.
+d) Do the data meet the conditions required for fitting a least squares line? In addition to the scatterplot, use the residual plot and histogram to answer this question.
+
+#### I like to remember <strong>LINE</strong>
+* Linear Assosication
+* Independent Observations
+* Normal Residuals
+* Equal (Constant) Variance
+
+```{r}
+# a) Based on the first visual, the relationship appears to be a moderately strong, positvie relationship between the two variables. 
+# d) The first chart seems to show a linear relationship, however upon inspection of the residual plot, the linear assumpiton does appear to be false. Thus since the condition is not linear (also variance around the points on the line is not quite constant), it would NOT be good to fit this with a linear model. Note: Residual does look quite normal though.
+```
+
+### Exercise 8.25
+The following regression output is for predicting annual murders per million from percentage living in poverty in a random sample of 20 metropolitan areas.
+a) Write out the model: $\hat{murders} = -29.9 + 2.599 \cdot poverty\%$
+b) Interpret intercept
+c) Interpret slope
+d) Interpret $R^2$
+e) calcualte correlation coeff
+![](screenshots/8-25.PNG)
+
+<strong>Remember</strong>, an intercept is only relevant in context with the data.
+
+```{r}
+# b) intercept: For a area with zero poverty rate, the average annual murders per million is expected to be -29.9. This has no meanging as this rate can't be negative or a negative rate doesn't make sense in context with the data.
+# c) Slope: For every 1% increase in poverty rate in a metropolitan area, the annual muders per million is expected to increase by 2.599 on average.
+# d) R^2: 70.52% of the variation in annual murders per million can be explained by the povery rate in an area. 
+# e)
+sqrt(0.7052)
+```
+
+## Section 8.4: Inference for Linear Regression
+### Exercise 8.35
+Exercise 8.25 presents regression output from a model for predicting annual murders per million from percentage living in poverty based on a random sample of 20 metropolitan areas.
+
+a) What are the hypotheses for evaluating whether poverty percentage is a significant predictor of murder rate?
+b) State the conclusion of the hypothesis test from part (a) in context of the data.
+c) Calculate a 95% confidence interval for the slope of poverty percentage, and interpret it in context of the data
+d) Do your results from the hypothesis test and the confidence interval agree? Explain.
+
+(a)
+$H_0: \beta_1 = 0$
+$H_A: \beta_1 \ne 0$
+(b)
+Based on the previous chart, there is a p-value of nearly 0 for the slope estimate. Thus there is significant evidence to reject the null hypotheses and assume that there is SOME relationship between poverty rate and murders in a location.
+
+```{r}
+# c)
+# First find t* that corresponds to a 95% confidence interval with degrees of freedom being 18 (deg_f = n - 2)
+(t_star <- qt(p = 0.05/2, df = 18, lower.tail = F))
+# Then use the SE given to calculate the interval for the slope
+b1 = 2.559
+SE = 0.390
+(CI95 <- c(b1 - (t_star * SE), b1 + (t_star * SE)))
+
+# interpretation: We are 95% confident that the true slope relation between poverty rate and murders is between 1.74 and 3.38
+
+# d) yes, H0 was rejected and the confidence interval does NOT contain anything 0 or lower
+```
+
+## Chapter Exercises
+### Exercise 8.37
+a) A correlation coefficient of -0.90 indicates a stronger linear relationship than a correlation of 0.5.
+b) Correlation is a measure of the association between any two variables.
+
+Answer:
+a) <strong>TRUE.</strong> This is because when comparing the strengths of linear relationships, or R, we focus on the magnitude |R|. The sign is only there to describe the direction of the relationship (postive upward or negative downward). Thus |-0.90| > |0.50|
+b) <strong>FALSE.</strong> A correlation is the strength of a linear relationship between two variables. Two variables can be strongly assosciated in some way but have a very weak linear relationship.
+
+### Exercise 8.39
+Exercise 8.33 presents a scatterplot displaying the relationship between
+husbands’ and wives’ ages in a random sample of 170 married couples in Britain, where both partners’ ages
+are below 65 years. Given below is summary output of the least squares fit for predicting wife’s age from
+husband’s age.
+
+a) We might wonder, is the age difference between husbands and wives consistent across ages? If this were
+the case, then the slope parameter would be $β_1 = 1$. Use the information above to evaluate if there is
+strong evidence that the difference in husband and wife ages differs for different ages.
+
+Hypotheses tests: $H_0: \beta_1 = 1$ $H_A: \beta_1 \neq 1$
+
+```{r}
+# use given info
+SE = 0.0259
+b1 = 0.9112
+b1_null = 1
+deg_f = 170 - 2
+```
+
+```{r}
+# ... and find p_value base on t_value
+(t_stat = (b1 - b1_null) / SE)
+pt(q = t_stat, df = deg_f)
+```
+ with an extremely low p-value (~0.0003), there is strong evidence to sugest that age difference between husbands and wives is NOT consistent across all ages, that is $H_A: \beta_1 \neq 1$.
+
+b) Write eqn: $\hat{age_w} = 1.5740 + 0.91112 \cdot age_m$
+c) Interpret slope and intercept
+```{r}
+# slope: for each additional year in age_h, the wife's age is expected to grow by 0.9112 on average
+# intercept: For men age 0 years, they expect to have a wife with an average age of 1.5740. Not meanignful.
+```
+d) Given $R^2 = 0.88$, what is $R$?
+```{r}
+sqrt(0.88)
+```
+e) You meet a married man from Britain who is 55 years old. What would you predict his wife’s age to be? How reliable is this prediction?
+
+```{r}
+b0 = 1.5740
+b1 = 0.9112
+age_h = 55
+age_w_hat <- function(age){b0 + b1 * age}
+# we are fairly confident this is a good estimate since R^2, the strength of our model fitting the data, is relativley high (88%)
+age_w_hat(age_h)
+```
+
+### Exercise 8.41
+Exercise 8.22 introduced a data set on nutrition information on Starbucks food menu items. Based on the scatterplot and the residual plot provided, describe the relationship between the protein content and calories of these menu items, and determine if a simple linear model is appropriate to predict amount of protein from the number of calories.
+![](screenshots/8-41.PNG)
+
+### Exercise 8.42
+
+
+### Exercise 8.43
+![](screenshots/8-43.PNG)
+
+### Exercise 8.44
+Many college courses conclude by giving students the opportunity to evaluate
+the course and the instructor anonymously. However, the use of these student evaluations as an indicator of
+course quality and teaching effectiveness is often criticized because these measures may reflect the influence
+of non-teaching related characteristics, such as the physical appearance of the instructor. Researchers at
+University of Texas, Austin collected data on teaching evaluation score (higher score means better) and
+standardized beauty score (a score of 0 means average, negative score means below average, and a positive
+score means above average) for a sample of 463 professors.21 The scatterplot below shows the relationship
+between these variables, and regression output is provided for predicting teaching evaluation score from
+beauty score.
+![](screenshots/8-44.PNG)
+
+#### Eqn General:
+$\hat{score} = b_0 + b_1 * beauty$
+
+#### Recall point-slope formula
+$y_2 - y_1 = m(x_2 - x_1)$
+
+#### a)
+```{r}
+# Write down what is is given
+x_bar = -0.0833
+y_bar = 3.9983
+b0 = 4.010
+
+# recall that (x_bar, y_bar) is always a point on the least squares line
+# thus using point-slope formula and some algebra we get:
+
+b1 = (y_bar - b0)/x_bar
+b1
+```
+
+#### b)
+Write the Hypotheses based on summary table<br>
+$H_0: \beta_1 = 0$ <br>
+$H_A: \beta_1 \neq 0$
+
+Because the p-value is very low (\(\approx 0.0000\)), this provides strong evidence that the slope is not 0 on a two tail test. Looking at the positive t-value of 4.13 and half the two-tail p-value (still very close to zero), this provides strong evidence of a positive relationship between teaching evaluation and beauty.
+
+
+### c)
+
+<strong>Linearity:</strong> There seems to be a weak linear trend within this data. However, we do not have a \(R^2\) to help quantify this so it's up personal interpretation whether this fails or not<br>
+
+<strong>Independent Obs.:</strong> Assuming independence due to no clear evidence one way or the other<br>
+
+<strong>Nearly Normal Residuals</strong>: Residual distribution looks quite normal so this seems satisfied.<br>
+
+<strong>Equal (Constant) Variance:</strong> The scatterplot of residuals appears to have constant variability.
