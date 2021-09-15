@@ -1,7 +1,9 @@
 ---
 title: "R Notebook"
-output: html_notebook
-editor_options: 
+output:
+  html_document:
+    df_print: paged
+editor_options:
   chunk_output_type: inline
 ---
 
@@ -25,13 +27,13 @@ b. Yes, because 0 is within the 95th CI.
 
 # Problem 9.7
 
-No gestation is the best candidate for removal because it has the lowest adjusted $R^2$ and it is below the adjusted $R^2$ of the previous step (the full model).
+$\text{age}$ is the best candidate for removal because it has the highest adjusted $R^2$ and it is above the adjusted $R^2$ of the previous step (the full model). This is the criteria for doing backward step. It is the opposite using forward step.
 
 Why not remove the other terms at the same time?
 
 # Problem 9.9
 
-There are two approaches to adding features in forward/backward selection. You can base it off the adjusted $R^2$ or the p-value. In the case of the adjusted $R^2$ you add the feature that has the highest adjusted $R^2$ iff it is above the previous model. In the case of the p-value you add the feature that is most significant. 
+There are two approaches to adding features in forward/backward selection. You can base it off the adjusted $R^2$ or the p-value. In the case of the adjusted $R^2$ you add the feature that has the highest adjusted $R^2$ iff it is above the previous model (forward) or you remove the feature with the feature with the highest adjusted $R^2$ iff it is above the previous model (backwards). In the case of the p-value you add the feature that is most significant. 
 
 In this case it would be $\text{gestation}$ based on adjusted $R^2$. It is a tie between $\text{gestation}$ and $\text{smoke}$ for the p-value approach.
 
